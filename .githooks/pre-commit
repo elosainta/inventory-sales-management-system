@@ -1,0 +1,20 @@
+#!/bin/sh
+# Keeps docs/vault/_generated in step with the code being committed.
+#
+# pre-commit rather than post-commit on purpose: regenerating here lets the
+# refreshed vault be staged into the SAME commit, so there is no follow-up
+# commit and no hook-triggers-hook loop to guard against.
+#
+# Install once per clone:
+#     git config core.hooksPath .githooks
+#
+# Nothing here may block a commit — a missing PHP, a broken boot or a failed
+# write must cost you a stale vault, never a lost commit. Hence `|| exit 0`.
+
+command -v php >/dev/null 2>&1 || exit 0
+
+php artisan vault:sync >/dev/null 2>&1 || exit 0
+
+git add docs/vault/_generated 2>/dev/null
+
+exit 0

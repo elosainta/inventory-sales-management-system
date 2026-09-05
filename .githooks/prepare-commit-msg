@@ -1,0 +1,69 @@
+#!/bin/sh
+# Drafts a commit subject with a local model when you did not write one.
+#
+# Same install as pre-commit — core.hooksPath is already .githooks, so this
+# is live as soon as it lands. Same rule too: nothing here may block a commit.
+# No ollama, no server, no model, a hang, a refusal — every one of those must
+# cost you a blank message box, never a lost commit. Hence `|| exit 0` on the
+# way in and `2>/dev/null` on the way out.
+#
+# It only ever drafts into an EMPTY message. `-m`, `--amend`, merges, squashes
+# and templates all pass a source in $2 and are left exactly alone, because
+# overwriting a message you already wrote is not a helpful hook.
+#
+# The draft is a draft. Read it before you save — a 7B model reads the diff,
+# not the reason for it, and the reason is the half worth committing.
+#
+#     ollama pull qwen2.5-coder:7b
+#
+# Override the model with COMMIT_MODEL. Skip a single commit with
+# NO_AI_COMMIT=1 git commit.
+
+[ -n "$2" ] && exit 0
+[ -n "$NO_AI_COMMIT" ] && exit 0
+
+command -v ollama >/dev/null 2>&1 || exit 0
+
+# Is the server actually up? `ollama run` would otherwise try to start it and
+# sit there while you wonder why `git commit` has stopped.
+curl -sf -m 2 http://127.0.0.1:11434/api/tags >/dev/null 2>&1 || exit 0
+
+model="${COMMIT_MODEL:-qwen2.5-coder:7b}"
+
+# 150s, not 60: loading a 4.7 GB model into 6 GB of VRAM cold measured 44s
+# here, and generation itself is ~1s once it is resident. A 60s ceiling put
+# the first commit of the day inside the margin, where it would silently
+# draft nothing.
+
+# `ollama run` gives no way to raise num_ctx, so it is whatever the model ships
+# with — often 4096. The stat carries most of the signal for a subject line
+# anyway; the diff is here for flavour and is capped to fit beside it.
+changes=$(
+  git diff --cached --stat
+  echo
+  git diff --cached --unified=0 | head -120
+)
+
+[ -n "$changes" ] || exit 0
+
+subject=$(
+  printf '%s\n' "$changes" | timeout 150 ollama run "$model" \
+'Write ONE conventional-commit subject line for this staged diff. Reply with the line only — no quotes, no backticks, no body, no explanation.
+
+Match this repository, which writes plain language after the colon and no full stop:
+  fix(migration): order the section_checks index swap for InnoDB
+  feat(prep)!: delete the appliance-check feature outright
+  test: fix the five long-standing failures, suite green at 99
+  docs(about): pin 1.10.56 commit range, bump the count to 269
+
+Say what changed and why it matters, not which files moved. Under 72 characters.' 2>/dev/null \
+    | tr -d '\r' | sed -e 's/^[`"'"'"']*//' -e 's/[`"'"'"']*$//' -e '/^$/d' | head -1
+)
+
+# A model that rambled past a subject line has not written one.
+[ -n "$subject" ] || exit 0
+[ "${#subject}" -gt 90 ] && exit 0
+
+printf '%s\n\n%s' "$subject" "$(cat "$1")" > "$1.draft" && mv "$1.draft" "$1"
+
+exit 0

@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── ISMS animations ─────────────────────────────────────── */
+
+@keyframes appFadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.app-main { animation: appFadeUp 350ms ease-out; }
+
+@keyframes appModalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+[id$="-modal"] > div {
+    animation: appModalIn 200ms ease-out;
+}
+
+.app-nav-item {
+    transition: background-color 150ms, color 150ms, box-shadow 150ms;
+}
+.app-nav-item:hover {
+    box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.07);
+}
+
+.app-table tbody tr { transition: background-color 120ms; }
+.app-table tbody tr:hover { background: hsl(40,33%,98%); }
+
+/* ── Focus rings — replace browser blue with copper ──────── */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(20,60%,45%,0.35);
+}
+
+/* ── Edit Mode ─────────────────────────────────────────────── */
+.edit-only { display: none; }
+
+/* ── Scrollbars ───────────────────────────────────────────── */
+
+/* Sidebar nav — thin, dark to match copper sidebar */
+#app-sidebar nav::-webkit-scrollbar          { width: 3px; }
+#app-sidebar nav::-webkit-scrollbar-track    { background: transparent; }
+#app-sidebar nav::-webkit-scrollbar-thumb    { background: hsl(24,10%,30%); border-radius: 99px; }
+#app-sidebar nav::-webkit-scrollbar-thumb:hover { background: hsl(24,10%,42%); }
+#app-sidebar nav { scrollbar-width: thin; scrollbar-color: hsl(24,10%,30%) transparent; }
+
+/* Main content — thin, light to match parchment */
+.app-main::-webkit-scrollbar                 { width: 5px; }
+.app-main::-webkit-scrollbar-track           { background: transparent; }
+.app-main::-webkit-scrollbar-thumb           { background: hsl(30,15%,78%); border-radius: 99px; }
+.app-main::-webkit-scrollbar-thumb:hover     { background: hsl(30,15%,60%); }
+.app-main { scrollbar-width: thin; scrollbar-color: hsl(30,15%,78%) transparent; }
+
+/* Horizontal table scrollbar on mobile — keep it minimal */
+div:has(> .app-table)::-webkit-scrollbar        { height: 3px; }
+div:has(> .app-table)::-webkit-scrollbar-track  { background: transparent; }
+div:has(> .app-table)::-webkit-scrollbar-thumb  { background: hsl(30,15%,78%); border-radius: 99px; }
+
+/* Mobile: hide all scrollbars (touch-scrolled, no visual needed) */
+@media (max-width: 768px) {
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+}
+
+/* ── Responsive layout ────────────────────────────────────── */
+
+/* Desktop: hide topbar, keep sidebar inline */
+@media (min-width: 769px) {
+    #app-topbar    { display: none !important; }
+    #app-overlay   { display: none !important; }
+    #app-sidebar   { position: relative !important; left: 0 !important; }
+}
+
+/* Mobile: show topbar, slide sidebar off-screen */
+@media (max-width: 768px) {
+    #app-topbar  { display: flex !important; }
+
+    #app-sidebar {
+        position: fixed !important;
+        top: 0; left: -256px;
+        height: 100%;
+        z-index: 50;
+        transition: left 220ms ease;
+    }
+    #app-sidebar.sidebar-open { left: 0 !important; }
+
+    /* Push main content below topbar */
+    .flex.h-screen { padding-top: 56px; }
+
+    /* Tighter content padding on small screens */
+    .app-main > div {
+        padding: 20px 16px !important;
+    }
+
+    /* Tables scroll horizontally — :has() overrides the wrapper's overflow:hidden */
+    div:has(> .app-table) {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .app-table { min-width: 520px; }
+
+    /* Filter rows wrap */
+    .app-filters {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+
+    /* Page header stacks */
+    .app-page-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    /* KPI grids: 2 columns on mobile */
+    .app-kpi-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Chart grid: single column */
+    .app-chart-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Dashboard header controls wrap and fill width */
+    .app-page-header form[method="GET"] {
+        width: 100%;
+    }
+    .app-page-header form[method="GET"] input[type="month"] {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Bottom row: 1 column */
+    .app-bottom-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Owner sections: 1 column */
+    .app-owner-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Modals full-width on mobile */
+    [id$="-modal"] > div {
+        width: 95vw !important;
+        max-width: none !important;
+        margin: 16px !important;
+    }
+
+    /* ── Tap targets ──────────────────────────────────────────
+       Apple and Material both put the minimum at ~44px. The controls here are
+       inline-styled with 6-11px of vertical padding, so they land at 30-41px —
+       fine with a mouse, fiddly with a thumb, and this is a kitchen where the
+       thumb is often wet.
+
+       Vertical padding rather than min-height on purpose: min-height on an
+       inline-block button leaves the label sitting at the TOP of the taller
+       box, and fixing that means forcing display:inline-flex, which would
+       re-align every left-aligned menu button and centre-aligned label in the
+       app. Symmetric padding grows the box and keeps the label centred whatever
+       the display type, so nothing else has to move.
+
+       !important because the padding it overrides is inline — the same reason
+       every rule above uses it. Horizontal padding is untouched, so nothing
+       gets wider and no row starts wrapping. */
+    button,
+    input[type="submit"],
+    input[type="text"], input[type="search"], input[type="email"],
+    input[type="password"], input[type="number"], input[type="tel"],
+    input[type="date"], input[type="month"], input[type="file"],
+    select, textarea {
+        padding-top: 13px !important;
+        padding-bottom: 13px !important;
+    }
+
+    /* Width matters as much as height, and padding does not fix it for an
+       icon-only button: the modal close "×" measured 56px tall but 14px wide.
+       Anything with a text label is already past 44px, so this only grows the
+       icon buttons. Not applied to inputs — the narrowest is 90px. */
+    button {
+        min-width: 44px;
+    }
+
+    /* A 13px checkbox is the smallest target on any form here, and unlike the
+       others it cannot be grown with padding — the box is the control. */
+    input[type="checkbox"], input[type="radio"] {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* ── Modal panels: never taller than the screen ─────────────
+   Not inside the mobile query on purpose — a short desktop window has the
+   same problem. Without this a tall form (Log Sale, Log Purchase with line
+   items, Add Recipe) runs off the bottom and the Save button cannot be
+   reached: the overlay is `position:fixed`, so the page behind will not
+   scroll, and the panel had no overflow of its own. 23 of the 29 panels were
+   in that state; the dashboard's six already capped themselves, and they keep
+   their own values because this sets no !important.
+
+   Same `[id$="-modal"]` hook the full-width rule above uses: every overlay in
+   the app follows that naming. The two photo lightboxes and #app-overlay do
+   not match it, which is right — the lightbox caps its <img> at 90vh already
+   and #app-overlay is empty. */
+[id$="-modal"] > div {
+    max-height: 90vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}

@@ -1,0 +1,12 @@
+node_modules
+vendor
+.env
+.git
+bootstrap/cache/*.php
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+public/build
+*.md
+tests

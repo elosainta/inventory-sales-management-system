@@ -55,6 +55,37 @@ class SharedPrepChecklistTest extends TestCase
             ->assertSee('Pass Section');
     }
 
+    /**
+     * A photo task offers the camera as well as the gallery.
+     *
+     * Both have to survive together: the camera is `capture="environment"` set
+     * on the one hidden input by the button, and the Upload label beside it
+     * clears the attribute again — a second input sharing name="photo" would
+     * fight over which one posts. If the button ever renders without the
+     * plain file input behind it, a chef with the photo already taken cannot
+     * submit it at all.
+     */
+    public function test_a_photo_task_offers_both_the_camera_and_the_gallery(): void
+    {
+        $section = Section::create(['name' => 'Frying Section']);
+        SectionTask::create([
+            'section_id'     => $section->id,
+            'title'          => 'Chiller Check',
+            'sort_order'     => 0,
+            'requires_photo' => true,
+        ]);
+
+        $this->actingAs(User::factory()->create(['role' => User::ROLE_PART_TIMER]))
+            ->get(route('prep.index'))
+            ->assertOk()
+            ->assertSee('takeTaskPhoto(this)', false)
+            ->assertSee('Upload Photo')
+            ->assertSee('<input type="file" name="photo" accept="image/*"', false)
+            // Set by the button, never in the markup, or the Upload label
+            // beside it would be stuck on the camera.
+            ->assertDontSee('capture="environment"', false);
+    }
+
     public function test_any_account_including_the_support_admin_can_tick_a_task(): void
     {
         [, $task] = $this->sectionWithTask();

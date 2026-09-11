@@ -8,7 +8,7 @@ generated: true
 
 # Models index
 
-37 Eloquent models. "Audited" means the model carries the `LogsActivity` trait — see [[Audit trail]].
+40 Eloquent models. "Audited" means the model carries the `LogsActivity` trait — see [[Audit trail]].
 Model names are plain code, not wiki-links: there is no note per model, and 37 dead links would drown the graph.
 The models that carry real behaviour are explained in [[Code paths index]] and [[Formulas index]].
 
@@ -23,7 +23,8 @@ The models that carry real behaviour are explained in [[Code paths index]] and [
 | `InventoryItem` | `inventory_items` | ✅ | — |
 | `InventoryTally` | `inventory_tallies` | ✅ | `counter` belongsTo, `lines` hasMany |
 | `InventoryTallyLine` | `inventory_tally_lines` | — | `tally` belongsTo, `item` belongsTo |
-| `InvoiceScan` | `invoice_scans` | ✅ | `user` belongsTo |
+| `InvoiceItemAlias` | `invoice_item_aliases` | ✅ | `inventoryItem` belongsTo |
+| `InvoiceScan` | `invoice_scans` | ✅ | `purchase` belongsTo, `user` belongsTo |
 | `LeaveApplication` | `leave_applications` | ✅ | `user` belongsTo, `decider` belongsTo, `attachments` hasMany |
 | `LeaveAttachment` | `leave_attachments` | — | `leaveApplication` belongsTo |
 | `LoginHistory` | `login_histories` | — | `user` belongsTo |
@@ -35,14 +36,16 @@ The models that carry real behaviour are explained in [[Code paths index]] and [
 | `PurchaseLine` | `purchase_lines` | ✅ | `purchase` belongsTo, `inventoryItem` belongsTo |
 | `Recipe` | `recipes` | — | `getProfitAttribute` hasMany, `outputInventoryItem` belongsTo |
 | `RecipeIngredient` | `recipe_ingredients` | ✅ | `recipe` belongsTo, `inventoryItem` belongsTo |
-| `RndEntry` | `rnd_entries` | ✅ | `lines` hasMany, `recipe` belongsTo, `creator` belongsTo, `decider` belongsTo |
-| `RndEntryLine` | `rnd_entry_lines` | — | `rndEntry` belongsTo, `inventoryItem` belongsTo |
+| `RndEntry` | `rnd_entries` | — | `lines` hasMany, `recipe` belongsTo, `creator` belongsTo, `decider` belongsTo |
+| `RndEntryLine` | `rnd_entry_lines` | — | `rndEntry` belongsTo |
 | `Sale` | `sales` | ✅ | `getLabelAttribute` belongsTo, `attachments` hasMany |
 | `SaleAttachment` | `sale_attachments` | — | `sale` belongsTo |
 | `Section` | `sections` | ✅ | `tasks` hasMany |
 | `SectionCheck` | `section_checks` | — | `task` belongsTo, `user` belongsTo |
 | `SectionTask` | `section_tasks` | ✅ | `section` belongsTo, `checks` hasMany |
 | `SpecialEvent` | `special_events` | ✅ | — |
+| `StaffMeal` | `staff_meals` | — | `lines` hasMany, `creator` belongsTo |
+| `StaffMealLine` | `staff_meal_lines` | — | `staffMeal` belongsTo |
 | `StockTake` | `stock_takes` | ✅ | `counter` belongsTo, `entries` hasMany, `openOrders` hasMany |
 | `StockTakeEntry` | `stock_take_entries` | — | `stockTake` belongsTo |
 | `StockTakeItem` | `stock_take_items` | ✅ | `inventoryItem` belongsTo |

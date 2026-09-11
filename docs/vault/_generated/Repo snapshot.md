@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Thu, Sep 3, 2026 9:52 AM.
+Taken Fri, Sep 11, 2026 3:06 PM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,41 +19,41 @@ Taken Thu, Sep 3, 2026 9:52 AM.
 
 | | |
 |---|---|
-| Commits | 308 |
-| HEAD | `679f2d5` |
-| Branch | `main` |
-| Released version | `1.15.4` |
+| Commits | 349 |
+| HEAD | `ec17468` |
+| Branch | `claude/dishes-click-pleasing-78e651` |
+| Released version | `1.26.1` |
 
 ## Size
 
 | Layer | Files |
 |---|---|
-| Models | 37 |
-| Controllers | 34 |
-| Form Requests | 34 |
-| Domain actions | 8 |
+| Models | 40 |
+| Controllers | 35 |
+| Form Requests | 36 |
+| Domain actions | 11 |
 | Middleware | 3 |
-| Console commands | 9 |
-| Migrations | 81 |
-| Blade views | 63 |
-| Tests | 33 |
+| Console commands | 10 |
+| Migrations | 86 |
+| Blade views | 72 |
+| Tests | 38 |
 
 ## Last 15 commits
 
 | Date | Hash | Subject |
 |---|---|---|
-| 2026-09-03 | `679f2d5` | fix(invoice-scan): a refused bill retries without the unproven fields |
-| 2026-09-03 | `59e7674` | docs: cut release 1.15.3 |
-| 2026-09-03 | `e724ca1` | fix(invoice-scan): a stock line posts to the product's own account |
-| 2026-09-03 | `58fbc51` | docs: cut release 1.15.2 |
-| 2026-09-03 | `899e413` | feat(inventory): add slices as a unit |
-| 2026-09-03 | `591881a` | feat(rnd): drop the invoice number from a trial |
-| 2026-09-03 | `809ce3a` | feat(rnd): a trial is a costing sheet, not a single line |
-| 2026-09-03 | `f5baf36` | feat(rnd): show what each menu has cost to develop |
-| 2026-09-03 | `59734f8` | feat(rnd): record the menu the trial was for, not just the item used |
-| 2026-09-03 | `49a63bf` | feat(rnd): call it an R&D, not a purchase |
-| 2026-09-03 | `6741019` | feat(rnd): an approved trial becomes a recipe, and an R&D PDF |
-| 2026-09-03 | `75b5d79` | feat(search): R&D entries turn up in global search |
-| 2026-09-03 | `2209344` | feat(rnd): R&D is done with inventory, and recording it moves stock |
-| 2026-09-03 | `10e6227` | feat(rnd): record R&D purchases for the Owner to approve or reject |
-| 2026-09-03 | `7fdc26e` | fix(nav): a part timer got a 403 on the bare domain and the sidebar logo |
+| 2026-09-11 | `ec17468` | feat(production): make the dish cards feel clickable |
+| 2026-09-11 | `e06f6f3` | docs: cut release 1.26 |
+| 2026-09-11 | `06d1776` | feat(sales): log a whole service on one sheet instead of dish by dish |
+| 2026-09-11 | `1d83b0b` | docs: cut release 1.25 |
+| 2026-09-11 | `06c711a` | feat(sales): open on the menu, log a dish by its quantity |
+| 2026-09-11 | `e66c117` | docs: cut release 1.24.1 |
+| 2026-09-11 | `39df6a4` | refactor: one copy each of the period filter and the costing-sheet code |
+| 2026-09-11 | `81e59dc` | docs: cut release 1.24 |
+| 2026-09-11 | `2b08b8a` | feat(production): removing an entry puts the stock back; boxes start at 0 |
+| 2026-09-11 | `af895f8` | docs: cut release 1.23 |
+| 2026-09-11 | `190c8db` | feat(production): open on the menu, log a dish with what it actually used |
+| 2026-09-11 | `4ebb331` | docs: cut release 1.22 |
+| 2026-09-11 | `113cbec` | feat(invoice-scan): flag an invoice that has been scanned before |
+| 2026-09-11 | `058e30d` | docs: cut release 1.21 |
+| 2026-09-11 | `b91e97c` | feat(invoice-scan): add an item to inventory straight from the review table |

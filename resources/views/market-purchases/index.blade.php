@@ -14,30 +14,7 @@
         @endcan
     </div>
 
-    {{-- Date range filter --}}
-    @php
-        $active = 'background:hsl(20,60%,45%); color:white; border-color:hsl(20,60%,45%);';
-        $normal = 'background:white; color:hsl(24,10%,20%); border-color:hsl(30,15%,85%);';
-    @endphp
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:24px; flex-wrap:wrap;">
-        <a href="{{ route('market-purchases.index', ['range' => 'today']) }}"
-           style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; text-decoration:none; {{ $range === 'today' ? $active : $normal }}">Today</a>
-        <a href="{{ route('market-purchases.index', ['range' => 'week']) }}"
-           style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; text-decoration:none; {{ $range === 'week' ? $active : $normal }}">This Week</a>
-        <a href="{{ route('market-purchases.index', ['range' => 'month']) }}"
-           style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; text-decoration:none; {{ $range === 'month' ? $active : $normal }}">This Month</a>
-        <a href="{{ route('market-purchases.index', ['range' => 'year']) }}"
-           style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; text-decoration:none; {{ $range === 'year' ? $active : $normal }}">This Year</a>
-        <form method="GET" action="{{ route('market-purchases.index') }}" style="display:flex; gap:6px; align-items:center;">
-            <input type="month" name="month" value="{{ $month }}"
-                   style="padding:7px 10px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px;">
-            <button type="submit"
-                    style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; {{ !$range ? $active : $normal }}">Custom</button>
-        </form>
-        <span style="margin-left:auto; font-size:14px; color:hsl(24,5%,45%);">
-            Total spend: <strong>@money($totalSpend)</strong>
-        </span>
-    </div>
+    @include('partials.period-filter', ['route' => 'market-purchases.index', 'totalLabel' => 'Total spend', 'total' => $totalSpend])
 
     @if($purchases->isEmpty())
         <div style="text-align:center; padding:64px; color:hsl(24,5%,45%);">

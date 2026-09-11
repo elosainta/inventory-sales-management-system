@@ -8,7 +8,7 @@ generated: true
 
 # Migrations index
 
-81 migrations, oldest first. The schema they build is described in [[Database overview]].
+86 migrations, oldest first. The schema they build is described in [[Database overview]].
 
 | Date | Migration | Tables touched |
 |---|---|---|
@@ -93,3 +93,8 @@ generated: true
 | 2026-09-03 | add menu name to rnd entries | `rnd_entries` |
 | 2026-09-03 | make rnd entries a costing sheet | `rnd_entry_lines`, `rnd_entries` |
 | 2026-09-03 | drop invoice number from rnd entries | `rnd_entries` |
+| 2026-09-03 | create invoice item aliases table | `invoice_item_aliases` |
+| 2026-09-03 | add purchase id to invoice scans | `invoice_scans` |
+| 2026-09-03 | add bukku product id to inventory items | `inventory_items` |
+| 2026-09-09 | create staff meals table | `staff_meals`, `staff_meal_lines` |
+| 2026-09-09 | drop pax from staff meals | `staff_meals` |

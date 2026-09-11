@@ -23,6 +23,34 @@
         </div>
     @endif
 
+    {{-- The same paper invoice scanned more than once. A flag, not a lock:
+         see InvoiceScan::possibleDuplicates(). Red when one of them is already
+         a bill, because sending this too would put a second one on the books. --}}
+    @if($duplicates->isNotEmpty())
+        @php $alreadyBilled = $duplicates->first(fn ($d) => $d['scan']->isPosted()); @endphp
+        <div style="background:{{ $alreadyBilled ? '#fef2f2' : '#fffbeb' }}; border:1px solid {{ $alreadyBilled ? '#fecaca' : '#fde68a' }}; border-left:3px solid {{ $alreadyBilled ? '#b91c1c' : '#d97706' }}; border-radius:8px; padding:14px 18px; margin-bottom:24px; font-size:13px; color:{{ $alreadyBilled ? '#991b1b' : '#92400e' }}; line-height:1.6;">
+            <strong>
+                @if($alreadyBilled && ! $posted)
+                    Possible duplicate — this invoice may already be in Bukku as {{ $alreadyBilled['scan']->bukku_number }}. Sending it again makes a second bill.
+                @else
+                    Possible duplicate — this invoice looks like one scanned before.
+                @endif
+            </strong>
+            <ul style="margin:6px 0 0; padding-left:18px;">
+                @foreach($duplicates as $dup)
+                    <li>
+                        <a href="{{ route('invoice-scan.show', $dup['scan']) }}" style="color:inherit; font-weight:600;">Scan #{{ $dup['scan']->id }}</a>
+                        — {{ $dup['scan']->supplier_name ?: 'supplier not read' }},
+                        {{ $dup['scan']->invoice_number ?: 'no number' }},
+                        scanned {{ $dup['scan']->created_at->format('M d, Y') }} by {{ $dup['scan']->user?->name ?? 'a former team member' }}.
+                        {{ $dup['scan']->isPosted() ? 'Sent as ' . $dup['scan']->bukku_number . '.' : 'Not sent.' }}
+                        <span style="opacity:0.75;">({{ $dup['reason'] }})</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div style="display:grid; grid-template-columns:minmax(260px,1fr) minmax(320px,2fr); gap:24px; align-items:start;">
 
         {{-- The paper, kept next to the numbers so they can be compared without leaving the page --}}
@@ -56,6 +84,18 @@
                         <tr><td style="padding:6px 0; color:hsl(24,5%,45%);">Total</td><td style="padding:6px 0; font-family:'JetBrains Mono',monospace; font-weight:600;">@money($scan->total_amount)</td></tr>
                     </table>
 
+                    @if($scan->purchase)
+                        <p style="font-size:13px; margin:0 0 16px;">
+                            Added to stock as
+                            <a href="{{ route('purchases.index') }}" style="color:hsl(20,60%,45%); font-weight:500;">purchase #{{ $scan->purchase_id }}</a>,
+                            {{ $scan->purchase->lines()->count() }} {{ \Illuminate\Support\Str::plural('line', $scan->purchase->lines()->count()) }}.
+                        </p>
+                    @else
+                        <p style="font-size:13px; color:hsl(24,5%,45%); margin:0 0 16px;">
+                            No lines were matched to your inventory, so nothing was added to stock.
+                        </p>
+                    @endif
+
                     @if($scan->bukku_short_link)
                         <a href="{{ $scan->bukku_short_link }}" target="_blank" rel="noopener"
                            style="display:inline-block; margin-top:20px; background:hsl(20,60%,45%); color:white; padding:9px 18px; border-radius:6px; font-size:14px; font-weight:500; text-decoration:none;">
@@ -68,8 +108,9 @@
                     </p>
                 </div>
             @else
+                @php $billedTwin = $duplicates->first(fn ($d) => $d['scan']->isPosted()); @endphp
                 <form method="POST" action="{{ route('invoice-scan.push', $scan) }}"
-                      onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').textContent='Sending…';"
+                      onsubmit="{{ $billedTwin ? "if (! confirm(" . json_encode('This invoice may already be in Bukku as ' . $billedTwin['scan']->bukku_number . '. Send it anyway and make a second bill?') . ")) return false;" : '' }} this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').textContent='Sending…';"
                       style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; padding:24px;">
                     @csrf
 
@@ -122,67 +163,93 @@
                         </div>
                     </div>
 
-                    <h3 style="font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500; margin:24px 0 4px;">Lines</h3>
+                    <h3 style="font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500; margin:24px 0 4px;">What was read off the invoice</h3>
                     <p style="font-size:12px; color:hsl(24,5%,45%); margin-bottom:12px; line-height:1.6;">
-                        Map a line to a stock product where you can — the account then comes off the
-                        product itself, which is what puts it against inventory. Anything left
-                        unmapped goes to the account you pick on the row.
+                        Untick a row to leave it off the bill. Match a row to something on your shelf and the
+                        system remembers that wording &mdash; the next invoice calling it the same thing arrives
+                        already matched. Leave the match empty for anything you do not stock, like a delivery
+                        fee or an item that is new to the kitchen.
+                    </p>
+                    <p style="background:hsl(30,25%,97%); border:1px solid hsl(30,15%,88%); border-radius:6px; padding:10px 12px; font-size:12px; color:hsl(24,5%,35%); margin-bottom:12px; line-height:1.6;">
+                        <strong>Sending also adds the matched lines to your stock.</strong> Every row you have
+                        matched goes in as a purchase, raising the quantity on hand and setting the unit cost to
+                        what you paid here. Unmatched rows go on the bill only. <strong>Do not also key this
+                        delivery in under Purchases</strong> &mdash; that would count the stock twice.
                     </p>
 
-                    <div id="lines">
-                        @foreach($lines as $i => $line)
-                            <div class="line-row" style="border:1px solid hsl(30,15%,88%); border-radius:6px; padding:12px; margin-bottom:10px; background:hsl(30,25%,98%);">
-                                <div style="display:grid; grid-template-columns:1fr 80px 110px 110px; gap:8px; align-items:end;">
-                                    <div>
-                                        <label style="{{ $labelCss }} font-size:12px;">Description</label>
-                                        <input type="text" name="lines[{{ $i }}][description]"
-                                               value="{{ $line['description'] ?? '' }}" style="{{ $inputCss }}">
-                                    </div>
-                                    <div>
-                                        <label style="{{ $labelCss }} font-size:12px;">Qty</label>
-                                        <input type="number" step="0.001" min="0" name="lines[{{ $i }}][quantity]"
-                                               value="{{ $line['quantity'] ?? 1 }}" class="ln-qty" style="{{ $inputCss }} font-family:'JetBrains Mono',monospace;">
-                                    </div>
-                                    <div>
-                                        <label style="{{ $labelCss }} font-size:12px;">Unit price</label>
-                                        <input type="number" step="0.01" min="0" name="lines[{{ $i }}][unit_price]"
-                                               value="{{ $line['unit_price'] ?? 0 }}" class="ln-price" style="{{ $inputCss }} font-family:'JetBrains Mono',monospace;">
-                                    </div>
-                                    <div style="text-align:right; padding-bottom:9px;">
-                                        <span class="ln-total" style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600;">0.00</span>
-                                    </div>
-                                </div>
-
-                                <div style="display:grid; grid-template-columns:1fr 1fr 40px; gap:8px; margin-top:8px; align-items:end;">
-                                    <div>
-                                        <label style="{{ $labelCss }} font-size:12px;">Stock product (optional)</label>
-                                        <select name="lines[{{ $i }}][product_id]" style="{{ $inputCss }}">
-                                            <option value="">— not stock —</option>
-                                            @foreach($products as $product)
-                                                <option value="{{ $product['id'] }}">{{ $product['name'] ?? ('Product #' . $product['id']) }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style="{{ $labelCss }} font-size:12px;">Account <span style="font-weight:400; color:hsl(24,5%,55%);">(unmapped lines)</span></label>
-                                        <select name="lines[{{ $i }}][account_id]" required style="{{ $inputCss }}">
-                                            @foreach($accounts as $account)
-                                                <option value="{{ $account['id'] }}" @selected((int) $account['id'] === $defaultAccount)>
-                                                    {{ $account['code'] ?? '' }} {{ $account['name'] ?? ('Account #' . $account['id']) }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <button type="button" onclick="this.closest('.line-row').remove(); recalc();"
-                                            title="Remove this line"
-                                            style="height:37px; border:1px solid hsl(30,15%,85%); background:white; border-radius:6px; cursor:pointer; color:#b91c1c; font-size:16px;">×</button>
-                                </div>
-                            </div>
-                        @endforeach
+                    {{-- Wide by nature: nine things belong on one line of a bill. It
+                         scrolls inside itself rather than pushing the page sideways. --}}
+                    <div style="overflow-x:auto; border:1px solid hsl(30,15%,88%); border-radius:8px;">
+                        <table style="width:100%; min-width:760px; border-collapse:collapse; font-size:13px;">
+                            <thead>
+                                <tr style="background:hsl(30,25%,97%); text-align:left;">
+                                    <th style="padding:9px 10px; width:34px;" title="Tick to put this line on the bill">&check;</th>
+                                    <th style="padding:9px 10px; min-width:200px;">Read as</th>
+                                    <th style="padding:9px 10px; width:82px;">Qty</th>
+                                    <th style="padding:9px 10px; width:100px;">Unit price</th>
+                                    <th style="padding:9px 10px; width:92px; text-align:right;">Amount</th>
+                                    <th style="padding:9px 10px; min-width:215px;">Your inventory item</th>
+                                    <th style="padding:9px 10px; width:40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lines">
+                                @foreach($lines as $i => $line)
+                                    @php
+                                        // What the kitchen has already been taught this wording means.
+                                        // old() wins, so a correction survives a failed submit.
+                                        $normalised = \App\Models\InvoiceItemAlias::normalise($line['description'] ?? '');
+                                        $matchedId  = old("lines.{$i}.inventory_item_id", $aliasMatches[$normalised] ?? null);
+                                    @endphp
+                                    <tr class="line-row" style="border-top:1px solid hsl(30,15%,90%);">
+                                        <td style="padding:8px 10px; vertical-align:top;">
+                                            <input type="hidden" name="lines[{{ $i }}][include]" value="0">
+                                            <input type="checkbox" name="lines[{{ $i }}][include]" value="1"
+                                                   @checked(old("lines.{$i}.include", '1') === '1')
+                                                   style="width:17px; height:17px; cursor:pointer; margin-top:9px;">
+                                        </td>
+                                        <td style="padding:8px 10px;">
+                                            <input type="text" name="lines[{{ $i }}][description]"
+                                                   value="{{ $line['description'] ?? '' }}" style="{{ $inputCss }}">
+                                        </td>
+                                        <td style="padding:8px 10px;">
+                                            <input type="number" step="0.001" min="0" name="lines[{{ $i }}][quantity]"
+                                                   value="{{ $line['quantity'] ?? 1 }}" class="ln-qty"
+                                                   style="{{ $inputCss }} font-family:'JetBrains Mono',monospace;">
+                                        </td>
+                                        <td style="padding:8px 10px;">
+                                            <input type="number" step="0.01" min="0" name="lines[{{ $i }}][unit_price]"
+                                                   value="{{ $line['unit_price'] ?? 0 }}" class="ln-price"
+                                                   style="{{ $inputCss }} font-family:'JetBrains Mono',monospace;">
+                                        </td>
+                                        <td style="padding:8px 10px; text-align:right; vertical-align:middle;">
+                                            <span class="ln-total" style="font-family:'JetBrains Mono',monospace; font-weight:600;">0.00</span>
+                                        </td>
+                                        <td style="padding:8px 10px;">
+                                            {{-- The search box: a native datalist typeahead over the whole
+                                                 shelf, the same picker Purchases uses — and the same
+                                                 "not in inventory yet, add it?" panel under it, so a line
+                                                 for something new can be matched without leaving a
+                                                 half-reviewed bill. --}}
+                                            <input type="text" class="item-picker ln-match" list="inventory-options"
+                                                   data-for="lines[{{ $i }}][inventory_item_id]"
+                                                   placeholder="Search your inventory&hellip;" style="{{ $inputCss }}">
+                                            <input type="hidden" name="lines[{{ $i }}][inventory_item_id]" value="{{ $matchedId }}">
+                                            @include('partials.new-item-panel')
+                                            <span class="ln-match-note" style="display:block; font-size:11px; margin-top:4px;"></span>
+                                        </td>
+                                        <td style="padding:8px 10px; text-align:center;">
+                                            <button type="button" onclick="this.closest('.line-row').remove(); recalc();"
+                                                    title="Remove this line"
+                                                    style="border:1px solid hsl(30,15%,85%); background:white; border-radius:6px; cursor:pointer; color:#b91c1c; padding:6px 9px;">&times;</button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
 
                     <button type="button" onclick="addLine()"
-                            style="background:white; border:1px solid hsl(30,15%,85%); border-radius:6px; padding:8px 14px; font-size:13px; font-weight:500; cursor:pointer;">
+                            style="margin-top:10px; background:white; border:1px solid hsl(30,15%,85%); border-radius:6px; padding:8px 14px; font-size:13px; font-weight:500; cursor:pointer;">
                         + Add line
                     </button>
 
@@ -201,10 +268,22 @@
                                 </span>
                             @endif
                         </div>
-                        <button type="submit" @disabled(empty($contacts))
-                                style="background:hsl(20,60%,45%); color:white; padding:11px 22px; border-radius:6px; font-size:14px; font-weight:500; border:none; cursor:pointer;">
-                            Send to Bukku
-                        </button>
+                        @can('send-invoice-scan')
+                            <button type="submit" @disabled(empty($contacts))
+                                    style="background:hsl(20,60%,45%); color:white; padding:11px 22px; border-radius:6px; font-size:14px; font-weight:500; border:none; cursor:pointer;">
+                                Send to Bukku
+                            </button>
+                        @else
+                            {{-- Anyone may scan and read; a manager posts the bill. Said
+                                 here rather than left as a missing button, and said with
+                                 the second half — nothing typed on this screen is stored
+                                 until Send, so the matches go with whoever presses it. --}}
+                            <p style="max-width:320px; text-align:right; font-size:13px; color:hsl(24,5%,45%); line-height:1.6; margin:0;">
+                                <strong style="color:hsl(24,10%,25%);">A manager sends this to Bukku.</strong><br>
+                                The scan is saved and they can open it from the Invoice Scan
+                                list — anything you change here is not.
+                            </p>
+                        @endcan
                     </div>
                 </form>
             @endif
@@ -212,6 +291,9 @@
     </div>
 
     @unless($posted)
+        {{-- Defines window.ItemPicker and the <datalist> the match boxes read.
+             Must come before the script below, which calls labelFor(). --}}
+        @include('partials.item-picker', ['pickerItems' => $pickerItems])
     <script>
         // Line maths, mirrored from the server so the reviewer sees the same
         // total they are about to post. The server recomputes it in decimal
@@ -222,8 +304,16 @@
                 const qty   = parseFloat(row.querySelector('.ln-qty').value) || 0;
                 const price = parseFloat(row.querySelector('.ln-price').value) || 0;
                 const total = qty * price;
+                const on    = row.querySelector('input[type=checkbox]').checked;
+
+                // An unticked row is not billed, so it must not be counted. The
+                // whole row dims rather than vanishing: a rejected line is still
+                // something the reviewer needs to see they rejected.
                 row.querySelector('.ln-total').textContent = total.toFixed(2);
-                grand += total;
+                row.style.opacity = on ? '1' : '0.42';
+                if (on) { grand += total; }
+
+                syncMatch(row);
             });
             document.getElementById('grand-total').textContent = 'RM ' + grand.toFixed(2);
 
@@ -238,6 +328,26 @@
             }
         }
 
+        // Show what a row is matched to, and say plainly whether anything will
+        // be learned from it. A silent match is one nobody checks.
+        function syncMatch(row) {
+            const box    = row.querySelector('.ln-match');
+            const hidden = row.querySelector('input[name$="[inventory_item_id]"]');
+            const note   = row.querySelector('.ln-match-note');
+            if (!box || !hidden || !note) { return; }
+
+            // Pre-fill from the id the server resolved out of the dictionary.
+            // labelFor() rather than a server-rendered label, so the picker
+            // stays the single source of truth for how an item is written.
+            if (hidden.value && !box.value) { box.value = window.ItemPicker.labelFor(hidden.value); }
+
+            const matched = !!hidden.value;
+            note.textContent = matched
+                ? 'Matched \u2014 this wording will be remembered.'
+                : 'No match \u2014 nothing will be remembered for this wording.';
+            note.style.color = matched ? 'hsl(140,40%,30%)' : 'hsl(24,5%,55%)';
+        }
+
         function addLine() {
             const rows = document.querySelectorAll('.line-row');
             const last = rows[rows.length - 1];
@@ -247,19 +357,50 @@
             // Re-index every field so the new row posts as its own line rather
             // than overwriting the one it was cloned from.
             const next = rows.length;
+
             clone.querySelectorAll('[name]').forEach(function (field) {
                 field.name = field.name.replace(/lines\[\d+\]/, 'lines[' + next + ']');
-                if (field.tagName === 'SELECT') { field.selectedIndex = field.name.includes('product_id') ? 0 : field.selectedIndex; }
-                else { field.value = field.classList.contains('ln-qty') ? '1' : (field.classList.contains('ln-price') ? '0' : ''); }
+
+                if (field.type === 'checkbox') {
+                    // A new row starts billed. Clearing its value would post
+                    // "on" instead of "1" and quietly fail the include filter.
+                    field.checked = true;
+                } else {
+                    field.value = field.classList.contains('ln-qty') ? '1'
+                        : (field.classList.contains('ln-price') ? '0' : '');
+                }
             });
+
+            // data-for points at the hidden field by name, so it has to move
+            // with it — otherwise every new row writes its match into row 0.
+            clone.querySelectorAll('[data-for]').forEach(function (field) {
+                field.dataset.for = field.dataset.for.replace(/lines\[\d+\]/, 'lines[' + next + ']');
+                field.value = '';
+            });
+
             clone.querySelector('.ln-total').textContent = '0.00';
+            // The row it was cloned from may have had its "add it?" panel open.
+            const panel = clone.querySelector('.new-item');
+            if (panel) { panel.hidden = true; }
             document.getElementById('lines').appendChild(clone);
             recalc();
         }
 
         document.addEventListener('input', function (e) {
-            if (e.target.classList.contains('ln-qty') || e.target.classList.contains('ln-price')) { recalc(); }
+            const t = e.target;
+            if (t.classList.contains('ln-qty') || t.classList.contains('ln-price') || t.classList.contains('ln-match')) {
+                recalc();
+            }
         });
+
+        // Ticking or rejecting changes what gets billed, so it changes the total.
+        document.addEventListener('change', function (e) {
+            if (e.target.type === 'checkbox') { recalc(); }
+        });
+
+        // A line matched to an item just created from its panel: the note under
+        // it has to say "matched" now, not on the next keystroke.
+        document.addEventListener('item-created', recalc);
 
         recalc();
     </script>

@@ -6,12 +6,9 @@ namespace App\Support;
  * Plain-language release history for the "About System" page.
  *
  * These notes are curated by hand but map one-to-one onto the Git commit
- * history of the private repository this snapshot was published from — see
- * TOTAL_COMMITS below for the count, FIRST_COMMIT for where it starts. Every
- * commit is folded into exactly one release below. (This public repository is
- * a squashed snapshot, so those two constants describe the development history
- * rather than anything you can `git log` here.) Raw commit messages are
- * written for developers, so
+ * history — see TOTAL_COMMITS below for the count, FIRST_COMMIT for where it
+ * starts. Every commit is folded into exactly one release below, so the story
+ * here tallies with the private repository this snapshot was squashed from. Raw commit messages are written for developers, so
  * we rewrite them here in language any team member can follow. When you cut a
  * new release, add an entry to the TOP of all() and bump CURRENT_VERSION and
  * TOTAL_COMMITS (the count includes the release commit itself).
@@ -32,14 +29,14 @@ namespace App\Support;
  */
 class ReleaseNotes
 {
-    public const CURRENT_VERSION = '1.15.4';
+    public const CURRENT_VERSION = '1.26.1';
 
     /** The very first commit, for the "since" line in the header. */
     public const FIRST_COMMIT      = '047cdf3';
     public const FIRST_RELEASE_DATE = '2026-04-29';
 
-    /** Total commits behind the app, in the private repository it is developed in. */
-    public const TOTAL_COMMITS = 309;
+    /** Total commits behind the app — in the private repository it is developed in. */
+    public const TOTAL_COMMITS = 350;
 
     /**
      * @return array<int, array<string, mixed>> newest release first
@@ -47,6 +44,240 @@ class ReleaseNotes
     public static function all(): array
     {
         return [
+            [
+                'version' => '1.26.1',
+                'date'    => '2026-09-11',
+                'summary' => 'The dishes on Production look like something you can tap.',
+                'changed' => [
+                    "Each dish card on the Production page now lifts when you point at it, presses in when you tap it, and ends with Log production and an arrow, so it is clear the card opens the dish.",
+                ],
+                'commits' => 'e06f6f3..HEAD',
+            ],
+            [
+                'version' => '1.26',
+                'date'    => '2026-09-11',
+                'summary' => 'Log a whole service of sales on one sheet.',
+                'changed' => [
+                    "The Sales page now opens on a Log sales sheet: every dish on the menu with a quantity box starting at 0 and its price. Type how many of each were sold, check the date, and press Save sales once - every dish with a number is logged together. Anything left at 0 is skipped.",
+                    "This replaces yesterday's dish cards, so there is no more tapping into each dish one at a time. The revenue for each dish and the total add up as you type.",
+                    "Off-menu food for the team still goes through + Open order.",
+                ],
+                'commits' => '1d83b0b..HEAD',
+            ],
+            [
+                'version' => '1.25',
+                'date'    => '2026-09-11',
+                'summary' => 'Sales opens on your menu - tap a dish and type how many were sold.',
+                'added' => [
+                    "The Sales page now starts with a card for every dish, like Production. Tap one, type how many were sold, check the price (it is filled in from the menu), and press Log sale. You land back on the cards, ready for the next dish.",
+                    "The dish page shows the revenue as you type, and still takes an optional discount and photos.",
+                ],
+                'changed' => [
+                    "The + Log Sale button is now + Open order. Use it for food a team member ordered off the menu - it opens with the open-order box already ticked. Every dish on the menu is logged from its card.",
+                ],
+                'commits' => 'e66c117..HEAD',
+            ],
+            [
+                'version' => '1.24.1',
+                'date'    => '2026-09-11',
+                'summary' => 'Behind-the-scenes tidy-up. Nothing to learn.',
+                'improved' => [
+                    "The date filter on Purchases, Sales, Wastage, Market purchases and Production is now one shared piece instead of five copies, and R&D and Staff Meals now share the code that saves their ingredient lines and takes them off stock. Everything works exactly as before - the only difference you might spot is a little more space under the date buttons on Production.",
+                ],
+                'commits' => '81e59dc..HEAD',
+            ],
+            [
+                'version' => '1.24',
+                'date'    => '2026-09-11',
+                'summary' => 'Removing a production entry puts the stock back, and ingredient boxes start at zero.',
+                'changed' => [
+                    "Removing a production entry now puts back everything it took off the shelf - exactly the amounts that were typed in - and takes the dishes it made back off. Before, removing one left the stock as it was.",
+                    "On a dish's page, every ingredient box now starts at 0. Type only what you used; tapping a box selects the 0 so you can type straight over it. A box left at 0 takes nothing off the shelf, so check the Recipe says column before you save.",
+                ],
+                'removed' => [
+                    "The + Log Production button for logging several dishes at once. Tap a dish card instead. Entries already logged with it stay in the list.",
+                ],
+                'commits' => 'af895f8..HEAD',
+            ],
+            [
+                'version' => '1.23',
+                'date'    => '2026-09-11',
+                'summary' => 'Production opens on your menu, and you log what each dish actually used.',
+                'added' => [
+                    "Production now starts with a card for every dish on the menu, the same cards as the Recipes page. Chefs see the dish and what goes in it; the Owner and Head Chefs also see its cost, price and profit.",
+                    "Tap a dish to open its own page, laid out like the recipe. Every ingredient has a box filled in from the recipe - change any of them to what was really used, say how many you made, and press Log Production. What is in the boxes is what comes off the shelf.",
+                    "Change how many you made and every amount changes with it. An amount that no longer matches the recipe turns amber, with the recipe's own figure beside it, so a slip is easy to spot.",
+                ],
+                'changed' => [
+                    "Only that dish's own ingredients can be taken off the shelf from its page, and every one needs an amount - type 0 if it was not used. What was used is kept on the batch next to what the recipe says, so the difference can be checked later.",
+                    "The value of a batch is still worked out from the recipe, not from what was actually used. The + Log Production button for several dishes at once still works as before.",
+                ],
+                'commits' => '4ebb331..HEAD',
+            ],
+            [
+                'version' => '1.22',
+                'date'    => '2026-09-11',
+                'summary' => 'Invoice Scan warns you when the same invoice has been scanned twice.',
+                'added' => [
+                    'When you open a scanned invoice that looks like one already scanned - the same invoice number, or the same supplier, date and total - a warning at the top lists the other scan, who took it, and whether it has already gone to Bukku.',
+                    'If the other copy is already a bill in Bukku, the warning turns red and pressing Send asks you to confirm first. Sending it anyway would put the same invoice on the books twice, and a bill in Bukku can only be voided, never deleted.',
+                    'The Invoice Scan list marks these with a red Duplicate? tag, so they stand out before anyone opens them.',
+                ],
+                'changed' => [
+                    'It only knows about invoices scanned on this website. Bills made by the old Telegram bot, or typed straight into Bukku, are not checked.',
+                ],
+                'commits' => '058e30d..HEAD',
+            ],
+            [
+                'version' => '1.21',
+                'date'    => '2026-09-11',
+                'summary' => 'Add a new item to inventory while checking a scanned invoice.',
+                'added' => [
+                    'On Invoice Scan, if a line on the invoice is something the kitchen has never stocked, type its name in the inventory box and a small panel appears under it: pick a category and a unit, press Add, and the line is matched to the new item there and then. You no longer have to leave the invoice half-checked to go and add it under Inventory first.',
+                ],
+                'changed' => [
+                    'The new item starts at zero, exactly as when you add one from Purchases. Stock goes on only when a manager sends the invoice to Bukku - but the item itself stays in Inventory from the moment you press Add, even if the invoice is never sent.',
+                ],
+                'commits' => 'dfb3fb2..HEAD',
+            ],
+            [
+                'version' => '1.20',
+                'date'    => '2026-09-10',
+                'summary' => 'Take a photo straight from the prep checklist, and anyone can scan an invoice.',
+                'added' => [
+                    'Prep tasks that need a photo now have a camera button beside Upload Photo. Tapping it opens the camera straight away on a phone, so you no longer take the picture first and then go hunting for it in your gallery. Upload Photo is unchanged if the photo is already taken.',
+                    'Anyone signed in can now open Invoice Scan, photograph a supplier invoice and check what was read off it. It used to be the Owner and Head Chefs only, but whoever takes the delivery is the one holding the paper.',
+                ],
+                'changed' => [
+                    'Sending a scanned invoice to Bukku is still the Owner and Head Chefs only. Everybody else sees what was read and a note saying a manager sends it. Send is the step that puts a real bill on the books and moves stock, and a bill sent by mistake has to be voided in Bukku rather than deleted.',
+                    'Part timers no longer see Prep Overview. It is the managers\' view of how the whole kitchen is doing today; a part timer ticks their own tasks on the Prep Checklist, which is where they already land when they sign in.',
+                ],
+                'commits' => '1c3b6da..HEAD',
+            ],
+            [
+                'version' => '1.19.1',
+                'date'    => '2026-09-09',
+                'summary' => 'Staff meals no longer ask how many people ate.',
+                'removed' => [
+                    'The "Staff fed (pax)" box is gone from the staff meal form. Counting the team every day was work for a number nobody was using.',
+                    'With it goes the cost-per-head figure, which was worked out by dividing the meal by that headcount — so it no longer appears on the page, in the monthly summary, or in the PDF. The page still tells you what each meal cost and what feeding the team came to each month.',
+                ],
+                'commits' => '57de205..HEAD',
+            ],
+            [
+                'version' => '1.19',
+                'date'    => '2026-09-09',
+                'summary' => 'Staff meals are now recorded and costed, like an R&D sheet.',
+                'added' => [
+                    'A new Staff\'s Meal page. Every day the kitchen cooks for the team, write down what was cooked, how many people ate, and the ingredients that went into it — the same costing sheet you already use for R&D and recipes. It works out the total, the miscellaneous percentage on top, and what the meal came to per head.',
+                    'A Spent per month summary at the top of the page and the PDF: how many meals, how many people fed, and what feeding the team cost each month. The per-head figure is the month\'s spend shared over the month\'s people, so a meal for twelve counts for more than a meal for two.',
+                    'The dish is typed in rather than chosen from your recipe list, because staff eat something different every day and those one-off dishes do not belong on the menu.',
+                ],
+                'improved' => [
+                    'Recording a staff meal takes the ingredients off stock straight away, the same as an R&D sheet does — the team has already eaten them, so the shelf should say so. Correcting or removing a sheet afterwards does not move stock a second time, and does not put it back; use a Tally check if the shelf needs correcting. The page says so in both places.',
+                ],
+                'commits' => '9d87fb2..HEAD',
+            ],
+            [
+                'version' => '1.18.3',
+                'date'    => '2026-09-03',
+                'summary' => 'The stock-linking tool suggests a little more freely.',
+                'changed' => [
+                    'The tool that pairs your inventory with your Bukku products now shows anything 70% alike or better by default, rather than 82%. It still links nothing on its own beyond exact name matches — a close-looking name is not a safe one, and two of the worst mismatches found on your own lists scored higher than the old cut-off.',
+                ],
+                'commits' => '0f2a9c8..HEAD',
+            ],
+            [
+                'version' => '1.18.2',
+                'date'    => '2026-09-03',
+                'summary' => 'The stock-linking tool can cast a wider net.',
+                'improved' => [
+                    'The tool that matches your inventory against your Bukku products can now be told how alike two names have to be before it offers them as a possible pair, and it says how many items are still unlinked. It only changes what it shows you — it still links nothing but exact matches, and never guesses.',
+                ],
+                'commits' => 'a7c4d21..HEAD',
+            ],
+            [
+                'version' => '1.18.1',
+                'date'    => '2026-09-03',
+                'summary' => 'Photograph an invoice straight from your phone.',
+                'added'   => [
+                    'A Take photo button on the invoice page opens your phone camera there and then, so you can photograph a delivery note in the kitchen without saving it to your photos first and hunting for it afterwards. Choosing a file you already have still works exactly as before, PDFs included.',
+                ],
+                'commits' => '3d9e1a4..HEAD',
+            ],
+            [
+                'version' => '1.18',
+                'date'    => '2026-09-03',
+                'summary' => 'Your shelf items can now be linked to your accounts.',
+                'added'   => [
+                    'An inventory item can now be told which product it is in Bukku, from a new box on the Edit Ingredient window. Once linked, a scanned invoice line for that item files itself against the right account in your books instead of going down as a general expense — and you do not have to choose anything, because matching the line to your shelf is all it needs.',
+                    'Items you do not link keep working exactly as they did, so there is no rush and no half-finished state. Bukku only tracks a fraction of what the kitchen stocks, and most items will never need one.',
+                ],
+                'improved' => [
+                    'A one-off tool can do most of the linking for you: it matches your inventory against your Bukku products by name, links the ones that match exactly, and lists the near-misses for you to confirm by hand rather than guessing. A wrong link would quietly file stock against the wrong account on every future invoice, so it never guesses.',
+                ],
+                'commits' => 'f5b0b5b..HEAD',
+            ],
+            [
+                'version' => '1.17',
+                'date'    => '2026-09-03',
+                'summary' => 'A scanned invoice now updates your stock too.',
+                'added'   => [
+                    'Sending a scanned invoice now also records it as a purchase and puts the stock on your shelf, raising the quantity on hand and updating what each item cost. Until now the same delivery had to be typed twice — once for the accountant and once for the kitchen — and that second round of typing is gone.',
+                    'Only the lines you matched to your inventory move stock. Anything left unmatched, like a delivery charge, stays on the bill and touches nothing, so nothing appears on a shelf that was never delivered.',
+                    'If the supplier is not in your list yet, it is added for you using the name on the bill. You can fill in their phone number and address afterwards on the Suppliers page.',
+                    'The invoice page now says plainly that sending will add to stock, and warns you not to key the same delivery in again under Purchases.',
+                ],
+                'removed' => [
+                    'The account and stock-product boxes on each invoice line. Every line now goes to the general expense account automatically, which is one less thing to fill in on every bill.',
+                ],
+                'commits' => '4b1c2e0..HEAD',
+            ],
+            [
+                'version' => '1.16',
+                'date'    => '2026-09-03',
+                'summary' => 'Invoice scan now learns what your suppliers call things.',
+                'added'   => [
+                    'Everything read off an invoice is now laid out as a table, one row per item, so you can see the whole bill at a glance instead of scrolling through boxes.',
+                    'Each row has a tick. Leave it ticked to put the line on the bill, or untick it to reject it — a rejected row fades and stops counting towards the total, but stays on screen so you can see what you left out.',
+                    'Each row also has a search box for your own inventory. Match a line to something on your shelf once, and the system remembers what that supplier calls it: the next invoice using the same wording arrives already matched. Spelling, capitals and brackets do not matter — "AYAM PEHA 1KG" and "Ayam Peha (1kg)" count as the same thing.',
+                    'If you match something wrongly, matching it again corrects it for good. Rows you leave unmatched still go on the bill and teach nothing, which is what you want for a delivery charge or an item the kitchen has never bought before.',
+                ],
+                'fixed'   => [
+                    'Opening a scanned invoice showed an error page when the accounting connection was not set up, instead of saying so plainly. It now explains what is missing.',
+                ],
+                'commits' => '9d6cf4b..HEAD',
+            ],
+            [
+                'version' => '1.15.7',
+                'date'    => '2026-09-03',
+                'summary' => 'Written notes brought back in line with reality.',
+                'changed' => [
+                    'Internal engineering notes only — nothing about how the system works has changed. The invoice scanner now has a proper written record of how it works and what has gone wrong with it, and several figures scattered through the notes that had quietly fallen out of date (how many stock items, recipes and pantry lines the kitchen actually has) were corrected against the live system.',
+                ],
+                'commits' => '80fe73b..HEAD',
+            ],
+            [
+                'version' => '1.15.6',
+                'date'    => '2026-09-03',
+                'summary' => 'Invoice scan can actually reach Bukku now.',
+                'fixed'   => [
+                    'The invoice scanner was asking Bukku for its supplier and product lists in one oversized request, which Bukku refuses. Both came back empty and stayed empty for an hour, so the review screen said no suppliers existed and no invoice could be sent at all. The lists are now read a page at a time, and a list that fails to load is no longer remembered as an empty one.',
+                    'If Bukku accepted a bill but the reply went missing, sending again could have put the same invoice on the books twice — and a bill in Bukku has to be voided rather than deleted. The system now asks Bukku whether the bill already exists before trying again, and picks up the one that is already there instead of writing a second.',
+                ],
+                'commits' => '65db93f..HEAD',
+            ],
+            [
+                'version' => '1.15.5',
+                'date'    => '2026-09-08',
+                'summary' => 'Someone guessing a password gets stopped sooner.',
+                'improved' => [
+                    'Guessing a password wrong over and over now locks the account itself, not only the phone or computer the guesses are coming from. Somebody trying one account from a string of different connections used to get a fresh set of tries with every one of them; the account now locks after twenty wrong guesses wherever they arrive from. The lock lifts on its own after a few minutes, and signing in correctly clears it straight away.',
+                    'Worth knowing, because it can happen to you: if someone else is guessing at your email address, you can find yourself locked out for a few minutes having done nothing wrong. Wait it out, or ask the Owner or an Admin to reset your password.',
+                    'The kitchen system now keeps a lasting note of every lockout, and its records show where a request genuinely came from rather than naming the service that carried it. Until now that record vanished within the hour, so nobody could tell afterwards whether anyone had been trying to get in at all.',
+                ],
+                'commits' => '1306425..HEAD',
+            ],
             [
                 'version' => '1.15.4',
                 'date'    => '2026-09-03',
@@ -733,7 +964,7 @@ class ReleaseNotes
                 'date'    => '2026-08-22',
                 'summary' => 'Tidied the sign-in page.',
                 'removed' => [
-                    'The small grey line under the sign-in box that read "Inventory, Sales and Management System · the region" has been taken off. The name is already on the card above it, so the line only repeated itself. Signing in works exactly as before.',
+                    'The small grey line under the sign-in box that read "Inventory, Sales and Management System · Malaysia" has been taken off. The name is already on the card above it, so the line only repeated itself. Signing in works exactly as before.',
                 ],
                 'commits' => 'b4ab937..d4a2149',
             ],

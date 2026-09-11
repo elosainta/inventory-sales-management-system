@@ -14,6 +14,9 @@ Each note traces one operation from the HTTP request to the last row written, na
 | [[Path — Recording a tally]] | `POST /tally` | *(controller)* | **overwrites** counted quantities | [[Tally variance]] |
 | [[Path — Recording a stock-take]] | `POST /stock-take` | *(controller)* | **moves** by net In − Out | [[Stock-take movement]] |
 | [[Path — Rendering the dashboard]] | `GET /dashboard` | *(read only)* | no | [[Cost of goods sold]], [[Gross margin]] |
+| [[Path — Scanning an invoice]] | `POST /invoice-scan/{scan}/push` | `ScanInvoice`, `PushInvoiceToBukku`, `RecordPurchaseFromScan` | **adds** the matched lines, like a purchase | *(bill total, bcmath)* |
+
+[[Path — Scanning an invoice]] is the odd one out: it is the only path that writes **outside this system**, into the company's accounting books, as well as into the box below.
 
 ## How they connect
 

@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\Schedule;
 // Appending costs a few lines a day and makes the scheduler self-explaining.
 $log = storage_path('logs/schedule.log');
 
-Schedule::command('checklist:remind morning')->dailyAt('09:00')->timezone('Asia/the site')->appendOutputTo($log);
-Schedule::command('checklist:remind closing')->dailyAt('17:00')->timezone('Asia/the site')->appendOutputTo($log);
-Schedule::command('feedback:monthly-report')->lastDayOfMonth('23:30')->timezone('Asia/the site')->appendOutputTo($log);
+Schedule::command('checklist:remind morning')->dailyAt('09:00')->timezone('Asia/Kuala_Lumpur')->appendOutputTo($log);
+Schedule::command('checklist:remind closing')->dailyAt('17:00')->timezone('Asia/Kuala_Lumpur')->appendOutputTo($log);
+Schedule::command('feedback:monthly-report')->lastDayOfMonth('23:30')->timezone('Asia/Kuala_Lumpur')->appendOutputTo($log);
 
 // No --audit-days here on purpose: the scheduled run only ever prunes the
 // low-stakes login history. Pruning the audit trail is a deliberate, manual
 // call the Owner makes with `php artisan records:prune --audit-days=N`.
-Schedule::command('records:prune')->weeklyOn(0, '03:00')->timezone('Asia/the site')->appendOutputTo($log);
+Schedule::command('records:prune')->weeklyOn(0, '03:00')->timezone('Asia/Kuala_Lumpur')->appendOutputTo($log);

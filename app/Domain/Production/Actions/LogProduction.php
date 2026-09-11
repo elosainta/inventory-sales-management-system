@@ -10,13 +10,23 @@ use App\Models\User;
 use App\Notifications\LowStockAlert;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 /**
  * The middle of Inventory -> Production -> Sales.
  *
  * The chef says which dish and how many they made. The recipe is the formula:
- * it decides what came off the shelf, so nothing is keyed in ingredient by
- * ingredient. Raw stock goes down, the finished dish goes up.
+ * by default it decides what came off the shelf. Raw stock goes down, the
+ * finished dish goes up.
+ *
+ * Since 2026-09-11 the chef may instead say what each ingredient ACTUALLY took
+ * (`used`, [inventory_item_id => quantity], from the per-dish page) - the
+ * Owner's call, because a recipe is what a dish should use and the shelf only
+ * balances on what it did use. That is a typed-in amount going straight off
+ * stock, so it is held to the recipe's own ingredients: an id the dish does
+ * not use is refused outright rather than quietly deducted or dropped. Every
+ * amount lands on a batch line, so what was used sits beside what the recipe
+ * says for anyone who looks.
  */
 class LogProduction
 {
@@ -28,6 +38,10 @@ class LogProduction
 
             $quantity = (float) $data['quantity_produced'];
 
+            // Pulled out before the batch is created: it is not a batch column.
+            $used = $data['used'] ?? null;
+            unset($data['used']);
+
             // What the batch cost to make. plate_cost is the recipe's ingredient
             // cost with the misc overhead already applied, so it is the right
             // per-serving figure and it keeps production costed the same way the
@@ -38,6 +52,19 @@ class LogProduction
 
             // ---- Inventory -> : the formula comes off the shelf ----
             $consumed = $recipe->consumptionFor($quantity);
+
+            if ($used !== null) {
+                $used = array_map(fn ($q) => round(max(0, (float) $q), 4), $used);
+
+                if (array_diff_key($used, $consumed) !== []) {
+                    throw ValidationException::withMessages([
+                        'used' => "Only this dish's own ingredients can be taken off the shelf here.",
+                    ]);
+                }
+
+                // Anything the chef did not give an amount for goes by the recipe.
+                $consumed = $used + $consumed;
+            }
             $items    = InventoryItem::whereIn('id', array_keys($consumed))->get();
 
             $lowStockItems = [];

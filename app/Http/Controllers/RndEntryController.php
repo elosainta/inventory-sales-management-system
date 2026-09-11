@@ -10,6 +10,7 @@ use App\Models\RndEntry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Domain\Costing\Actions\CostingSheetLines;
 
 class RndEntryController extends Controller
 {
@@ -48,11 +49,11 @@ class RndEntryController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
-            $this->writeLines($entry, $lines);
+            CostingSheetLines::write($entry, $lines);
 
             // Off the shelf now, not on approval: the chef has already taken
             // it, and stock that lags a review is stock nobody can trust.
-            $this->deduct($lines);
+            CostingSheetLines::deduct($lines);
 
             return $entry;
         });
@@ -95,7 +96,7 @@ class RndEntryController extends Controller
         DB::transaction(function () use ($rndEntry, $data, $lines) {
             $rndEntry->update($data);
             $rndEntry->lines()->delete();
-            $this->writeLines($rndEntry, $lines);
+            CostingSheetLines::write($rndEntry, $lines);
         });
 
         return back()->with('success', $rndEntry->isPending() && $rndEntry->wasChanged('status')
@@ -189,59 +190,6 @@ class RndEntryController extends Controller
         $pdf = Pdf::loadView('pdfs.rnd', compact('entries', 'byMenu'));
 
         return $pdf->download('rnd-' . now()->format('Y-m-d') . '.pdf');
-    }
-
-    /**
-     * Snapshot each line off the picked inventory item.
-     *
-     * The name and unit are read from the database, never from the form, for
-     * the same reason stock-take entries snapshot theirs: a line cannot then
-     * read as one ingredient while having deducted another, and a later rename
-     * or deletion leaves the old sheet still readable.
-     */
-    private function writeLines(RndEntry $entry, array $lines): void
-    {
-        $items = InventoryItem::findMany(array_column($lines, 'inventory_item_id'))->keyBy('id');
-
-        foreach ($lines as $line) {
-            $item = $items[$line['inventory_item_id']];
-
-            $entry->lines()->create([
-                'inventory_item_id' => $item->id,
-                'item'              => $item->name,
-                'unit'              => $item->unit,
-                'quantity'          => $line['quantity'],
-                'unit_price'        => $line['unit_price'],
-            ]);
-        }
-
-        $entry->load('lines');
-    }
-
-    /**
-     * Take the sheet off live stock.
-     *
-     * Summed per item first: one sheet can list the same ingredient twice (oil
-     * in two steps), and deducting those one at a time would lose the first.
-     * Same reason Recipe::consumptionFor() merges.
-     *
-     * Setting the quantity is enough — InventoryItem::booted() recomputes
-     * monetary_value. unit_cost is untouched, so no recipe is repriced by an
-     * experiment.
-     */
-    private function deduct(array $lines): void
-    {
-        $used = [];
-        foreach ($lines as $line) {
-            $id = (int) $line['inventory_item_id'];
-            $used[$id] = ($used[$id] ?? 0) + (float) $line['quantity'];
-        }
-
-        foreach (InventoryItem::findMany(array_keys($used)) as $item) {
-            $item->quantity_on_hand = max(0, (float) $item->quantity_on_hand - $used[$item->id]);
-            $item->last_updated     = now();
-            $item->save();
-        }
     }
 
     /**

@@ -40,6 +40,7 @@ class SidebarMatchesGatesTest extends TestCase
         'stock-take.index'       => 'view-stock-take',
         'tally.index'            => 'view-tally',
         'rnd.index'              => 'view-rnd',
+        'staff-meals.index'      => 'view-staff-meal',
         'wastage.index'          => 'view-wastage',
         'sales.index'            => 'view-sales',
         'dashboard'              => 'view-dashboard',

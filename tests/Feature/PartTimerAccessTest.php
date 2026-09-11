@@ -10,7 +10,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Part timer: prep, stock-take, wastage and inventory. Nothing else.
+ * Part timer: prep checklist, invoice scan, stock-take, wastage and
+ * inventory. Nothing else — the Prep Overview is the manager's read of the
+ * day and was taken back on 2026-09-10.
  *
  * A new role is dangerous in this codebase because several gates are written
  * as `fn () => true` or `! $user->isAdmin()`. Those hand a brand-new role
@@ -49,7 +51,6 @@ class PartTimerAccessTest extends TestCase
     {
         return [
             'prep checklist'  => ['view-checklist'],
-            'prep overview'   => ['overview-checklist'],
             'stock-take list' => ['view-stock-take'],
             'stock-take entry'=> ['record-stock-take'],
             'wastage list'    => ['view-wastage'],
@@ -58,6 +59,10 @@ class PartTimerAccessTest extends TestCase
             'inventory keyin' => ['record-inventory'],
             'about'           => ['view-about'],
             'support'         => ['submit-support'],
+            // Opened to every account on 2026-09-10 - whoever takes the
+            // delivery scans it. Reading and matching only; see the deny list
+            // for the button that posts the bill.
+            'invoice scan'    => ['use-invoice-scan'],
         ];
     }
 
@@ -87,7 +92,9 @@ class PartTimerAccessTest extends TestCase
             'suppliers'         => ['view-suppliers'],
             'recipes'           => ['view-recipes'],
             'petty cash'        => ['manage-float'],
-            'invoice scan'      => ['use-invoice-scan'],
+            // Scanning is theirs, sending is not: this one posts a real bill
+            // to the books and moves stock (split out 2026-09-10).
+            'invoice scan send' => ['send-invoice-scan'],
             'pdf export'        => ['export-pdf'],
             // Management.
             'users'             => ['manage-users'],
@@ -99,6 +106,9 @@ class PartTimerAccessTest extends TestCase
             'maintenance'       => ['toggle-maintenance'],
             'delete entries'    => ['delete-entries'],
             'global search'     => ['search-global'],
+            // The manager's read of the day. Held from 1.11.5 until the Owner
+            // took it back on 2026-09-10; a part timer ticks tasks on /prep.
+            'prep overview'     => ['overview-checklist'],
             // Own account settings, incl. changing their own password.
             'profile'           => ['edit-profile'],
         ];

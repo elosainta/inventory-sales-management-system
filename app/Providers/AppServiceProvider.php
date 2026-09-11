@@ -150,7 +150,11 @@ class AppServiceProvider extends ServiceProvider
         // This replaced `view-my-section` (junior chefs only, one assigned
         // section each) in 1.10.49. Sections are no longer assigned to a person.
         Gate::define('view-checklist',  fn () => true);
-        Gate::define('overview-checklist', fn (User $user) => $user->isManager() || $user->isAdmin() || $user->isPartTimer());
+        // The overview is the manager's read of the day, not a second copy of
+        // the checklist. Part timers held it from 1.11.5 until the Owner took
+        // it back on 2026-09-10 — they tick their tasks on /prep like everyone
+        // else, and homeRoute() already lands them there.
+        Gate::define('overview-checklist', fn (User $user) => $user->isManager() || $user->isAdmin());
         Gate::define('delete-entries',     fn (User $user) => $user->isManager());
         Gate::define('export-pdf',         fn (User $user) => $user->isManager());
         Gate::define('view-dashboard',     fn (User $user) => $user->isManager());
@@ -173,10 +177,18 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-production', fn (User $user) => ! $user->isAdmin() && ! $user->isPartTimer());
         Gate::define('view-production',   fn (User $user) => ! $user->isAdmin() && ! $user->isPartTimer());
         // Invoice scan (BETA): a photo becomes a purchase bill on the
-        // company's books. Managers and Admin - a junior chef or part timer has
-        // no business posting to it. Nothing reaches Bukku without a human
-        // pressing Send, which is the safety story this screen rests on.
-        Gate::define('use-invoice-scan', fn (User $user) => $user->isManager());
+        // company's books. Open to every signed-in account on the Owner's
+        // instruction, 2026-09-10 - whoever takes the delivery scans it.
+        //
+        // It covers the upload, the review screen and clearing a local row -
+        // everything that costs nothing but an API call.
+        Gate::define('use-invoice-scan', fn (User $user) => true);
+        // Send is the half that spends money: it posts a real purchase bill to
+        // the books, moves stock and records a Purchase, and a posted bill is
+        // voided in Bukku, never deleted. Managers (Admin passes via
+        // Gate::before). Whoever takes the delivery scans it; whoever answers
+        // for the books sends it.
+        Gate::define('send-invoice-scan', fn (User $user) => $user->isManager());
 
         // R&D purchases: something bought to try out. Chefs, Admin and the
         // Owner record and correct them; the Owner alone decides.
@@ -188,6 +200,15 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('view-rnd',   fn (User $user) => ! $user->isPartTimer());
         Gate::define('manage-rnd', fn (User $user) => ! $user->isPartTimer());
         Gate::define('decide-rnd', fn (User $user) => $user->isOwner());
+
+        // Staff meals: what the kitchen cooked for its own team and what it
+        // cost per head. Same audience as R&D and for the same reason — the
+        // page is priced, and a part timer is kept off every priced page.
+        //
+        // No decide- gate, deliberately: this is a report, and nobody signs
+        // off lunch. Whoever cooked it records it; the Owner reads it.
+        Gate::define('view-staff-meal',   fn (User $user) => ! $user->isPartTimer());
+        Gate::define('manage-staff-meal', fn (User $user) => ! $user->isPartTimer());
 
         Gate::define('write-daily-report', fn (User $user) => $user->isHeadChef());
         Gate::define('view-daily-report',  fn (User $user) => $user->isManager() || $user->isAdmin());

@@ -8,6 +8,7 @@ use App\Http\Requests\UpdatePurchaseRequest;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Models\InventoryItem;
+use App\Support\Period;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -24,18 +25,7 @@ class PurchaseController extends Controller
 
         $query = Purchase::with(['supplier', 'lines.inventoryItem'])->orderBy('purchase_date', 'desc');
 
-        if ($range === 'today') {
-            $query->whereDate('purchase_date', today());
-        } elseif ($range === 'week') {
-            $query->whereBetween('purchase_date', [now()->startOfWeek(), now()->endOfWeek()]);
-        } elseif ($range === 'month') {
-            $query->whereYear('purchase_date', now()->year)->whereMonth('purchase_date', now()->month);
-        } elseif ($range === 'year') {
-            $query->whereYear('purchase_date', now()->year);
-        } else {
-            [$year, $mon] = explode('-', $month);
-            $query->whereYear('purchase_date', $year)->whereMonth('purchase_date', $mon);
-        }
+        Period::filter($query, $range, $month, 'purchase_date');
 
         $purchases  = $query->get();
         $suppliers  = Supplier::orderBy('name')->get();

@@ -20,7 +20,7 @@ class KitchenTeamSeeder extends Seeder
         ]);
 
         // Head Chef
-        User::firstOrCreate(['email' => 'paul@example.test'], [
+        User::firstOrCreate(['email' => 'sam@example.test'], [
             'name'     => 'Sam',
             'password' => Hash::make('password'),
             'role'     => User::ROLE_HEAD_CHEF,

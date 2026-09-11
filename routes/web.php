@@ -29,6 +29,7 @@ use App\Http\Controllers\LeaveApplicationController;
 use App\Http\Controllers\DailyReportController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\RndEntryController;
+use App\Http\Controllers\StaffMealController;
 use App\Http\Controllers\InventoryTallyController;
 use App\Http\Controllers\StockTakeController;
 use App\Http\Controllers\StockTakeItemController;
@@ -91,6 +92,12 @@ Route::middleware('auth')->group(function () {
     // — the approval is the Owner's, the recipe is recipe work.
     Route::post('/rnd/{rndEntry}/recipe', [RndEntryController::class, 'createRecipe'])->name('rnd.recipe');
 
+    // Staff meals. A report — no approve/reject, and nothing here moves stock.
+    Route::get('/staff-meals', [StaffMealController::class, 'index'])->name('staff-meals.index');
+    Route::post('/staff-meals', [StaffMealController::class, 'store'])->name('staff-meals.store');
+    Route::patch('/staff-meals/{staffMeal}', [StaffMealController::class, 'update'])->name('staff-meals.update');
+    Route::delete('/staff-meals/{staffMeal}', [StaffMealController::class, 'destroy'])->name('staff-meals.destroy');
+
     Route::get('/wastage', [WastageEntryController::class, 'index'])->name('wastage.index');
     Route::post('/wastage', [WastageEntryController::class, 'store'])->name('wastage.store');
     Route::patch('/wastage/{wastageEntry}', [WastageEntryController::class, 'update'])->name('wastage.update');
@@ -106,6 +113,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+    Route::post('/sales/sheet', [SaleController::class, 'storeSheet'])->name('sales.sheet');
     Route::patch('/sales/{sale}', [SaleController::class, 'update'])->name('sales.update');
     Route::delete('/sales/{sale}', [SaleController::class, 'destroy'])->name('sales.destroy');
     Route::post('/sales/{sale}/restore', [SaleController::class, 'restore'])->name('sales.restore');
@@ -158,6 +166,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales/export/pdf', [SaleController::class, 'exportPdf'])->name('sales.export-pdf');
     Route::get('/wastage/export/pdf', [WastageEntryController::class, 'exportPdf'])->name('wastage.export-pdf');
     Route::get('/rnd/export/pdf', [RndEntryController::class, 'exportPdf'])->name('rnd.export-pdf');
+    Route::get('/staff-meals/export/pdf', [StaffMealController::class, 'exportPdf'])->name('staff-meals.export-pdf');
 
     Route::get('/support', [SupportController::class, 'index'])->name('support.index');
     Route::post('/support', [SupportController::class, 'store'])->middleware('throttle:3,1')->name('support.store');
@@ -174,7 +183,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/market-purchases/{marketPurchase}/receipt', [MarketPurchaseController::class, 'receipt'])->name('market-purchases.receipt');
 
     Route::get('/production', [ProductionController::class, 'index'])->name('production.index');
-    Route::post('/production', [ProductionController::class, 'store'])->name('production.store');
+    // One dish at a time, with what each ingredient actually took (see LogProduction).
+    Route::get('/production/dish/{recipe}', [ProductionController::class, 'dish'])->name('production.dish');
+    Route::post('/production/dish/{recipe}', [ProductionController::class, 'storeDish'])->name('production.dish.store');
     Route::delete('/production/{productionBatch}', [ProductionController::class, 'destroy'])->name('production.destroy');
 
     Route::get('/daily-report', [DailyReportController::class, 'index'])->name('daily-report.index');

@@ -30,7 +30,7 @@ class PrivateUploadsTest extends TestCase
         Storage::fake('public');
 
         $owner = User::factory()->create(['role' => User::ROLE_OWNER]);
-        $supplier = Supplier::create(['name' => 'Test Supplier', 'contact' => '012-3456789', 'email' => 'supplier@example.com', 'address' => 'the site']);
+        $supplier = Supplier::create(['name' => 'Test Supplier', 'contact' => '012-3456789', 'email' => 'supplier@example.com', 'address' => 'Malaysia']);
         $item = InventoryItem::create(['name' => 'Salt', 'category' => 'Pantry', 'unit' => 'kg', 'quantity_on_hand' => 5, 'unit_cost' => 2]);
 
         $this->actingAs($owner)->post(route('purchases.store'), [

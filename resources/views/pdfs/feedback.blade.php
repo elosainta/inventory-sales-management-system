@@ -26,9 +26,9 @@
 </head>
 <body>
     <div class="header">
-        <div class="brand">ISMS</div>
+        <div class="brand">isms</div>
         <div class="subtitle">Kitchen OS · Peer Feedback Report</div>
-        <div class="meta">Generated {{ now()->format('d M Y, g:i A') }} · the region · Owner copy — includes sender identities</div>
+        <div class="meta">Generated {{ now()->format('d M Y, g:i A') }} · Malaysia · Owner copy — includes sender identities</div>
     </div>
 
     <div class="period">

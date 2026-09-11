@@ -17,7 +17,7 @@
         {{-- Logo --}}
         <div class="mb-8 flex items-center gap-3">
             <div style="width:44px; height:44px; border-radius:10px; background:hsl(20,60%,45%); display:flex; align-items:center; justify-content:center; color:white; font-family:'Caveat',cursive; font-weight:600; font-size:26px;">f</div>
-            <span style="font-family:'Caveat',cursive; font-weight:600; font-size:40px; line-height:1; color:hsl(24,10%,12%);">ISMS</span>
+            <span style="font-family:'Caveat',cursive; font-weight:600; font-size:40px; line-height:1; color:hsl(24,10%,12%);">isms</span>
         </div>
 
         {{-- Card --}}

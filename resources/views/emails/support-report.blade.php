@@ -12,7 +12,7 @@
                     {{-- Header --}}
                     <tr>
                         <td style="background:hsl(24,10%,12%); padding:24px 32px;">
-                            <span style="font-family:Georgia,serif; font-size:24px; color:#f5f0eb; font-weight:600;">ISMS</span>
+                            <span style="font-family:Georgia,serif; font-size:24px; color:#f5f0eb; font-weight:600;">isms</span>
                             <span style="font-size:13px; color:rgba(245,240,235,0.6); margin-left:12px;">Kitchen OS · Support Report</span>
                         </td>
                     </tr>

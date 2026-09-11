@@ -6,6 +6,7 @@ use App\Domain\Wastage\Actions\LogWastage;
 use App\Http\Requests\StoreWastageEntryRequest;
 use App\Models\WastageEntry;
 use App\Models\InventoryItem;
+use App\Support\Period;
 use Illuminate\Support\Facades\Gate;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -20,18 +21,7 @@ class WastageEntryController extends Controller
 
         $query = WastageEntry::with(['inventoryItem'])->orderBy('recorded_date', 'desc');
 
-        if ($range === 'today') {
-            $query->whereDate('recorded_date', today());
-        } elseif ($range === 'week') {
-            $query->whereBetween('recorded_date', [now()->startOfWeek(), now()->endOfWeek()]);
-        } elseif ($range === 'month') {
-            $query->whereYear('recorded_date', now()->year)->whereMonth('recorded_date', now()->month);
-        } elseif ($range === 'year') {
-            $query->whereYear('recorded_date', now()->year);
-        } else {
-            [$year, $mon] = explode('-', $month);
-            $query->whereYear('recorded_date', $year)->whereMonth('recorded_date', $mon);
-        }
+        Period::filter($query, $range, $month, 'recorded_date');
 
         $entries   = $query->get();
         $items     = InventoryItem::orderBy('name')->get();

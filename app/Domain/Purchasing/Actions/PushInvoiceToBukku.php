@@ -2,6 +2,7 @@
 
 namespace App\Domain\Purchasing\Actions;
 
+use App\Models\InventoryItem;
 use App\Models\InvoiceScan;
 use App\Support\Bukku;
 use Illuminate\Support\Carbon;
@@ -81,9 +82,17 @@ class PushInvoiceToBukku
 
             // Mapping a line to a product is what puts it against stock rather
             // than a general expense line. Optional per line.
-            if (filled($line['product_id'] ?? null)) {
-                $item['product_id'] = (int) $line['product_id'];
-                $item = $this->applyProduct($item, (int) $line['product_id']);
+            //
+            // The review screen no longer asks for it: the reviewer matches the
+            // line to a shelf item, and the shelf item knows its own Bukku
+            // product. So the account, the unit and the location all follow
+            // from a match the reviewer was making anyway. An explicitly posted
+            // product_id still wins, since that is a deliberate override.
+            $productId = $line['product_id'] ?? $this->productForInventoryItem($line['inventory_item_id'] ?? null);
+
+            if (filled($productId)) {
+                $item['product_id'] = (int) $productId;
+                $item = $this->applyProduct($item, (int) $productId);
             }
 
             $formItems[] = $item;
@@ -153,7 +162,7 @@ class PushInvoiceToBukku
     private function createBill(array $payload): array
     {
         try {
-            return Bukku::createBill($payload);
+            return $this->send($payload);
         } catch (RuntimeException $e) {
             if ($e->getCode() !== 422) {
                 throw $e;
@@ -167,7 +176,59 @@ class PushInvoiceToBukku
             $payload['form_items'],
         );
 
-        return Bukku::createBill($payload);
+        return $this->send($payload);
+    }
+
+    /**
+     * POST the bill once, and never guess about whether it landed.
+     *
+     * Bukku offers no idempotency key, so a failed write leaves a genuinely
+     * ambiguous state: a 5xx or a dropped connection might have committed
+     * before it failed. Retrying blind is how one invoice becomes two bills,
+     * and a Bukku bill is voided rather than deleted — the mistake costs an
+     * accountant's time, not a click.
+     *
+     * So the description carries a marker unique to this scan, and that marker
+     * is the key: on an ambiguous failure, ask Bukku whether the bill exists.
+     * Found means it committed and is adopted. Absent means it did not, and
+     * only then is a second attempt safe.
+     *
+     * A 422 is re-thrown untouched: it means Bukku refused the payload, so
+     * nothing was written and the caller is free to reshape and send again.
+     */
+    private function send(array $payload): array
+    {
+        try {
+            return Bukku::createBill($payload);
+        } catch (RuntimeException $e) {
+            if ($e->getCode() === 422) {
+                throw $e;
+            }
+
+            report($e);
+
+            if ($bill = Bukku::findBillByDescription($payload['description'])) {
+                return $bill;
+            }
+
+            return Bukku::createBill($payload);
+        }
+    }
+
+    /**
+     * The Bukku product behind a shelf item, where the two have been linked.
+     *
+     * Sparse by nature — Bukku tracks a fraction of what the kitchen stocks —
+     * so most lines return null and keep the fallback expense account, exactly
+     * as they did before the link existed.
+     */
+    private function productForInventoryItem(mixed $inventoryItemId): ?int
+    {
+        if (blank($inventoryItemId)) {
+            return null;
+        }
+
+        return InventoryItem::whereKey($inventoryItemId)->value('bukku_product_id');
     }
 
     /**

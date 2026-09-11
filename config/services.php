@@ -51,8 +51,7 @@ return [
         'base_url'  => env('BUKKU_BASE_URL', 'https://api.bukku.my'),
         'subdomain' => env('BUKKU_SUBDOMAIN'),
         // Fallback expense account for a line the reviewer did not map to a
-        // Bukku product. Set this to the id of your own "General Expense" (or
-        // equivalent) account — read it off GET /accounts.
+        // Bukku product. Set BUKKU_DEFAULT_ACCOUNT_ID to your own "General Expense" account.
         'default_account_id' => (int) env('BUKKU_DEFAULT_ACCOUNT_ID'),
     ],
 

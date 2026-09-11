@@ -36,27 +36,7 @@
                        placeholder="Type to search…" required autocomplete="off"
                        style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px; box-sizing:border-box;">
                 <input type="hidden" name="${name}">
-                @can('record-inventory')
-                <div class="new-item" hidden style="margin-top:6px; padding:8px; background:hsl(30,15%,96%); border:1px solid hsl(30,15%,88%); border-radius:6px;">
-                    <div style="font-size:12px; color:hsl(24,5%,45%); margin-bottom:6px;">
-                        Not in inventory yet. Add <strong class="new-item-name"></strong>?
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:6px;">
-                        <select class="new-item-category" style="padding:6px 8px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px;">
-                            @foreach(\App\Models\InventoryItem::CATEGORIES as $cat)
-                                <option value="{{ $cat }}">{{ $cat }}</option>
-                            @endforeach
-                        </select>
-                        <select class="new-item-unit" style="padding:6px 8px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px;">
-                            @foreach(\App\Models\InventoryItem::UNITS as $u)
-                                <option value="{{ $u }}">{{ $u }}</option>
-                            @endforeach
-                        </select>
-                        <button type="button" class="new-item-add"
-                                style="background:hsl(24,45%,42%); color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:13px; cursor:pointer;">Add</button>
-                    </div>
-                </div>
-                @endcan
+                @include('partials.new-item-panel')
             </div>
             <div>
                 <label style="display:block; font-size:12px; color:hsl(24,5%,45%); margin-bottom:2px;">Quantity</label>
@@ -84,70 +64,7 @@
         const item  = ItemPicker.resolve(e.target);
         const price = document.getElementsByName(e.target.dataset.for.replace('[inventory_item_id]', '[unit_price]'))[0];
         if (item && price) price.value = item.cost;
-        offerToCreate(e.target, item);
         recalcTotal();
-    });
-
-    // What the chef typed matches nothing on the shelf. Rather than making them
-    // leave a half-filled purchase to go and add the ingredient, offer it here.
-    // Two characters, because one character matches most of the catalogue and
-    // the panel would flash open on the way to every word.
-    function offerToCreate(input, matched) {
-        const panel = input.parentElement.querySelector('.new-item');
-        if (!panel) return;                       // no record-inventory: never offered
-
-        const typed = input.value.trim();
-        panel.hidden = !!matched || typed.length < 2;
-        panel.querySelector('.new-item-name').textContent = typed;
-    }
-
-    document.getElementById('line-items').addEventListener('click', async (e) => {
-        const button = e.target.closest('.new-item-add');
-        if (!button) return;
-
-        const panel = button.closest('.new-item');
-        const input = panel.parentElement.querySelector('.item-picker');
-        const name  = input.value.trim();
-        if (!name) return;
-
-        button.disabled = true;
-        try {
-            // Quantity and cost start at zero on purpose: this purchase is what
-            // puts the first of it on the shelf, and LogPurchase writes both
-            // when the form is submitted. Seeding them from the line would
-            // double the stock.
-            const response = await fetch('{{ route('inventory.store') }}', {
-                method:  'POST',
-                headers: {
-                    'Content-Type':     'application/json',
-                    'Accept':           'application/json',
-                    'X-CSRF-TOKEN':     document.querySelector('meta[name="csrf-token"]').content,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({
-                    name,
-                    category:          panel.querySelector('.new-item-category').value,
-                    unit:              panel.querySelector('.new-item-unit').value,
-                    quantity_on_hand:  0,
-                    reorder_threshold: 0,
-                    unit_cost:         0,
-                }),
-            });
-
-            if (!response.ok) {
-                const body = await response.json().catch(() => ({}));
-                throw new Error(body.message || 'Check the name, category and unit.');
-            }
-
-            const item = ItemPicker.add(await response.json());
-            input.value = item.label;
-            ItemPicker.resolve(input);
-            panel.hidden = true;
-        } catch (error) {
-            alert('Could not add that ingredient. ' + error.message);
-        } finally {
-            button.disabled = false;
-        }
     });
 
     function recalcTotal() {

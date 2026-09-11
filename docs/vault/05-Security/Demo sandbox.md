@@ -103,12 +103,12 @@ Demo action → demo head chef (in the sandbox `users` table). Real action → r
 
 ## Provisioning
 
-The app DB user (`isms`) **cannot create databases**, so this is a one-time root step.
+The app DB user (`app_user`) **cannot create databases**, so this is a one-time root step.
 
 ```sql
 CREATE DATABASE isms_demo
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-GRANT ALL PRIVILEGES ON isms_demo.* TO 'appuser'@'%';
+GRANT ALL PRIVILEGES ON isms_demo.* TO 'app_user'@'%';
 FLUSH PRIVILEGES;
 ```
 
@@ -134,7 +134,7 @@ php artisan demo:reset
 ## Verifying the isolation
 
 ```bash
-docker compose exec db mariadb -u isms -p -e \
+docker compose exec db mariadb -u app_user -p -e \
   "SELECT COUNT(*) FROM isms.sales;
    SELECT COUNT(*) FROM isms_demo.sales;"
 ```

@@ -1,6 +1,6 @@
 # Inventory, Sales and Management System — Engineering Vault
 
-Everything about how this system is built, wired and run. Restaurant kitchen management for a single kitchen, solving the Owner's financial-visibility problem: wastage, over-ordering and untracked stock.
+Everything about how this system is built, wired and run. Restaurant kitchen management for a single kitchen in Malaysia, solving the Owner's financial-visibility problem: wastage, over-ordering and untracked stock.
 
 New here? Read [[How to use this vault]] first.
 
@@ -28,6 +28,7 @@ Each note follows one action end to end, file by file, with the reasoning at eve
 - [[Path — Logging production]] · [[Path — Saving a recipe]]
 - [[Path — Recording a tally]] · [[Path — Recording a stock-take]]
 - [[Path — Rendering the dashboard]]
+- [[Path — Scanning an invoice]] — the only path that writes outside this system
 
 ## The mathematics
 

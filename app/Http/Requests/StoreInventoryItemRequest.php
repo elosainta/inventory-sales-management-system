@@ -31,6 +31,12 @@ class StoreInventoryItemRequest extends FormRequest
             'reorder_threshold'  => ['required', 'numeric', 'min:0'],
             'unit_cost'          => ['required', 'numeric', 'min:0'],
             'pack_size'          => ['nullable', 'numeric', 'min:1'],
+            // The id of a product in Bukku, not a local row — no exists rule
+            // to write, because the catalogue it belongs to lives over HTTP.
+            // Only reachable with manage-inventory: the early return above
+            // narrows a part timer to quantity alone, and update() intersects
+            // on that same key, so this cannot arrive from a hand-rolled post.
+            'bukku_product_id'   => ['nullable', 'integer', 'min:1'],
         ];
     }
 }

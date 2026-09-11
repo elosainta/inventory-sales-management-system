@@ -34,7 +34,7 @@ public function isLowStock(): bool
 
 The obvious reading of "reorder threshold" is *the level at which you reorder*. Here it is not — it is the **comfortable target level**, and the alert fires at half of it.
 
-The reason is alert fatigue. A kitchen with 185 items where every item alerts at its target level produces a permanent wall of red that everyone learns to ignore. Halving means an item only shouts when it is genuinely depleted.
+The reason is alert fatigue. A kitchen with hundreds of items where every item alerts at its target level produces a permanent wall of red that everyone learns to ignore. Halving means an item only shouts when it is genuinely depleted.
 
 **The consequence, stated plainly:** by the time the alert fires, you are already at half your intended buffer. This is a *reaction* threshold, not a *planning* one. The Owner's planning view is the dashboard's low-stock list — same predicate, but visible on every page load rather than pushed as a notification.
 

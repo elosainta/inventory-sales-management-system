@@ -35,7 +35,12 @@ class InventoryItemController extends Controller
 
         $categories = InventoryItem::CATEGORIES;
 
-        return view('inventory.index', compact('items', 'totalValue', 'categories'));
+        // Only for managers, and only to fill one dropdown in the edit modal.
+        // Cached an hour by the client, and empty when Bukku is not configured
+        // — the field then simply does not render.
+        $bukkuProducts = Gate::allows('manage-inventory') ? \App\Support\Bukku::products() : [];
+
+        return view('inventory.index', compact('items', 'totalValue', 'categories', 'bukkuProducts'));
     }
 
     public function store(StoreInventoryItemRequest $request)

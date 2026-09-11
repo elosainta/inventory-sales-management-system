@@ -1,6 +1,6 @@
 # Path — Recording a tally
 
-Feature 5. A person walks the shelves, enters what they physically counted against the live 185-item inventory, and **the count wins** — live stock is overwritten to match.
+Feature 5. A person walks the shelves, enters what they physically counted against the live inventory (254 items as at 2026-09-03), and **the count wins** — live stock is overwritten to match.
 
 The only path outside `app/Domain/` that rewrites live stock quantities.
 

@@ -8,7 +8,7 @@ generated: true
 
 # Routes
 
-All 128 registered routes, read straight from Laravel's router.
+All 135 registered routes, read straight from Laravel's router.
 Every controller method behind these is required to open with `Gate::authorize()` — see [[Authorization gates]].
 
 | Method | URI | Name | Action | Middleware |
@@ -26,6 +26,7 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `DELETE` | `/sales/{sale}` | `sales.destroy` | `SaleController@destroy` | auth |
 | `DELETE` | `/sections/{section}/tasks/{task}` | `sections.tasks.destroy` | `SectionController@destroyTask` | auth |
 | `DELETE` | `/sections/{section}` | `sections.destroy` | `SectionController@destroy` | auth |
+| `DELETE` | `/staff-meals/{staffMeal}` | `staff-meals.destroy` | `StaffMealController@destroy` | auth |
 | `DELETE` | `/stock-take/items/{stockTakeItem}` | `stock-take-items.destroy` | `StockTakeItemController@destroy` | auth |
 | `DELETE` | `/suppliers/{supplier}` | `suppliers.destroy` | `SupplierController@destroy` | auth |
 | `DELETE` | `/users/{user}` | `users.destroy` | `UserController@destroy` | auth |
@@ -55,6 +56,7 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `GET` | `/prep/overview` | `prep.overview` | `PrepChecklistController@overview` | auth |
 | `GET` | `/prep/task-check/{sectionCheck}/photo` | `prep.task-check.photo` | `PrepChecklistController@taskCheckPhoto` | auth |
 | `GET` | `/prep` | `prep.index` | `PrepChecklistController@index` | auth |
+| `GET` | `/production/dish/{recipe}` | `production.dish` | `ProductionController@dish` | auth |
 | `GET` | `/production` | `production.index` | `ProductionController@index` | auth |
 | `GET` | `/profile` | `profile.edit` | `ProfileController@edit` | auth |
 | `GET` | `/purchases/export/pdf` | `purchases.export-pdf` | `PurchaseController@exportPdf` | auth |
@@ -70,6 +72,8 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `GET` | `/sales` | `sales.index` | `SaleController@index` | auth |
 | `GET` | `/search` | `search.index` | `SearchController@index` | auth |
 | `GET` | `/sections` | `sections.index` | `SectionController@index` | auth |
+| `GET` | `/staff-meals/export/pdf` | `staff-meals.export-pdf` | `StaffMealController@exportPdf` | auth |
+| `GET` | `/staff-meals` | `staff-meals.index` | `StaffMealController@index` | auth |
 | `GET` | `/stock-take/create` | `stock-take.create` | `StockTakeController@create` | auth |
 | `GET` | `/stock-take/items` | `stock-take-items.index` | `StockTakeItemController@index` | auth |
 | `GET` | `/stock-take/{stockTake}` | `stock-take.show` | `StockTakeController@show` | auth |
@@ -98,6 +102,7 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `PATCH` | `/sales/{sale}` | `sales.update` | `SaleController@update` | auth |
 | `PATCH` | `/sections/{section}/tasks/{task}` | `sections.tasks.update` | `SectionController@updateTask` | auth |
 | `PATCH` | `/sections/{section}` | `sections.update` | `SectionController@update` | auth |
+| `PATCH` | `/staff-meals/{staffMeal}` | `staff-meals.update` | `StaffMealController@update` | auth |
 | `PATCH` | `/stock-take/items/{stockTakeItem}` | `stock-take-items.update` | `StockTakeItemController@update` | auth |
 | `PATCH` | `/suppliers/{supplier}` | `suppliers.update` | `SupplierController@update` | auth |
 | `PATCH` | `/support-tickets/{ticket}/toggle` | `support-tickets.toggle` | `SupportTicketController@toggleStatus` | auth |
@@ -121,17 +126,19 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `POST` | `/market-purchases` | `market-purchases.store` | `MarketPurchaseController@store` | auth |
 | `POST` | `/notifications/dismiss-low-stock` | `notifications.dismiss-low-stock` | `Closure` | auth |
 | `POST` | `/prep/task-check` | `prep.task-check` | `PrepChecklistController@storeTaskCheck` | auth |
-| `POST` | `/production` | `production.store` | `ProductionController@store` | auth |
+| `POST` | `/production/dish/{recipe}` | `production.dish.store` | `ProductionController@storeDish` | auth |
 | `POST` | `/purchases` | `purchases.store` | `PurchaseController@store` | auth |
 | `POST` | `/recipes/{id}/restore` | `recipes.restore` | `RecipeController@restore` | auth |
 | `POST` | `/recipes` | `recipes.store` | `RecipeController@store` | auth |
 | `POST` | `/resend/webhook` | `resend.webhook` | `Resend\Laravel\Http\Controllers\WebhookController@handleWebhook` | — |
 | `POST` | `/rnd/{rndEntry}/recipe` | `rnd.recipe` | `RndEntryController@createRecipe` | auth |
 | `POST` | `/rnd` | `rnd.store` | `RndEntryController@store` | auth |
+| `POST` | `/sales/sheet` | `sales.sheet` | `SaleController@storeSheet` | auth |
 | `POST` | `/sales/{sale}/restore` | `sales.restore` | `SaleController@restore` | auth |
 | `POST` | `/sales` | `sales.store` | `SaleController@store` | auth |
 | `POST` | `/sections/{section}/tasks` | `sections.tasks.store` | `SectionController@storeTask` | auth |
 | `POST` | `/sections` | `sections.store` | `SectionController@store` | auth |
+| `POST` | `/staff-meals` | `staff-meals.store` | `StaffMealController@store` | auth |
 | `POST` | `/stock-take/items` | `stock-take-items.store` | `StockTakeItemController@store` | auth |
 | `POST` | `/stock-take` | `stock-take.store` | `StockTakeController@store` | auth, throttle:20,1 |
 | `POST` | `/suppliers` | `suppliers.store` | `SupplierController@store` | auth |

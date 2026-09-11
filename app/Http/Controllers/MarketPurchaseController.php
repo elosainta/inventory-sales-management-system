@@ -6,6 +6,7 @@ use App\Domain\Purchasing\Actions\LogMarketPurchase;
 use App\Http\Requests\StoreMarketPurchaseRequest;
 use App\Models\InventoryItem;
 use App\Models\MarketPurchase;
+use App\Support\Period;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -21,18 +22,7 @@ class MarketPurchaseController extends Controller
 
         $query = MarketPurchase::with(['lines', 'user'])->orderByDesc('purchase_date')->orderByDesc('id');
 
-        if ($range === 'today') {
-            $query->whereDate('purchase_date', today());
-        } elseif ($range === 'week') {
-            $query->whereBetween('purchase_date', [now()->startOfWeek(), now()->endOfWeek()]);
-        } elseif ($range === 'month') {
-            $query->whereBetween('purchase_date', [now()->startOfMonth(), now()->endOfMonth()]);
-        } elseif ($range === 'year') {
-            $query->whereBetween('purchase_date', [now()->startOfYear(), now()->endOfYear()]);
-        } else {
-            [$y, $m] = explode('-', $month);
-            $query->whereYear('purchase_date', $y)->whereMonth('purchase_date', $m);
-        }
+        Period::filter($query, $range, $month, 'purchase_date');
 
         $purchases  = $query->get();
         $totalSpend = $purchases->sum('total_amount');

@@ -88,7 +88,7 @@
 </head>
 <body>
     <div class="card">
-        <span class="wordmark">ISMS</span>
+        <span class="wordmark">isms</span>
         <div class="icon">🔧</div>
         <h1>We'll be right back</h1>
         <p>Inventory, Sales and Management System is currently undergoing a quick update. We'll be back shortly — thank you for your patience.</p>

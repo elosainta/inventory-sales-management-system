@@ -48,7 +48,7 @@ March sales:
 | Dish | plate cost | sold | contribution |
 |---|---|---|---|
 | Nasi Lemak | 5.42 | 120 | 650.40 |
-| Laksa the region | 7.80 | 85 | 663.00 |
+| Laksa | 7.80 | 85 | 663.00 |
 | Kolo Mee | 4.15 | 200 | 830.00 |
 | Teh Tarik | 1.20 | 310 | 372.00 |
 

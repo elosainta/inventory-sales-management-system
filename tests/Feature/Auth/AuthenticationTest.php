@@ -54,4 +54,25 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect('/');
     }
+
+    public function test_a_distributed_attack_is_locked_out_by_the_email_counter(): void
+    {
+        $user = User::factory()->create();
+
+        // Twenty wrong guesses, every one from a different address. The
+        // email+IP counter never reaches five on any of them, so only the
+        // per-email counter can stop this — which is the whole point of it.
+        foreach (range(1, 20) as $i) {
+            $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.'.$i])
+                ->post('/login', ['email' => $user->email, 'password' => 'wrong-password']);
+        }
+
+        // Even the RIGHT password, from an address that has never been seen,
+        // is now refused. Before the email counter existed this logged in.
+        $response = $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.99'])
+            ->post('/login', ['email' => $user->email, 'password' => 'password']);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+    }
 }

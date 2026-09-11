@@ -16,6 +16,7 @@ class InventoryItem extends Model
         'quantity_on_hand',
         'reorder_threshold',
         'unit_cost',
+        'bukku_product_id',
         'pack_size',
         'monetary_value',
         'last_updated',

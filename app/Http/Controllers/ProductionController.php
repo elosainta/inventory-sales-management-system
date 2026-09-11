@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Production\Actions\LogProduction;
-use App\Http\Requests\StoreProductionBatchRequest;
+use App\Domain\Production\Actions\UndoProduction;
+use App\Http\Requests\StoreDishProductionRequest;
+use App\Models\InventoryItem;
 use App\Models\ProductionBatch;
 use App\Models\Recipe;
+use App\Support\Period;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ProductionController extends Controller
@@ -21,26 +23,13 @@ class ProductionController extends Controller
 
         $query = ProductionBatch::with(['lines', 'user'])->orderByDesc('production_date')->orderByDesc('id');
 
-        if ($range === 'today') {
-            $query->whereDate('production_date', today());
-        } elseif ($range === 'week') {
-            $query->whereBetween('production_date', [now()->startOfWeek(), now()->endOfWeek()]);
-        } elseif ($range === 'month') {
-            $query->whereBetween('production_date', [now()->startOfMonth(), now()->endOfMonth()]);
-        } elseif ($range === 'year') {
-            $query->whereBetween('production_date', [now()->startOfYear(), now()->endOfYear()]);
-        } else {
-            [$y, $m] = explode('-', $month);
-            $query->whereYear('production_date', $y)->whereMonth('production_date', $m);
-        }
+        Period::filter($query, $range, $month, 'production_date');
 
         $batches    = $query->with('recipe')->get();
         $totalValue = $batches->sum('total_value');
 
-        // Every recipe with its formula, so the Log Production form can show
-        // what a batch will take off the shelf before it is saved. The figures
-        // are a preview only — LogProduction reads the recipe again on save.
-        $recipes = Recipe::with(['ingredients.inventoryItem', 'outputInventoryItem'])
+        // Every recipe, for the dish cards at the top of the page.
+        $recipes = Recipe::with('ingredients.inventoryItem')
             ->orderBy('name')
             ->get();
 
@@ -60,42 +49,50 @@ class ProductionController extends Controller
      * One transaction wraps the lot: if the fourth dish fails, the first three
      * are not left written to inventory.
      */
-    public function store(StoreProductionBatchRequest $request, LogProduction $action)
+    /**
+     * One dish, laid out like its recipe, with a quantity box per ingredient
+     * prefilled from the recipe. The chef corrects what they actually used and
+     * that is what comes off the shelf. Reached by tapping a dish card.
+     */
+    public function dish(Recipe $recipe)
+    {
+        Gate::authorize('manage-production');
+
+        $recipe->load('ingredients.inventoryItem');
+
+        // One row per shelf item, merged: a recipe may list the same one twice,
+        // and two boxes for one item would both post to the same key.
+        $perDish = $recipe->consumptionFor(1);
+        $items   = InventoryItem::whereIn('id', array_keys($perDish))->orderBy('name')->get();
+
+        return view('production.dish', compact('recipe', 'perDish', 'items'));
+    }
+
+    public function storeDish(StoreDishProductionRequest $request, Recipe $recipe, LogProduction $action)
     {
         Gate::authorize('manage-production');
 
         $data = $request->validated();
 
-        $shared = [
-            'user_id'         => auth()->id(),
-            'produced_by'     => $data['produced_by'],
-            'production_date' => $data['production_date'],
-            'notes'           => $data['notes'] ?? null,
-        ];
+        $action->execute([
+            'user_id'           => auth()->id(),
+            'recipe_id'         => $recipe->id,
+            'quantity_produced' => $data['quantity_produced'],
+            'produced_by'       => $data['produced_by'],
+            'production_date'   => $data['production_date'],
+            'notes'             => $data['notes'] ?? null,
+            'used'              => $data['used'],
+        ]);
 
-        DB::transaction(function () use ($action, $data, $shared) {
-            foreach ($data['quantities'] as $recipeId => $quantity) {
-                $action->execute($shared + [
-                    'recipe_id'         => (int) $recipeId,
-                    'quantity_produced' => $quantity,
-                ]);
-            }
-        });
-
-        $made = count($data['quantities']);
-
-        return back()->with('success', $made === 1
-            ? 'Production logged.'
-            : "Production logged for {$made} dishes.");
+        return redirect()->route('production.index')->with('success', 'Production logged.');
     }
 
-    public function destroy(ProductionBatch $productionBatch)
+    public function destroy(ProductionBatch $productionBatch, UndoProduction $undo)
     {
         Gate::authorize('delete-entries');
 
-        $productionBatch->lines()->delete();
-        $productionBatch->delete();
+        $undo->execute($productionBatch);
 
-        return back()->with('success', 'Production entry removed.');
+        return back()->with('success', 'Production entry removed. What it took off the shelf is back.');
     }
 }

@@ -10,7 +10,7 @@
     {{-- ═══════════ OVERVIEW ═══════════ --}}
     <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:10px; padding:28px; margin-bottom:24px;">
         <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:14px;">
-            <h2 style="font-family:'Caveat',cursive; font-size:34px; font-weight:600; line-height:1; color:hsl(20,60%,40%);">ISMS</h2>
+            <h2 style="font-family:'Caveat',cursive; font-size:34px; font-weight:600; line-height:1; color:hsl(20,60%,40%);">isms</h2>
             <span style="display:inline-block; background:hsl(20,60%,45%); color:white; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; padding:4px 12px; border-radius:999px;">
                 Version {{ $currentVersion }}
             </span>

@@ -86,10 +86,26 @@
                                                  style="width:48px; height:48px; object-fit:cover; border-radius:6px; border:1px solid hsl(30,15%,85%); cursor:pointer;">
                                         @endif
                                         @if($task->requires_photo)
-                                            <form method="POST" action="{{ route('prep.task-check') }}" enctype="multipart/form-data">
+                                            <form method="POST" action="{{ route('prep.task-check') }}" enctype="multipart/form-data" style="display:flex; align-items:center; gap:8px;">
                                                 @csrf
                                                 <input type="hidden" name="task_id" value="{{ $task->id }}">
-                                                <label style="cursor:pointer; padding:6px 14px; background:{{ $check ? 'hsl(30,15%,94%)' : 'hsl(20,60%,45%)' }}; color:{{ $check ? 'hsl(24,5%,40%)' : 'white' }}; border-radius:6px; font-size:13px; font-weight:600; white-space:nowrap;">
+                                                {{-- The same native camera as Invoice Scan: `capture="environment"`
+                                                     on the file input opens the phone's rear camera straight from
+                                                     the browser — no getUserMedia, no preview canvas, no library.
+                                                     Set on click rather than in the markup so the Upload button
+                                                     beside it still offers a photo already in the gallery. --}}
+                                                <button type="button" onclick="takeTaskPhoto(this)"
+                                                        title="{{ __('Take photo') }}" aria-label="{{ __('Take photo') }}"
+                                                        style="cursor:pointer; display:inline-flex; align-items:center; padding:7px 10px; background:white; border:1px solid hsl(30,15%,85%); border-radius:6px; color:hsl(24,10%,20%);">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                                                        <circle cx="12" cy="13" r="3.5"/>
+                                                    </svg>
+                                                </button>
+                                                {{-- Puts it back, or this button would be stuck on the camera. --}}
+                                                <label onclick="this.querySelector('input').removeAttribute('capture')"
+                                                       style="cursor:pointer; padding:6px 14px; background:{{ $check ? 'hsl(30,15%,94%)' : 'hsl(20,60%,45%)' }}; color:{{ $check ? 'hsl(24,5%,40%)' : 'white' }}; border-radius:6px; font-size:13px; font-weight:600; white-space:nowrap;">
                                                     {{ $check ? __('Re-upload') : __('Upload Photo') }}
                                                     <input type="file" name="photo" accept="image/*" style="display:none;" onchange="this.form.submit()">
                                                 </label>
@@ -122,6 +138,14 @@
     </div>
 
     <script>
+        // One input per task, two ways in. A second input sharing name="photo"
+        // would fight over which one posts.
+        function takeTaskPhoto(btn) {
+            var input = btn.closest('form').querySelector('input[type=file]');
+            input.setAttribute('capture', 'environment');
+            input.click();
+        }
+
         function openLightbox(src) {
             document.getElementById('lightbox-img').src = src;
             document.getElementById('lightbox').style.display = 'flex';

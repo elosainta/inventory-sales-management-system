@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Purchasing\Actions\PushInvoiceToBukku;
+use App\Domain\Purchasing\Actions\RecordPurchaseFromScan;
 use App\Domain\Purchasing\Actions\ScanInvoice;
 use App\Http\Requests\PushInvoiceScanRequest;
 use App\Http\Requests\StoreInvoiceScanRequest;
+use App\Models\InventoryItem;
+use App\Models\InvoiceItemAlias;
 use App\Models\InvoiceScan;
 use App\Support\Bukku;
 use Illuminate\Support\Facades\Gate;
@@ -21,7 +24,10 @@ use Illuminate\Support\Facades\Storage;
  * and the result is a row anyone with access can find later rather than a
  * message in one person's chat history.
  *
- * Managers only. It writes to the company's books.
+ * Two gates, deliberately. `use-invoice-scan` is the screen — upload, read,
+ * review, clear a row — and every signed-in account holds it, because whoever
+ * takes the delivery is who has the paper in their hand. `send-invoice-scan`
+ * is the button that writes to the company's books, and that is a manager's.
  */
 class InvoiceScanController extends Controller
 {
@@ -30,8 +36,9 @@ class InvoiceScanController extends Controller
         Gate::authorize('use-invoice-scan');
 
         return view('invoice-scan.index', [
-            'scans'      => InvoiceScan::with('user')->latest()->paginate(25),
-            'configured' => Bukku::configured() && filled(config('services.anthropic.key')),
+            'scans'        => InvoiceScan::with('user')->latest()->paginate(25),
+            'duplicateIds' => InvoiceScan::duplicateIds(),
+            'configured'   => Bukku::configured() && filled(config('services.anthropic.key')),
         ]);
     }
 
@@ -56,23 +63,49 @@ class InvoiceScanController extends Controller
     {
         Gate::authorize('use-invoice-scan');
 
+        $lines = $invoiceScan->lines();
+
         return view('invoice-scan.show', [
             'scan'           => $invoiceScan,
+            'duplicates'     => $invoiceScan->possibleDuplicates(),
             'contacts'       => Bukku::contacts(),
             'accounts'       => Bukku::accounts(),
             'products'       => Bukku::products(),
             'terms'          => PushInvoiceToBukku::TERMS,
             'defaultTermId'  => PushInvoiceToBukku::DEFAULT_TERM_ID,
             'defaultAccount' => (int) config('services.bukku.default_account_id'),
+
+            // The searchable inventory list behind each row's match box, and
+            // what this kitchen has already been taught about these suppliers'
+            // wording. Resolved here, in one query for the whole invoice.
+            'pickerItems'    => InventoryItem::orderBy('name')->get(['id', 'name', 'unit', 'unit_cost']),
+            'aliasMatches'   => InvoiceItemAlias::matchAll(array_column($lines, 'description')),
         ]);
     }
 
-    public function push(PushInvoiceScanRequest $request, InvoiceScan $invoiceScan, PushInvoiceToBukku $action)
-    {
-        Gate::authorize('use-invoice-scan');
+    public function push(
+        PushInvoiceScanRequest $request,
+        InvoiceScan $invoiceScan,
+        PushInvoiceToBukku $action,
+        RecordPurchaseFromScan $recordPurchase,
+    ) {
+        // The one method on this controller that spends money.
+        Gate::authorize('send-invoice-scan');
+
+        $data = $request->validated();
+
+        // Learn before sending, not after. What a supplier's wording means is
+        // the reviewer's judgement about naming; it is true whether or not
+        // Bukku accepts the bill a moment later, and re-matching twenty lines
+        // because of someone else's outage is how a feature stops being used.
+        foreach ($data['lines'] as $line) {
+            if (filled($line['inventory_item_id'] ?? null)) {
+                InvoiceItemAlias::remember($line['description'], (int) $line['inventory_item_id']);
+            }
+        }
 
         try {
-            $scan = $action->execute($invoiceScan, $request->validated());
+            $scan = $action->execute($invoiceScan, $data);
         } catch (\Throwable $e) {
             report($e);
 
@@ -82,9 +115,37 @@ class InvoiceScanController extends Controller
             return back()->withInput()->with('error', 'Bukku did not accept the bill: ' . $e->getMessage());
         }
 
+        // The bill is filed. Now put the same delivery on this kitchen's own
+        // shelf, which used to be a second round of typing. Only the lines the
+        // reviewer matched can move stock; the rest are on the bill and
+        // nowhere else, which is right for a delivery fee.
+        //
+        // Deliberately after the send and deliberately not fatal: the bill is
+        // already on the books and re-pushing is refused, so a failure here
+        // must report itself and leave the numbers alone rather than throw
+        // away a successful filing.
+        $note = '';
+
+        try {
+            $supplierName = collect(Bukku::contacts())
+                ->firstWhere('id', (int) $request->validated()['contact_id'])['name']
+                ?? $data['supplier_name']
+                ?? $scan->supplier_name;
+
+            $purchase = $recordPurchase->execute($scan, $data, $supplierName);
+
+            $note = $purchase
+                ? ' Stock updated — recorded as purchase #' . $purchase->id . '.'
+                : ' No lines were matched to your inventory, so nothing was added to stock.';
+        } catch (\Throwable $e) {
+            report($e);
+
+            $note = ' The bill is filed, but stock could NOT be updated — add this delivery under Purchases by hand.';
+        }
+
         return redirect()
             ->route('invoice-scan.show', $scan)
-            ->with('success', 'Sent to Bukku as ' . $scan->bukku_number . '.');
+            ->with('success', 'Sent to Bukku as ' . $scan->bukku_number . '.' . $note);
     }
 
     public function photo(InvoiceScan $invoiceScan)

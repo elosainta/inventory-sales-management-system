@@ -92,6 +92,7 @@
                                         data-reorder="{{ $item->reorder_threshold }}"
                                         data-cost="{{ $item->unit_cost }}"
                                         data-pack-size="{{ $item->pack_size }}"
+                                        data-bukku-product="{{ $item->bukku_product_id }}"
                                         style="background:none; border:none; cursor:pointer; color:hsl(24,5%,45%); padding:4px; margin-right:4px;" title="Edit">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                 </button>
@@ -273,6 +274,28 @@
 
                 {{-- Optional: price per piece from a pack (e.g. eggs, cheese slices, sausages) --}}
                 <div style="border:1px dashed hsl(30,15%,80%); border-radius:6px; padding:12px; margin-bottom:16px; background:hsl(40,33%,98%);">
+                    @can('manage-inventory')
+                        @if(! empty($bukkuProducts))
+                            <div style="margin-bottom:16px;">
+                                <label for="edit-bukku-product" style="display:block; font-size:13px; font-weight:500; margin-bottom:4px;">
+                                    Same thing in Bukku <span style="color:hsl(24,5%,45%); font-weight:400;">(optional)</span>
+                                </label>
+                                <p style="font-size:12px; color:hsl(24,5%,50%); margin-bottom:8px; line-height:1.5;">
+                                    Link this to the matching product in your accounts, and a scanned invoice line
+                                    for it will post against the right account on its own. Leave it blank for
+                                    anything Bukku does not track.
+                                </p>
+                                <select id="edit-bukku-product" name="bukku_product_id"
+                                        style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px; box-sizing:border-box;">
+                                    <option value="">&mdash; not tracked in Bukku &mdash;</option>
+                                    @foreach($bukkuProducts as $product)
+                                        <option value="{{ $product['id'] }}">{{ $product['name'] ?? ('Product #' . $product['id']) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                    @endcan
+
                     <div style="font-size:13px; font-weight:600; margin-bottom:2px;">Sold in a pack? Price it per piece <span style="color:hsl(24,5%,45%); font-weight:400;">(optional)</span></div>
                     <p style="font-size:12px; color:hsl(24,5%,50%); margin-bottom:10px;">Enter how many pieces are in a pack and the pack price — we'll fill Unit Cost per piece for you. Pick unit <strong>pcs</strong> above.</p>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -321,6 +344,10 @@
             document.getElementById('edit-pack-size').value = (packSize > 0) ? d.packSize : '';
             document.getElementById('edit-pack-price').value =
                 (packSize > 0 && parseFloat(d.cost) > 0) ? (parseFloat(d.cost) * packSize).toFixed(2) : '';
+            // Only rendered for managers, and only when Bukku answered.
+            var bukku = document.getElementById('edit-bukku-product');
+            if (bukku) { bukku.value = d.bukkuProduct || ''; }
+
             document.getElementById('edit-modal').style.display = 'flex';
             // The name box is disabled for anyone who may only key a count in,
             // so send them to the one field they can actually change.

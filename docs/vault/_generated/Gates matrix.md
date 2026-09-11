@@ -8,7 +8,7 @@ generated: true
 
 # Gates matrix
 
-All 56 gates from `AppServiceProvider::boot()`, evaluated live against a synthetic user per role.
+All 59 gates from `AppServiceProvider::boot()`, evaluated live against a synthetic user per role.
 `?` means the gate needs state a synthetic user does not have. Explained in [[Authorization gates]].
 
 | Gate | Owner | Head Chef | Junior Chef | Admin |
@@ -31,6 +31,7 @@ All 56 gates from `AppServiceProvider::boot()`, evaluated live against a synthet
 | `manage-rnd` | ✅ | ✅ | ✅ | ✅ |
 | `manage-sales` | ✅ | ✅ | — | ✅ |
 | `manage-sections` | ✅ | ✅ | — | ✅ |
+| `manage-staff-meal` | ✅ | ✅ | ✅ | ✅ |
 | `manage-stock-take-items` | ✅ | ✅ | — | ✅ |
 | `manage-suppliers` | ✅ | ✅ | — | ✅ |
 | `manage-support-tickets` | ✅ | — | — | ✅ |
@@ -43,11 +44,12 @@ All 56 gates from `AppServiceProvider::boot()`, evaluated live against a synthet
 | `record-stock-take` | — | ✅ | ✅ | ✅ |
 | `record-tally` | — | ✅ | ✅ | ✅ |
 | `search-global` | ✅ | ✅ | — | ✅ |
+| `send-invoice-scan` | ✅ | ✅ | — | ✅ |
 | `submit-feedback` | — | ✅ | ✅ | ✅ |
 | `submit-leave` | — | ✅ | ✅ | ✅ |
 | `submit-support` | ✅ | ✅ | ✅ | ✅ |
 | `toggle-maintenance` | ✅ | — | — | ✅ |
-| `use-invoice-scan` | ✅ | ✅ | — | ✅ |
+| `use-invoice-scan` | ✅ | ✅ | ✅ | ✅ |
 | `view-about` | ✅ | ✅ | ✅ | ✅ |
 | `view-audit-log` | ✅ | — | — | ✅ |
 | `view-checklist` | ✅ | ✅ | ✅ | ✅ |
@@ -62,6 +64,7 @@ All 56 gates from `AppServiceProvider::boot()`, evaluated live against a synthet
 | `view-recipes` | ✅ | ✅ | — | ✅ |
 | `view-rnd` | ✅ | ✅ | ✅ | ✅ |
 | `view-sales` | ✅ | ✅ | — | ✅ |
+| `view-staff-meal` | ✅ | ✅ | ✅ | ✅ |
 | `view-stock-take` | ✅ | ✅ | ✅ | ✅ |
 | `view-suppliers` | ✅ | ✅ | — | ✅ |
 | `view-support-tickets` | ✅ | — | — | ✅ |

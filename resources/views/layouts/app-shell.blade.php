@@ -21,7 +21,7 @@
         </button>
         <a href="{{ route('dashboard') }}" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:inherit;">
             <div style="width:26px; height:26px; border-radius:5px; background:hsl(20,60%,45%); display:flex; align-items:center; justify-content:center; color:white; font-family:'Caveat',cursive; font-weight:600; font-size:18px; line-height:1;">f</div>
-            <span style="font-family:'Caveat',cursive; font-weight:600; font-size:22px; line-height:1;">ISMS</span>
+            <span style="font-family:'Caveat',cursive; font-weight:600; font-size:22px; line-height:1;">isms</span>
         </a>
         @can('search-global')
         <button onclick="openSearch()" style="background:none; border:none; color:hsl(40,33%,70%); cursor:pointer; padding:4px; display:flex; align-items:center; margin-left:auto;">
@@ -42,7 +42,7 @@
                 <div style="width:32px; height:32px; border-radius:6px; background-color:hsl(20,60%,45%); display:flex; align-items:center; justify-content:center; color:white; font-family:'Caveat',cursive; font-weight:600; font-size:22px; line-height:1;">
                     f
                 </div>
-                <span style="font-family:'Caveat',cursive; font-weight:600; font-size:26px; line-height:1;">ISMS</span>
+                <span style="font-family:'Caveat',cursive; font-weight:600; font-size:26px; line-height:1;">isms</span>
             </a>
             {{-- Search button --}}
             @can('search-global')
@@ -77,7 +77,8 @@
                         ['route' => 'stock-take.index',       'label' => 'Stock-take',     'gate' => 'view-stock-take',        'icon' => '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>'],
                         ['route' => 'tally.index',            'label' => 'Tally Check',    'gate' => 'view-tally',             'icon' => '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>'],
                         ['route' => 'rnd.index',              'label' => 'R&D',            'gate' => 'view-rnd',               'icon' => '<path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/>'],
-                        ['route' => 'wastage.index',          'label' => 'Wastage',        'gate' => 'view-wastage',           'icon' => '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>'],
+                        ['route' => 'staff-meals.index',      'label' => "Staff's Meal", 'gate' => 'view-staff-meal',    'icon' => '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>'],
+                        ['route' => 'wastage.index',          'label' => 'Wastage',      'gate' => 'view-wastage',           'icon' => '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>'],
                         ['route' => 'sales.index',            'label' => 'Sales',          'gate' => 'view-sales',             'icon' => '<line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'],
                         // Financial overview
                         ['route' => 'dashboard',              'label' => 'Dashboard',      'gate' => 'view-dashboard',         'icon' => '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>'],

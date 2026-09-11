@@ -131,7 +131,7 @@ Production, all `welcome1234` on first login:
 | Name | Email | Role |
 |---|---|---|
 | Alex Tan | `alex@example.test` | owner |
-| Sam | `paul@example.test` | head_chef |
+| Sam | `sam@example.test` | head_chef |
 | Morgan | `chef1@example.test` | junior_chef |
 | Chris | `chef2@example.test` | junior_chef |
 | Dani | `chef3@example.test` | junior_chef, `preferred_language = 'id'` |

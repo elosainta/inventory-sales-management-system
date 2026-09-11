@@ -6,6 +6,7 @@ use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\CostingSheet;
 
 /**
  * A research-and-development trial, recorded as a costing sheet: the dish being
@@ -27,7 +28,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class RndEntry extends Model
 {
-    use LogsActivity;
+    use LogsActivity, CostingSheet;
 
     public const STATUS_PENDING  = 'pending';
     public const STATUS_APPROVED = 'approved';
@@ -83,23 +84,6 @@ class RndEntry extends Model
     }
 
     // ---------- the costing sheet. All derived, none stored. ----------
-
-    /** Ingredients only, before the miscellaneous overhead. */
-    public function getTotalAttribute(): float
-    {
-        return round($this->lines->sum(fn (RndEntryLine $line) => $line->total), 2);
-    }
-
-    public function getMiscAmountAttribute(): float
-    {
-        return round($this->total * (float) $this->misc_percent / 100, 2);
-    }
-
-    /** What the plate actually cost — the figure the Owner is approving. */
-    public function getGrandTotalAttribute(): float
-    {
-        return round($this->total + $this->misc_amount, 2);
-    }
 
     /** Null until a selling price is set: a trial does not always have one. */
     public function getProfitAttribute(): ?float

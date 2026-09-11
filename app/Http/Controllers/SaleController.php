@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Domain\Sales\Actions\LogSale;
 use App\Http\Requests\StoreSaleRequest;
+use App\Http\Requests\StoreSalesSheetRequest;
 use App\Models\Sale;
 use App\Models\SaleAttachment;
 use App\Models\Recipe;
+use App\Support\Period;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -23,18 +25,7 @@ class SaleController extends Controller
 
         $query = Sale::with(['recipe', 'attachments'])->orderBy('sale_date', 'desc');
 
-        if ($range === 'today') {
-            $query->whereDate('sale_date', today());
-        } elseif ($range === 'week') {
-            $query->whereBetween('sale_date', [now()->startOfWeek(), now()->endOfWeek()]);
-        } elseif ($range === 'month') {
-            $query->whereYear('sale_date', now()->year)->whereMonth('sale_date', now()->month);
-        } elseif ($range === 'year') {
-            $query->whereYear('sale_date', now()->year);
-        } else {
-            [$year, $mon] = explode('-', $month);
-            $query->whereYear('sale_date', $year)->whereMonth('sale_date', $mon);
-        }
+        Period::filter($query, $range, $month, 'sale_date');
 
         $sales        = $query->get();
         $recipes      = Recipe::orderBy('name')->get();
@@ -45,6 +36,37 @@ class SaleController extends Controller
         $totalOnRecord = \App\Models\Sale::count();
 
         return view('sales.index', compact('sales', 'recipes', 'month', 'totalRevenue', 'range', 'totalOnRecord'));
+    }
+
+    /**
+     * The Log sales sheet: every dish sold today, in one go. Each becomes its
+     * own sale through LogSale - exactly what the pop-up does for one - inside
+     * one transaction, so a failure on the fifth dish leaves none of them
+     * written and none of their stock moved.
+     */
+    public function storeSheet(StoreSalesSheetRequest $request, LogSale $action)
+    {
+        Gate::authorize('manage-sales');
+
+        $data = $request->validated();
+
+        DB::transaction(function () use ($action, $data) {
+            foreach ($data['qty'] as $recipeId => $qty) {
+                $action->execute([
+                    'recipe_id'     => (int) $recipeId,
+                    'item_name'     => null,
+                    'qty_sold'      => (int) $qty,
+                    'selling_price' => $data['price'][$recipeId],
+                    'sale_date'     => $data['sale_date'],
+                    'is_open_order' => false,
+                    'discount'      => 0,
+                ]);
+            }
+        });
+
+        $count = count($data['qty']);
+
+        return back()->with('success', $count === 1 ? 'Sale logged.' : "{$count} sales logged.");
     }
 
     public function store(StoreSaleRequest $request, LogSale $action)

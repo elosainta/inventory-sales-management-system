@@ -10,7 +10,7 @@ Never `FLOAT`, never `DOUBLE`.
 
 Binary floating point cannot represent 0.1 exactly. Sum enough of them and `SUM()` returns `1234.5600000000002`. `DECIMAL` is base-10 fixed point — exact for currency, and the arithmetic MariaDB does on it is exact too.
 
-12 digits total, 2 after the point: up to RM 9,999,999,999.99. Adequate for one kitchen in the site.
+12 digits total, 2 after the point: up to RM 9,999,999,999.99. Adequate for one kitchen in Malaysia.
 
 ### 2 · Round at the boundary, not in the loop
 

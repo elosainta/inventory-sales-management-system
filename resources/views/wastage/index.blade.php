@@ -19,30 +19,7 @@
             @endcan
         </div>
     </div>
-    {{-- Date range filter --}}
-    @php
-        $active = 'background:hsl(20,60%,45%); color:white; border-color:hsl(20,60%,45%);';
-        $normal = 'background:white; color:hsl(24,10%,20%); border-color:hsl(30,15%,85%);';
-    @endphp
-    <div class="app-filters" style="display:flex; gap:8px; align-items:center; margin-bottom:24px; flex-wrap:wrap;">
-        <a href="{{ route('wastage.index', ['range' => 'today']) }}"
-           style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; text-decoration:none; {{ $range === 'today' ? $active : $normal }}">Today</a>
-        <a href="{{ route('wastage.index', ['range' => 'week']) }}"
-           style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; text-decoration:none; {{ $range === 'week' ? $active : $normal }}">This Week</a>
-        <a href="{{ route('wastage.index', ['range' => 'month']) }}"
-           style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; text-decoration:none; {{ $range === 'month' ? $active : $normal }}">This Month</a>
-        <a href="{{ route('wastage.index', ['range' => 'year']) }}"
-           style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; text-decoration:none; {{ $range === 'year' ? $active : $normal }}">This Year</a>
-        <form method="GET" action="{{ route('wastage.index') }}" style="display:flex; gap:6px; align-items:center;">
-            <input type="month" name="month" value="{{ $month }}"
-                   style="padding:7px 10px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px;">
-            <button type="submit"
-                    style="padding:7px 14px; border:1px solid; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; {{ !$range ? $active : $normal }}">Custom</button>
-        </form>
-        <span style="margin-left:auto; font-size:14px; color:hsl(24,5%,45%);">
-            Total lost: <strong>@money($totalLost)</strong>
-        </span>
-    </div>
+    @include('partials.period-filter', ['route' => 'wastage.index', 'totalLabel' => 'Total lost', 'total' => $totalLost])
     @if($entries->isEmpty())
         <div style="text-align:center; padding:64px; color:hsl(24,5%,45%);">
             @if($totalOnRecord > 0)

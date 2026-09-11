@@ -18,16 +18,33 @@ class PushInvoiceScanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Gate::allows('use-invoice-scan');
+        return Gate::allows('send-invoice-scan');
     }
 
     protected function prepareForValidation(): void
     {
         // A line the reviewer emptied out is a line they removed, not an
         // error to shout about.
+        // A line the reviewer emptied out is a line they removed, and a line
+        // they unticked is one they rejected — neither belongs on the bill.
+        // The tick is what "reject" actually means here: the row stays visible
+        // with its reading intact, it just does not get billed.
         $lines = array_filter(
             $this->input('lines', []),
-            fn ($line) => filled($line['description'] ?? null),
+            fn ($line) => filled($line['description'] ?? null)
+                && (bool) ($line['include'] ?? false),
+        );
+
+        // The review screen no longer asks which account a line belongs to, so
+        // every line lands on the configured fallback. That is a blunter bill
+        // than one where stock is posted against stock — see the note in
+        // PushInvoiceToBukku::applyProduct(), which still overrides this for
+        // any line that does arrive carrying a Bukku product.
+        $fallback = (int) config('services.bukku.default_account_id');
+
+        $lines = array_map(
+            fn ($line) => $line + ['account_id' => $fallback],
+            $lines,
         );
 
         $this->merge(['lines' => array_values($lines)]);
@@ -48,6 +65,10 @@ class PushInvoiceScanRequest extends FormRequest
             'lines.*.unit_price'   => ['required', 'numeric', 'min:0'],
             'lines.*.account_id'   => ['required', 'integer', 'min:1'],
             'lines.*.product_id'   => ['nullable', 'integer', 'min:1'],
+            // The kitchen's own shelf, not Bukku's catalogue. Optional: a line
+            // for something not stocked here (a delivery fee, a new item) is
+            // still a real bill line, it just teaches the dictionary nothing.
+            'lines.*.inventory_item_id' => ['nullable', 'integer', 'exists:inventory_items,id'],
         ];
     }
 

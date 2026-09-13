@@ -32,7 +32,7 @@ The models that carry real behaviour are explained in [[Code paths index]] and [
 | `MarketPurchaseLine` | `market_purchase_lines` | — | `marketPurchase` belongsTo, `inventoryItem` belongsTo |
 | `ProductionBatch` | `production_batches` | ✅ | `user` belongsTo, `recipe` belongsTo, `lines` hasMany |
 | `ProductionBatchLine` | `production_batch_lines` | — | `productionBatch` belongsTo, `inventoryItem` belongsTo |
-| `Purchase` | `purchases` | ✅ | `supplier` belongsTo, `lines` hasMany |
+| `Purchase` | `purchases` | ✅ | `supplier` belongsTo, `lines` hasMany, `user` belongsTo, `invoiceScan` hasOne |
 | `PurchaseLine` | `purchase_lines` | ✅ | `purchase` belongsTo, `inventoryItem` belongsTo |
 | `Recipe` | `recipes` | — | `getProfitAttribute` hasMany, `outputInventoryItem` belongsTo |
 | `RecipeIngredient` | `recipe_ingredients` | ✅ | `recipe` belongsTo, `inventoryItem` belongsTo |

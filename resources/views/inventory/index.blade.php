@@ -68,8 +68,8 @@
                         <tr id="item-{{ $item->id }}" style="border-bottom:1px solid hsl(30,15%,93%); scroll-margin-top:64px;">
                             <td style="padding:12px 16px;">
                                 {{ $item->name }}
-                                @if($item->isLowStock())
-                                    <span style="margin-left:8px; background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">Low</span>
+                                @if($item->isOutOfStock())
+                                    <span style="margin-left:8px; background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">No stock</span>
                                 @endif
                             </td>
                             <td style="padding:12px 16px;">
@@ -149,11 +149,9 @@
                     </div>
                     <div>
                         <label style="display:block; font-size:14px; font-weight:500; margin-bottom:4px;">Unit</label>
-                        <select name="unit" required
+                        <select name="unit" required onfocus="this.dataset.prev=this.value" onchange="newUnit(this)"
                                 style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;">
-                            @foreach(\App\Models\InventoryItem::UNITS as $u)
-                                <option value="{{ $u }}">{{ $u }}</option>
-                            @endforeach
+                            @include('partials.unit-options')
                         </select>
                     </div>
                 </div>
@@ -246,11 +244,9 @@
                     </div>
                     <div>
                         <label style="display:block; font-size:14px; font-weight:500; margin-bottom:4px;">Unit</label>
-                        <select id="edit-unit" @cannot("manage-inventory") disabled @endcannot name="unit" required
+                        <select id="edit-unit" @cannot("manage-inventory") disabled @endcannot name="unit" required onfocus="this.dataset.prev=this.value" onchange="newUnit(this)"
                                 style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;">
-                            @foreach(\App\Models\InventoryItem::UNITS as $u)
-                                <option value="{{ $u }}">{{ $u }}</option>
-                            @endforeach
+                            @include('partials.unit-options')
                         </select>
                     </div>
                 </div>

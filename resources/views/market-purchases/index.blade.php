@@ -44,7 +44,10 @@
                 </thead>
                 <tbody>
                     @foreach($purchases as $purchase)
-                        <tr style="border-bottom:1px solid hsl(30,15%,93%);">
+                        {{-- The row opens the purchase; the guard keeps the buttons,
+                             forms and the receipt thumbnail doing their own job. --}}
+                        <tr onclick="if (! event.target.closest('button,a,form,img')) location='{{ route('market-purchases.show', $purchase) }}'"
+                            style="border-bottom:1px solid hsl(30,15%,93%); cursor:pointer;">
                             <td style="padding:12px 16px;">{{ $purchase->purchase_date->format('M d, Y') }}</td>
                             <td style="padding:12px 16px; font-weight:500;">{{ $purchase->signed_by }}</td>
                             <td style="padding:12px 16px; color:hsl(24,5%,45%);">{{ $purchase->user?->name ?? '—' }}</td>

@@ -67,7 +67,7 @@ class LogProduction
             }
             $items    = InventoryItem::whereIn('id', array_keys($consumed))->get();
 
-            $lowStockItems = [];
+            $emptyItems = [];
 
             foreach ($items as $item) {
                 $used = $consumed[$item->id];
@@ -87,8 +87,8 @@ class LogProduction
                 $item->last_updated     = now();
                 $item->save();
 
-                if ($item->isLowStock()) {
-                    $lowStockItems[] = $item;
+                if ($item->isOutOfStock()) {
+                    $emptyItems[] = $item;
                 }
             }
 
@@ -110,17 +110,19 @@ class LogProduction
                     ->each(fn ($r) => $r->recalculatePlateCost());
             }
 
-            // Notify head chefs of any item still at/below its low-stock level.
+            // Notify head chefs of any item this batch emptied. The alert class
+            // keeps its old name because the notifications table stores it as
+            // the row's type — renaming it would orphan every unread alert.
             // Keep the alert inside the actor's own world: a demo user's action
             // notifies only the demo head chef (in the sandbox DB), a real user's
             // action only real head chefs. Scheduled/CLI runs have no actor and
             // fall through to the real head chefs.
-            if ($lowStockItems) {
+            if ($emptyItems) {
                 $actorIsDemo = (bool) auth()->user()?->is_demo;
                 $headChefs = User::where('role', User::ROLE_HEAD_CHEF)
                     ->where('is_demo', $actorIsDemo)
                     ->get();
-                foreach ($lowStockItems as $item) {
+                foreach ($emptyItems as $item) {
                     foreach ($headChefs as $chef) {
                         try {
                             $chef->notify(new LowStockAlert($item));

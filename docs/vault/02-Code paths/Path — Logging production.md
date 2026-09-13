@@ -124,15 +124,15 @@ Costed at what it took to make, so a sale of it reports a truthful margin. The o
 
 A recipe with no output item still consumes its ingredients. It simply has nowhere to put the result yet.
 
-### 6 · `LogProduction.php:64-66` — collect low-stock items
+### 6 · `LogProduction.php:64-66` — collect what this batch emptied
 
 ```php
-if ($item->isLowStock()) {
-    $lowStockItems[] = $item;
+if ($item->isOutOfStock()) {
+    $emptyItems[] = $item;
 }
 ```
 
-Checked **after** the deduction, and it now reads the right way round: a batch that empties the shelf raises the alert. Under the old code the check ran after an *addition*, so it meant "you made some and it is still not enough."
+Checked **after** the deduction, and it now reads the right way round: a batch that empties the shelf raises the alert. Under the old code the check ran after an *addition*, so it meant "you made some and it is still not enough." Since 1.28 the predicate is `q <= 0` rather than half the limit column — see [[Low stock threshold]].
 
 Threshold logic and why it is half: [[Low stock threshold]].
 

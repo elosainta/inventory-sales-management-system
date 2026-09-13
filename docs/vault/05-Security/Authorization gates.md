@@ -128,7 +128,7 @@ Gate: `search-global` → everyone except junior chefs.
 1. Define it in `AppServiceProvider::boot()` next to its family.
 2. `Gate::authorize('…')` as the first line of every controller method.
 3. `@can('…')` around any UI that triggers it.
-4. Add it to the nav arrays in `layouts/app-shell.blade.php` if it owns a page. The Owner has a **separate hand-written list** further down the same file; miss it and the Owner loses the link.
+4. Add it to the nav arrays in `components/app-shell.blade.php` if it owns a page. The Owner has a **separate hand-written list** further down the same file; miss it and the Owner loses the link.
 5. Add its bucket to `SearchController` if the module is searchable — global search only queries what the user can view.
 6. Commit — the pre-commit hook regenerates [[Gates matrix]] and you can read the new row.
 

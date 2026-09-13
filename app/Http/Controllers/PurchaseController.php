@@ -60,6 +60,15 @@ class PurchaseController extends Controller
         return back()->with('success', 'Purchase updated.');
     }
 
+    public function show(Purchase $purchase)
+    {
+        Gate::authorize('view-purchases');
+
+        $purchase->load(['supplier', 'lines.inventoryItem', 'user', 'invoiceScan']);
+
+        return view('purchases.show', compact('purchase'));
+    }
+
     public function receipt(Purchase $purchase)
     {
         Gate::authorize('view-purchases');

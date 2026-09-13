@@ -8,7 +8,7 @@ generated: true
 
 # Routes
 
-All 135 registered routes, read straight from Laravel's router.
+All 137 registered routes, read straight from Laravel's router.
 Every controller method behind these is required to open with `Gate::authorize()` — see [[Authorization gates]].
 
 | Method | URI | Name | Action | Middleware |
@@ -52,6 +52,7 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `GET` | `/login-history` | `login-history.index` | `LoginHistoryController@index` | auth |
 | `GET` | `/login` | `login` | `Auth\AuthenticatedSessionController@create` | guest, cache.headers:no_store |
 | `GET` | `/market-purchases/{marketPurchase}/receipt` | `market-purchases.receipt` | `MarketPurchaseController@receipt` | auth |
+| `GET` | `/market-purchases/{marketPurchase}` | `market-purchases.show` | `MarketPurchaseController@show` | auth |
 | `GET` | `/market-purchases` | `market-purchases.index` | `MarketPurchaseController@index` | auth |
 | `GET` | `/prep/overview` | `prep.overview` | `PrepChecklistController@overview` | auth |
 | `GET` | `/prep/task-check/{sectionCheck}/photo` | `prep.task-check.photo` | `PrepChecklistController@taskCheckPhoto` | auth |
@@ -61,6 +62,7 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `GET` | `/profile` | `profile.edit` | `ProfileController@edit` | auth |
 | `GET` | `/purchases/export/pdf` | `purchases.export-pdf` | `PurchaseController@exportPdf` | auth |
 | `GET` | `/purchases/{purchase}/receipt` | `purchases.receipt` | `PurchaseController@receipt` | auth |
+| `GET` | `/purchases/{purchase}` | `purchases.show` | `PurchaseController@show` | auth |
 | `GET` | `/purchases` | `purchases.index` | `PurchaseController@index` | auth |
 | `GET` | `/recipes/export/pdf` | `recipes.export-pdf` | `RecipeController@exportPdf` | auth |
 | `GET` | `/recipes/{recipe}` | `recipes.show` | `RecipeController@show` | auth |

@@ -69,9 +69,9 @@
                 <div style="font-size:12px; color:hsl(24,5%,45%); margin-top:4px;">Wastage / purchase spend</div>
             </div>
             <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; padding:20px;">
-                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:hsl(24,5%,45%); margin-bottom:8px;">Low Stock Items</div>
-                <div class="app-kpi" data-value="{{ $lowStockCount }}" data-decimals="0" style="font-size:26px; font-weight:500; font-family:'DM Sans',sans-serif; color:{{ $lowStockCount > 0 ? 'hsl(0,70%,50%)' : 'inherit' }};">{{ $lowStockCount }}</div>
-                <div style="font-size:12px; color:hsl(24,5%,45%); margin-top:4px;">At or below reorder line</div>
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:hsl(24,5%,45%); margin-bottom:8px;">No Stock Items</div>
+                <div class="app-kpi" data-value="{{ $outOfStockCount }}" data-decimals="0" style="font-size:26px; font-weight:500; font-family:'DM Sans',sans-serif; color:{{ $outOfStockCount > 0 ? 'hsl(0,70%,50%)' : 'inherit' }};">{{ $outOfStockCount }}</div>
+                <div style="font-size:12px; color:hsl(24,5%,45%); margin-top:4px;">Run out — nothing left</div>
             </div>
         </div>
     </div>
@@ -108,19 +108,19 @@
 
     {{-- Bottom Row --}}
     <div class="app-bottom-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
-        {{-- Low Stock --}}
+        {{-- Run out --}}
         <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; padding:24px;">
-            <h3 style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:500; margin-bottom:16px;">Low Stock</h3>
-            @forelse($lowStockItems as $item)
+            <h3 style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:500; margin-bottom:16px;">No Stock</h3>
+            @forelse($outOfStockItems as $item)
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid hsl(30,15%,93%);">
                     <div>
                         <div style="font-size:14px; font-weight:500;">{{ $item->name }}</div>
                         <div style="font-size:12px; color:hsl(24,5%,45%);">{{ $item->quantity_on_hand }} {{ $item->unit }} on hand</div>
                     </div>
-                    <span style="background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">Low</span>
+                    <span style="background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">No stock</span>
                 </div>
             @empty
-                <p style="font-size:14px; color:hsl(24,5%,45%);">All items well stocked.</p>
+                <p style="font-size:14px; color:hsl(24,5%,45%);">Nothing has run out.</p>
             @endforelse
         </div>
 
@@ -195,8 +195,8 @@
             <tr style="border-bottom:1px solid hsl(30,15%,93%);">
                 <td style="padding:11px 16px; font-weight:500;">
                     {{ $item->name }}
-                    @if($item->quantity_on_hand <= $item->reorder_threshold)
-                        <span style="margin-left:6px; background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px;">Low</span>
+                    @if($item->isOutOfStock())
+                        <span style="margin-left:6px; background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px;">No stock</span>
                     @endif
                 </td>
                 <td class="edit-only" style="display:none; padding:11px 16px;">
@@ -481,17 +481,15 @@
                     <div>
                         <label style="display:block; font-size:13px; font-weight:500; margin-bottom:4px;">Category</label>
                         <select name="category" required style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;">
-                            @foreach(['Meat','Seafood','Dairy','Produce','Pantry','Spice'] as $cat)
+                            @foreach(\App\Models\InventoryItem::CATEGORIES as $cat)
                                 <option value="{{ $cat }}">{{ $cat }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
                         <label style="display:block; font-size:13px; font-weight:500; margin-bottom:4px;">Unit</label>
-                        <select name="unit" required style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;">
-                            @foreach(['kg','g','L','ml'] as $u)
-                                <option value="{{ $u }}">{{ $u }}</option>
-                            @endforeach
+                        <select name="unit" required onfocus="this.dataset.prev=this.value" onchange="newUnit(this)" style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;">
+                            @include('partials.unit-options')
                         </select>
                     </div>
                     <div>

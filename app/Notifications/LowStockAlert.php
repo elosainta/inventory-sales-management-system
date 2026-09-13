@@ -6,6 +6,11 @@ use App\Models\InventoryItem;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
+/**
+ * An item has run out. Named for the rule it used to carry — the class name is
+ * stored in `notifications.type`, so renaming it would hide every alert already
+ * sitting unread in a head chef's sidebar.
+ */
 class LowStockAlert extends Notification
 {
     use Queueable;
@@ -25,7 +30,7 @@ class LowStockAlert extends Notification
             'quantity_on_hand'  => $this->item->quantity_on_hand,
             'reorder_threshold' => $this->item->reorder_threshold,
             'unit'              => $this->item->unit,
-            'message'           => "{$this->item->name} is low on stock ({$this->item->quantity_on_hand} {$this->item->unit} remaining).",
+            'message'           => "{$this->item->name} has run out — none left on the shelf.",
         ];
     }
 }

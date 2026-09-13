@@ -47,6 +47,15 @@ class MarketPurchaseController extends Controller
         return back()->with('success', 'Market purchase logged.');
     }
 
+    public function show(MarketPurchase $marketPurchase)
+    {
+        Gate::authorize('view-market-purchases');
+
+        $marketPurchase->load(['lines.inventoryItem', 'user']);
+
+        return view('market-purchases.show', ['purchase' => $marketPurchase]);
+    }
+
     public function receipt(MarketPurchase $marketPurchase)
     {
         Gate::authorize('view-market-purchases');

@@ -12,6 +12,23 @@ class StoreInventoryItemRequest extends FormRequest
         return true;
     }
 
+    /**
+     * A unit typed into "+ New unit…" that matches one already in use, ignoring
+     * case and spacing, takes the existing spelling — otherwise "Kg " would
+     * become a second kilogram.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (! is_string($this->input('unit'))) {
+            return;
+        }
+
+        $unit     = trim(preg_replace('/\s+/', ' ', $this->input('unit')));
+        $existing = collect(InventoryItem::units())->first(fn ($u) => mb_strtolower($u) === mb_strtolower($unit));
+
+        $this->merge(['unit' => $existing ?? $unit]);
+    }
+
     public function rules(): array
     {
         // Editing an existing item without manage-inventory is the part timer's
@@ -26,7 +43,10 @@ class StoreInventoryItemRequest extends FormRequest
         return [
             'name'               => ['required', 'string', 'max:255'],
             'category'           => ['required', 'string', \Illuminate\Validation\Rule::in(InventoryItem::CATEGORIES)],
-            'unit'               => ['required', 'string', \Illuminate\Validation\Rule::in(InventoryItem::UNITS)],
+            // Open vocabulary since units can be added from the form, so the
+            // boundary is the shape: short, starts with a letter or digit, no
+            // markup — and no underscore, which keeps the "__new" option out.
+            'unit'               => ['required', 'string', 'max:20', 'regex:/^[\pL\pN][\pL\pN .\/-]*$/u'],
             'quantity_on_hand'   => ['required', 'numeric', 'min:0'],
             'reorder_threshold'  => ['required', 'numeric', 'min:0'],
             'unit_cost'          => ['required', 'numeric', 'min:0'],

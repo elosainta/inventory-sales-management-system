@@ -77,6 +77,14 @@
                                                     · {{ $check->updated_at->format('H:i') }}
                                                 </div>
                                             @endif
+                                            {{-- A refused photo used to redirect back with nothing on
+                                                 screen, so the upload looked broken. Shown under the
+                                                 task it was for — task_id is flashed, the file is not. --}}
+                                            @if($errors->has('photo') && (int) old('task_id') === $task->id)
+                                                <div style="font-size:12px; color:hsl(0,65%,45%); font-weight:600; margin-top:4px;">
+                                                    {{ $errors->first('photo') }}
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                     <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
@@ -103,8 +111,11 @@
                                                         <circle cx="12" cy="13" r="3.5"/>
                                                     </svg>
                                                 </button>
-                                                {{-- Puts it back, or this button would be stuck on the camera. --}}
-                                                <label onclick="this.querySelector('input').removeAttribute('capture')"
+                                                {{-- Puts it back, or this button would be stuck on the camera.
+                                                     Only on a click on the label itself: the camera button's
+                                                     input.click() bubbles up to here too, and clearing capture
+                                                     then sent the camera button to the gallery. --}}
+                                                <label onclick="if (event.target !== this.querySelector('input')) this.querySelector('input').removeAttribute('capture')"
                                                        style="cursor:pointer; padding:6px 14px; background:{{ $check ? 'hsl(30,15%,94%)' : 'hsl(20,60%,45%)' }}; color:{{ $check ? 'hsl(24,5%,40%)' : 'white' }}; border-radius:6px; font-size:13px; font-weight:600; white-space:nowrap;">
                                                     {{ $check ? __('Re-upload') : __('Upload Photo') }}
                                                     <input type="file" name="photo" accept="image/*" style="display:none;" onchange="this.form.submit()">

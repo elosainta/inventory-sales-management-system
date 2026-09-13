@@ -51,11 +51,6 @@ class InventoryItem extends Model
     }
 
     /**
-     * Stock is considered "low" once it falls to half the reorder threshold
-     * or less. The threshold is treated as a comfortable target rather than
-     * the trigger point, so an item only flags Low when seriously depleted.
-     */
-    /**
      * The category and unit vocabularies.
      *
      * These were written out four times — the validator's `in:` rules, the
@@ -68,10 +63,38 @@ class InventoryItem extends Model
 
     public const UNITS = ['kg', 'g', 'L', 'ml', 'unit', 'pkt', 'box', 'btl', 'gallon', 'pcs', 'tray', 'slices'];
 
-    public const LOW_STOCK_FACTOR = 0.5;
-
-    public function isLowStock(): bool
+    /**
+     * The units a dropdown offers: the built-in list, then every unit an item
+     * already carries. A unit added from "+ New unit…" exists once an item is
+     * saved with it — there is no units table, so one nobody uses any more
+     * drops off the list when its last item goes. Case-insensitive, first
+     * spelling wins, so "KG" never sits beside "kg".
+     */
+    public static function units(): array
     {
-        return $this->quantity_on_hand <= $this->reorder_threshold * self::LOW_STOCK_FACTOR;
+        return collect(self::UNITS)
+            ->merge(self::query()->distinct()->pluck('unit'))
+            ->filter()
+            ->unique(fn ($unit) => mb_strtolower($unit))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * An item is flagged when it has actually run out — nothing left on the
+     * shelf. It used to flag at half of `reorder_threshold`, which read that
+     * column as a minimum to stay above; it is the kitchen's upper limit,
+     * how much of a thing they hold, so it is not a trigger at all (the
+     * Owner, 2026-09-12).
+     */
+    public function isOutOfStock(): bool
+    {
+        return $this->quantity_on_hand <= 0;
+    }
+
+    /** The same rule in SQL — the dashboard used to hand-write its own. */
+    public function scopeOutOfStock($query)
+    {
+        return $query->where('quantity_on_hand', '<=', 0);
     }
 }

@@ -50,21 +50,54 @@ class InlineIngredientCreationTest extends TestCase
         $this->assertEquals(0, $item->unit_cost);
     }
 
-    public function test_a_bad_unit_is_still_rejected(): void
+    private function item(string $name, string $unit): array
     {
-        // The panel offers only InventoryItem::UNITS, but the panel is not the
-        // boundary — the validator is, and it now reads the same constant.
+        return [
+            'name'              => $name,
+            'category'          => 'Produce',
+            'unit'              => $unit,
+            'quantity_on_hand'  => 0,
+            'reorder_threshold' => 0,
+            'unit_cost'         => 0,
+        ];
+    }
+
+    public function test_a_new_unit_is_saved_and_offered_from_then_on(): void
+    {
+        $manager = $this->manager();
+
+        $this->actingAs($manager)
+            ->postJson(route('inventory.store'), $this->item('Pandan Leaf', ' bunch '))
+            ->assertCreated();
+
+        $this->assertDatabaseHas('inventory_items', ['name' => 'Pandan Leaf', 'unit' => 'bunch']);
+        $this->assertContains('bunch', InventoryItem::units());
+
+        $this->actingAs($manager)
+            ->get(route('inventory.index'))
+            ->assertSee('<option value="bunch">bunch</option>', false)
+            ->assertSee('+ New unit', false);
+    }
+
+    public function test_a_unit_differing_only_by_case_takes_the_existing_spelling(): void
+    {
         $this->actingAs($this->manager())
-            ->postJson(route('inventory.store'), [
-                'name'              => 'Mystery',
-                'category'          => 'Produce',
-                'unit'              => 'bushel',
-                'quantity_on_hand'  => 0,
-                'reorder_threshold' => 0,
-                'unit_cost'         => 0,
-            ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('unit');
+            ->postJson(route('inventory.store'), $this->item('Tofu', 'KG'))
+            ->assertCreated();
+
+        $this->assertDatabaseHas('inventory_items', ['name' => 'Tofu', 'unit' => 'kg']);
+    }
+
+    public function test_a_malformed_unit_is_still_rejected(): void
+    {
+        // The dropdown is not the boundary — the validator is. Markup, and the
+        // "__new" sentinel the dropdown uses for "+ New unit…", never save.
+        foreach (['<b>kg</b>', '__new', str_repeat('x', 21)] as $unit) {
+            $this->actingAs($this->manager())
+                ->postJson(route('inventory.store'), $this->item('Mystery', $unit))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('unit');
+        }
     }
 
     public function test_a_junior_chef_cannot_create_one(): void

@@ -36,7 +36,7 @@ class DashboardController extends Controller
         // Always current — not month-filtered
         $inventoryValue   = InventoryItem::sum('monetary_value');
         $pettyCashBalance = FloatIssuance::sum('amount_given') - FloatIssuance::sum('amount_spent') - FloatIssuance::sum('amount_returned');
-        $lowStockCount    = InventoryItem::whereRaw('quantity_on_hand <= reorder_threshold * ?', [InventoryItem::LOW_STOCK_FACTOR])->count();
+        $outOfStockCount  = InventoryItem::outOfStock()->count();
 
         // Month-filtered KPIs
         $salesThisMonth = Sale::whereYear('sale_date', $year)->whereMonth('sale_date', $mon)->sum('total_revenue');
@@ -74,9 +74,9 @@ class DashboardController extends Controller
             ->whereYear('recorded_date', $year)->whereMonth('recorded_date', $mon)
             ->groupBy('date')->orderBy('date')->get();
 
-        // Bottom lists — low stock is always current; top wasted & spend by supplier respect month
-        $lowStockItems = InventoryItem::whereRaw('quantity_on_hand <= reorder_threshold * ?', [InventoryItem::LOW_STOCK_FACTOR])
-            ->orderBy('quantity_on_hand')->take(5)->get();
+        // Bottom lists — what has run out is always current; top wasted & spend by supplier respect month
+        $outOfStockItems = InventoryItem::outOfStock()
+            ->orderBy('name')->take(5)->get();
 
         $topWasted = WastageEntry::select('inventory_item_id', DB::raw('SUM(cost_lost) as total'))
             ->with('inventoryItem')
@@ -110,9 +110,9 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'month', 'hideSales',
             'inventoryValue', 'salesThisMonth', 'purchaseSpend', 'wasteCost', 'cogs',
-            'wastageRate', 'grossMargin', 'pettyCashBalance', 'lowStockCount',
+            'wastageRate', 'grossMargin', 'pettyCashBalance', 'outOfStockCount',
             'salesTrend', 'purchaseTrend', 'wastageByReason', 'inventoryByCategory',
-            'wastageTrend', 'lowStockItems', 'topWasted', 'spendBySupplier',
+            'wastageTrend', 'outOfStockItems', 'topWasted', 'spendBySupplier',
             'ownerData'
         ));
     }

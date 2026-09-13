@@ -16,10 +16,8 @@
                 <option value="{{ $cat }}">{{ $cat }}</option>
             @endforeach
         </select>
-        <select class="new-item-unit" style="padding:6px 8px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px;">
-            @foreach(\App\Models\InventoryItem::UNITS as $u)
-                <option value="{{ $u }}">{{ $u }}</option>
-            @endforeach
+        <select class="new-item-unit" onfocus="this.dataset.prev=this.value" onchange="newUnit(this)" style="padding:6px 8px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px;">
+            @include('partials.unit-options')
         </select>
         <button type="button" class="new-item-add"
                 style="background:hsl(24,45%,42%); color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:13px; cursor:pointer;">Add</button>

@@ -32,4 +32,15 @@ class Purchase extends Model
     {
         return $this->hasMany(PurchaseLine::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /** The scan this was filed from, if it came in by photo rather than by hand. */
+    public function invoiceScan()
+    {
+        return $this->hasOne(InvoiceScan::class);
+    }
 }

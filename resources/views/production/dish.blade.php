@@ -54,10 +54,7 @@
             <input type="text" name="notes" value="{{ old('notes') }}" placeholder="{{ __('e.g. prepped for dinner service') }}" maxlength="500" style="{{ $input }}">
         </div>
 
-        <h2 style="font-family:'DM Sans',sans-serif; font-size:20px; font-weight:400; margin-bottom:4px;">{{ __('What comes off the shelf') }}</h2>
-        <p style="color:hsl(24,5%,45%); font-size:13px; margin-bottom:14px;">
-            {{ __('Type what each ingredient actually took — a box left at 0 takes nothing off the shelf.') }}
-        </p>
+        <h2 style="font-family:'DM Sans',sans-serif; font-size:20px; font-weight:400; margin-bottom:14px;">{{ __('Production') }}</h2>
 
         <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; overflow:hidden; margin-bottom:20px;">
             <div style="overflow-x:auto;">

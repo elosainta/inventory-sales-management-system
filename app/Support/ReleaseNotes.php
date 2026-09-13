@@ -29,14 +29,14 @@ namespace App\Support;
  */
 class ReleaseNotes
 {
-    public const CURRENT_VERSION = '1.26.1';
+    public const CURRENT_VERSION = '1.29.1';
 
     /** The very first commit, for the "since" line in the header. */
     public const FIRST_COMMIT      = '047cdf3';
     public const FIRST_RELEASE_DATE = '2026-04-29';
 
     /** Total commits behind the app — in the private repository it is developed in. */
-    public const TOTAL_COMMITS = 350;
+    public const TOTAL_COMMITS = 361;
 
     /**
      * @return array<int, array<string, mixed>> newest release first
@@ -44,6 +44,60 @@ class ReleaseNotes
     public static function all(): array
     {
         return [
+            [
+                'version' => '1.29.1',
+                'date'    => '2026-09-13',
+                'summary' => 'Prep checklist photos upload again.',
+                'changed' => [
+                    "A photo taken on a phone for a prep task can be uploaded. Anything over 5 MB was refused, which is most phone photos, and the page showed nothing, so the button looked broken. The limit is now 25 MB, the same as sale photos.",
+                    "If a photo is refused, the reason now appears in red under that task.",
+                    "The camera button on a photo task opens the camera again. It had been opening the gallery.",
+                ],
+                'commits' => 'b4bada8..HEAD',
+            ],
+            [
+                'version' => '1.29',
+                'date'    => '2026-09-13',
+                'summary' => 'Add your own units.',
+                'added'   => [
+                    "Every unit dropdown now ends in + New unit. Pick it, type the unit (a bunch, a can, a sack) and it is added and selected. It works when adding or editing an item on the Inventory page, from the dashboard, and in the Not in inventory yet box on Purchases, Market purchases and Invoice scan.",
+                    "A new unit is kept with the item it was saved on, and from then on every dropdown offers it. Typing KG when kg already exists uses kg, so the list does not fill up with the same unit spelled differently.",
+                ],
+                'improved' => [
+                    "The Add Ingredient form on the dashboard offered only four units and six categories. It now offers the same lists as everywhere else.",
+                ],
+                'commits' => '26bcf4e..HEAD',
+            ],
+            [
+                'version' => '1.28.1',
+                'date'    => '2026-09-12',
+                'summary' => 'Plainer wording on the dish page.',
+                'changed' => [
+                    "On a dish you are logging production for, the ingredient section is simply headed Production. The heading and the line of explanation under it said in two sentences what the boxes and the Recipe says column beside them already show.",
+                ],
+                'commits' => '9d37f06..HEAD',
+            ],
+            [
+                'version' => '1.28',
+                'date'    => '2026-09-12',
+                'summary' => 'An item is flagged when it has run out, not when it runs low.',
+                'changed' => [
+                    "Inventory now says No stock, and only when there is genuinely none left. The old Low warning fired at half of an item's Threshold/Limit figure — but that figure is the most of a thing the kitchen holds, not a level to stay above, so it was never the right thing to measure against. Nothing compares against it now.",
+                    "The dashboard tile, the list beneath it, the Inventory page, the inventory PDF and the red banner at the top of the page all say No stock and all count the same thing.",
+                    "Worth knowing: there is no early warning any more. An item stays quiet until it is gone.",
+                ],
+                'commits' => 'b8f604d..HEAD',
+            ],
+            [
+                'version' => '1.27',
+                'date'    => '2026-09-12',
+                'summary' => 'Tap a purchase to see what was actually in it.',
+                'added'   => [
+                    "Tapping any row on Purchases or Market now opens that order on its own page, laid out like a scanned bill: the receipt photo beside the supplier, invoice number, date and total, then every item with its quantity, unit price and line total.",
+                    "A purchase that came in from a photographed invoice links back to the scan it was read from.",
+                ],
+                'commits' => 'b080151..HEAD',
+            ],
             [
                 'version' => '1.26.1',
                 'date'    => '2026-09-11',

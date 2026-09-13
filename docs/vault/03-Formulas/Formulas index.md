@@ -38,7 +38,7 @@ Every number this system computes, in one table. Each links to a note with the d
 | Monetary value | $m_i = \operatorname{round}(q_i c_i,\ 2)$ | five call sites | [[Inventory monetary value]] |
 | Inventory value | $V = \sum_i m_i$ | `DashboardController.php:35` | [[Inventory monetary value]] |
 | Sale deduction | $\max(0,\ h_i - q_i n)$ | `LogSale.php:33-34` | [[Path — Logging a sale]] |
-| Low stock | $q_i \le 0.5\, t_i$ | `InventoryItem.php:29-34` | [[Low stock threshold]] |
+| No stock | $q_i \le 0$ | `InventoryItem::isOutOfStock()` | [[Low stock threshold]] |
 | Tally variance | $v = q_{\text{counted}} - q_{\text{system}}$ | `InventoryTallyLine.php:40-47` | [[Tally variance]] |
 | Stock-take balance | $\max(0,\ \text{current} + \text{in} - \text{out})$ | `StockTakeEntry.php` â `balance()` | [[Stock-take movement]] |
 
@@ -47,7 +47,7 @@ Every number this system computes, in one table. Each links to a note with the d
 | $q_i$, $c_i$, $m_i$ | on-hand quantity, unit cost and stored value of inventory item $i$ | `inventory_items.quantity_on_hand` / `unit_cost` / `monetary_value` |
 | $V$ | every item's stored value added up — the dashboard's inventory figure | $\sum$ `monetary_value` |
 | $h_i$ | on-hand quantity **before** the deduction; here $q_i$ is the recipe quantity per serving and $n$ the quantity sold | `inventory_items.quantity_on_hand` |
-| $t_i$ | reorder threshold — a comfortable target, not the trigger point; the $0.5$ is `InventoryItem::LOW_STOCK_FACTOR` | `inventory_items.reorder_threshold` |
+| $t_i$ | threshold/limit — the most of a thing the kitchen holds. Nothing compares against it since 1.28; the flag is $q_i \le 0$ | `inventory_items.reorder_threshold` |
 | $q_{\text{counted}}$, $q_{\text{system}}$ | what the person physically counted, and the system figure snapshotted at that moment | `inventory_tally_lines.counted_quantity` / `system_quantity` |
 | $\text{open}_n$, $\text{close}_{n-1}$ | opening on sheet $n$, closing on the previous sheet — matched by item name **within one section** | `stock_take_entries.opening` / `closing` |
 
@@ -100,7 +100,7 @@ Returning `0` rather than `null` means the view needs no special case. It also m
 
 **Snapshot, do not recompute.** `cost_lost`, `system_quantity`, `item_name`, `total_revenue` are all stored at write time. History does not shift when today's prices change.
 
-**One definition, many callers.** [[Sale revenue]] is a static method precisely so `LogSale` and `SaleController@update` cannot disagree. Where that discipline is *not* followed — [[Low stock threshold]] has a PHP and a SQL implementation — the note says so.
+**One definition, many callers.** [[Sale revenue]] is a static method precisely so `LogSale` and `SaleController@update` cannot disagree. [[Low stock threshold]] used to be the counter-example — a PHP predicate and a hand-written SQL twin; the twin is now a query scope on the same model.
 
 ## See also
 

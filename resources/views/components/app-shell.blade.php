@@ -220,7 +220,7 @@
                     @if($lowStockAlerts->isNotEmpty())
                         <div style="margin-bottom:24px; padding:14px 18px; border-radius:6px; background:#fee2e2; color:#991b1b; font-size:14px;">
                             <div style="font-weight:600; margin-bottom:6px;">
-                                Low stock alert — {{ $lowStockAlerts->count() }} item{{ $lowStockAlerts->count() > 1 ? 's' : '' }} need reordering:
+                                No stock — {{ $lowStockAlerts->count() }} item{{ $lowStockAlerts->count() > 1 ? 's have' : ' has' }} run out:
                             </div>
                             <ul style="margin:0; padding-left:18px;">
                                 @foreach($lowStockAlerts as $alert)
@@ -343,5 +343,24 @@
     @endcan
 
     @include('partials.password-eye')
+
+    <script>
+        // "+ New unit…" on a unit dropdown (partials/unit-options). Adds the typed
+        // unit as an option and selects it; it is saved with the item, and
+        // InventoryItem::units() offers it from then on.
+        function newUnit(select) {
+            if (select.value !== '__new') return;
+            var typed = (prompt('New unit, e.g. bunch or can') || '').trim();
+            if (!typed) { select.value = select.dataset.prev || select.options[0].value; return; }
+            var match = Array.prototype.find.call(select.options, function (o) {
+                return o.value !== '__new' && o.value.toLowerCase() === typed.toLowerCase();
+            });
+            if (!match) {
+                match = new Option(typed, typed);
+                select.add(match, select.options[select.options.length - 1]);
+            }
+            select.value = match.value;
+        }
+    </script>
 </body>
 </html>

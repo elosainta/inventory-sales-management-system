@@ -1,3 +1,4 @@
+@props(['title'])
 <!DOCTYPE html>
 <html>
 <head>

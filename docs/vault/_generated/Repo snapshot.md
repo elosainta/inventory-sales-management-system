@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Fri, Sep 11, 2026 3:06 PM.
+Taken Sun, Sep 13, 2026 5:45 AM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,10 +19,10 @@ Taken Fri, Sep 11, 2026 3:06 PM.
 
 | | |
 |---|---|
-| Commits | 349 |
-| HEAD | `ec17468` |
-| Branch | `claude/dishes-click-pleasing-78e651` |
-| Released version | `1.26.1` |
+| Commits | 361 |
+| HEAD | `87fa827` |
+| Branch | `claude/inventory-tally-users-77c425` |
+| Released version | `1.29.1` |
 
 ## Size
 
@@ -33,27 +33,27 @@ Taken Fri, Sep 11, 2026 3:06 PM.
 | Form Requests | 36 |
 | Domain actions | 11 |
 | Middleware | 3 |
-| Console commands | 10 |
+| Console commands | 9 |
 | Migrations | 86 |
-| Blade views | 72 |
-| Tests | 38 |
+| Blade views | 75 |
+| Tests | 39 |
 
 ## Last 15 commits
 
 | Date | Hash | Subject |
 |---|---|---|
+| 2026-09-13 | `87fa827` | docs: cut release 1.29.1 |
+| 2026-09-13 | `9e30fe3` | fix(prep): phone photos upload, and a refused one says why |
+| 2026-09-13 | `b4bada8` | docs: cut release 1.29 |
+| 2026-09-13 | `a73ff10` | feat(inventory): add a new unit from any unit dropdown |
+| 2026-09-12 | `26bcf4e` | docs: cut release 1.28.1 |
+| 2026-09-12 | `2543412` | feat(production): call the section Production and drop the note |
+| 2026-09-12 | `9d37f06` | docs: cut release 1.28 |
+| 2026-09-12 | `201fdd8` | feat(inventory): flag an item when it has run out, not when it dips |
+| 2026-09-12 | `b8f604d` | docs: cut release 1.27 |
+| 2026-09-12 | `83b4ce4` | feat(purchases): open a purchase from its row |
+| 2026-09-11 | `b080151` | chore(skills): add sanitized-mirror for the public portfolio copy |
+| 2026-09-11 | `c0ba7e7` | docs: cut release 1.26.1 |
 | 2026-09-11 | `ec17468` | feat(production): make the dish cards feel clickable |
 | 2026-09-11 | `e06f6f3` | docs: cut release 1.26 |
 | 2026-09-11 | `06d1776` | feat(sales): log a whole service on one sheet instead of dish by dish |
-| 2026-09-11 | `1d83b0b` | docs: cut release 1.25 |
-| 2026-09-11 | `06c711a` | feat(sales): open on the menu, log a dish by its quantity |
-| 2026-09-11 | `e66c117` | docs: cut release 1.24.1 |
-| 2026-09-11 | `39df6a4` | refactor: one copy each of the period filter and the costing-sheet code |
-| 2026-09-11 | `81e59dc` | docs: cut release 1.24 |
-| 2026-09-11 | `2b08b8a` | feat(production): removing an entry puts the stock back; boxes start at 0 |
-| 2026-09-11 | `af895f8` | docs: cut release 1.23 |
-| 2026-09-11 | `190c8db` | feat(production): open on the menu, log a dish with what it actually used |
-| 2026-09-11 | `4ebb331` | docs: cut release 1.22 |
-| 2026-09-11 | `113cbec` | feat(invoice-scan): flag an invoice that has been scanned before |
-| 2026-09-11 | `058e30d` | docs: cut release 1.21 |
-| 2026-09-11 | `b91e97c` | feat(invoice-scan): add an item to inventory straight from the review table |

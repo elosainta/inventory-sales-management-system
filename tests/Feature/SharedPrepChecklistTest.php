@@ -83,7 +83,56 @@ class SharedPrepChecklistTest extends TestCase
             ->assertSee('<input type="file" name="photo" accept="image/*"', false)
             // Set by the button, never in the markup, or the Upload label
             // beside it would be stuck on the camera.
-            ->assertDontSee('capture="environment"', false);
+            ->assertDontSee('capture="environment"', false)
+            // The camera button's input.click() bubbles to the label; clearing
+            // capture on that bubble sent the camera button to the gallery.
+            ->assertSee("if (event.target !== this.querySelector('input'))", false);
+    }
+
+    private function photoTask(): SectionTask
+    {
+        return SectionTask::create([
+            'section_id'     => Section::create(['name' => 'Pass Section'])->id,
+            'title'          => 'Chiller Check',
+            'sort_order'     => 0,
+            'requires_photo' => true,
+        ]);
+    }
+
+    public function test_a_phone_sized_photo_is_accepted(): void
+    {
+        // 5 MB was the cap, and a phone camera photo is routinely over it —
+        // every such upload was refused.
+        Storage::fake();
+        $task = $this->photoTask();
+
+        $this->actingAs(User::factory()->create(['role' => User::ROLE_JUNIOR_CHEF]))
+            ->post(route('prep.task-check'), [
+                'task_id' => $task->id,
+                'photo'   => UploadedFile::fake()->image('chiller.jpg')->size(8000),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertNotNull(SectionCheck::where('section_task_id', $task->id)->value('photo_path'));
+    }
+
+    public function test_a_refused_photo_says_why_under_its_task(): void
+    {
+        // It used to redirect back with nothing on screen.
+        Storage::fake();
+        $task = $this->photoTask();
+
+        $this->actingAs(User::factory()->create(['role' => User::ROLE_JUNIOR_CHEF]))
+            ->from(route('prep.index'))
+            ->followingRedirects()
+            ->post(route('prep.task-check'), [
+                'task_id' => $task->id,
+                'photo'   => UploadedFile::fake()->create('notes.pdf', 10, 'application/pdf'),
+            ])
+            ->assertOk()
+            ->assertSee('That file is not a photo. Use JPG, PNG or WebP.');
+
+        $this->assertDatabaseMissing('section_checks', ['section_task_id' => $task->id]);
     }
 
     public function test_any_account_including_the_support_admin_can_tick_a_task(): void

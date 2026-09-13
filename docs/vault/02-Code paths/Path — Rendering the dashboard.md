@@ -63,13 +63,13 @@ $$B = \sum g - \sum s - \sum r$$
 
 Three separate aggregate queries. [[Petty cash balance]] explains what the figure actually means — and why it is easy to misread.
 
-### `:37` Low stock count
+### `:37` No stock count
 
 ```php
-InventoryItem::whereRaw('quantity_on_hand <= reorder_threshold * ?', [InventoryItem::LOW_STOCK_FACTOR])->count();
+InventoryItem::outOfStock()->count();
 ```
 
-The SQL mirror of `InventoryItem::isLowStock()`. Two implementations of one predicate, bound to the same constant so they cannot drift on the factor — though the comparison itself is duplicated. [[Low stock threshold]].
+A query scope on the model, beside the `isOutOfStock()` the notification path uses — so the comparison is written once rather than mirrored in hand-written SQL twice. [[Low stock threshold]].
 
 ### `:41-43` Sales, spend, waste, rate
 

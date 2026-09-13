@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/purchases/{purchase}/toggle-status', [PurchaseController::class, 'toggleStatus'])->name('purchases.toggle-status');
     Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
     Route::get('/purchases/{purchase}/receipt', [PurchaseController::class, 'receipt'])->name('purchases.receipt');
+    Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('purchases.show');
 
     // Invoice scan (BETA) - upload here, bill in Bukku, result back here.
     // store is throttled because each scan is a paid API call.
@@ -181,6 +182,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/market-purchases', [MarketPurchaseController::class, 'store'])->name('market-purchases.store');
     Route::delete('/market-purchases/{marketPurchase}', [MarketPurchaseController::class, 'destroy'])->name('market-purchases.destroy');
     Route::get('/market-purchases/{marketPurchase}/receipt', [MarketPurchaseController::class, 'receipt'])->name('market-purchases.receipt');
+    Route::get('/market-purchases/{marketPurchase}', [MarketPurchaseController::class, 'show'])->name('market-purchases.show');
 
     Route::get('/production', [ProductionController::class, 'index'])->name('production.index');
     // One dish at a time, with what each ingredient actually took (see LogProduction).

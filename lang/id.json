@@ -202,6 +202,10 @@
     "Try again in": "Coba lagi dalam",
     "Type a quantity next to a dish to see what comes off the shelf.": "Ketik jumlah di samping hidangan untuk melihat apa yang keluar dari rak.",
     "Type to search inventory…": "Ketik untuk mencari inventaris…",
+    "Choose a photo first.": "Pilih foto terlebih dahulu.",
+    "That file is not a photo. Use JPG, PNG or WebP.": "File itu bukan foto. Gunakan JPG, PNG atau WebP.",
+    "That photo is too big. The limit is 25 MB.": "Foto itu terlalu besar. Batasnya 25 MB.",
+    "The photo did not upload. Try again.": "Foto gagal diunggah. Coba lagi.",
     "Unit": "Satuan",
     "Unit price": "Harga satuan",
     "Update Password": "Perbarui Kata Sandi",
@@ -240,8 +244,6 @@
     "ingredients": "bahan",
     "Back to production": "Kembali ke produksi",
     "How many made": "Jumlah dibuat",
-    "What comes off the shelf": "Yang keluar dari rak",
-    "Type what each ingredient actually took — a box left at 0 takes nothing off the shelf.": "Ketik berapa yang benar-benar dipakai tiap bahan — kotak yang dibiarkan 0 tidak mengurangi rak.",
     "Category": "Kategori",
     "Recipe says": "Menurut resep"
 }

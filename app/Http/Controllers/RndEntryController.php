@@ -56,7 +56,7 @@ class RndEntryController extends Controller
             CostingSheetLines::deduct($lines);
 
             return $entry;
-        });
+        }, 3); // retried on a write clash; see LogProduction. update() below must NOT retry: see CLAUDE.md.
 
         return back()->with('success', "Recorded, and {$entry->lines->count()} ingredient(s) taken off stock. Waiting for the Owner to review the spend.");
     }

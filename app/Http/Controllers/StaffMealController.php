@@ -60,7 +60,7 @@ class StaffMealController extends Controller
             CostingSheetLines::deduct($lines);
 
             return $meal;
-        });
+        }, 3); // retried on a write clash; see LogProduction. update() below must NOT retry: see CLAUDE.md.
 
         return back()->with('success', "Staff meal recorded, and {$meal->lines->count()} ingredient(s) taken off stock.");
     }

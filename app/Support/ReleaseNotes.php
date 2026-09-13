@@ -29,14 +29,14 @@ namespace App\Support;
  */
 class ReleaseNotes
 {
-    public const CURRENT_VERSION = '1.29.2';
+    public const CURRENT_VERSION = '1.29.3';
 
     /** The very first commit, for the "since" line in the header. */
     public const FIRST_COMMIT      = '047cdf3';
     public const FIRST_RELEASE_DATE = '2026-04-29';
 
     /** Total commits behind the app — in the private repository it is developed in. */
-    public const TOTAL_COMMITS = 364;
+    public const TOTAL_COMMITS = 366;
 
     /**
      * @return array<int, array<string, mixed>> newest release first
@@ -44,6 +44,16 @@ class ReleaseNotes
     public static function all(): array
     {
         return [
+            [
+                'version' => '1.29.3',
+                'date'    => '2026-09-13',
+                'summary' => 'Saving no longer fails when two people change stock at the same moment.',
+                'changed' => [
+                    "If two people save something that moves the same stock at the same instant, the second save used to fail with an error page and nothing was recorded. That happened to a production batch on 12 September. The app now simply tries again, up to three times, so the save goes through.",
+                    "This covers logging and undoing production, sales, wastage, purchases, stock-takes, R&D trials and staff meals. Stock is still only taken off once.",
+                ],
+                'commits' => '19c8dfb..HEAD',
+            ],
             [
                 'version' => '1.29.2',
                 'date'    => '2026-09-13',

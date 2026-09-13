@@ -97,7 +97,7 @@ public function destroy(Purchase $purchase)
         }
 
         $purchase->delete();
-    });
+    }, 3); // retried on a write clash; see LogProduction
 
     return back()->with('success', 'Purchase removed and stock reversed.');
 }

@@ -49,6 +49,6 @@ class UndoProduction
 
             $batch->lines()->delete();
             $batch->delete();
-        });
+        }, 3); // retried on a write clash; see LogProduction
     }
 }

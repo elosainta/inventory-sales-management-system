@@ -63,6 +63,6 @@ class LogPurchase
             }
 
             return $purchase;
-        });
+        }, 3); // retried on a write clash; see LogProduction. A retry stores the receipt again, leaving one unused copy.
     }
 }

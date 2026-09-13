@@ -62,7 +62,7 @@ class SaleController extends Controller
                     'discount'      => 0,
                 ]);
             }
-        });
+        }, 3); // retried on a write clash; see LogProduction. The outer transaction is the one Laravel retries.
 
         $count = count($data['qty']);
 
@@ -138,7 +138,7 @@ class SaleController extends Controller
             }
 
             $sale->delete();
-        });
+        }, 3); // retried on a write clash; see LogProduction
 
         return back()->with('success', 'Sale undone and stock restored.');
     }

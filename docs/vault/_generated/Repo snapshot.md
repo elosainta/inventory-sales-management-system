@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Sun, Sep 13, 2026 5:59 AM.
+Taken Sun, Sep 13, 2026 8:01 AM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,10 +19,10 @@ Taken Sun, Sep 13, 2026 5:59 AM.
 
 | | |
 |---|---|
-| Commits | 363 |
-| HEAD | `9115f54` |
+| Commits | 365 |
+| HEAD | `796fcf2` |
 | Branch | `claude/inventory-tally-users-77c425` |
-| Released version | `1.29.2` |
+| Released version | `1.29.3` |
 
 ## Size
 
@@ -36,12 +36,14 @@ Taken Sun, Sep 13, 2026 5:59 AM.
 | Console commands | 9 |
 | Migrations | 86 |
 | Blade views | 75 |
-| Tests | 39 |
+| Tests | 40 |
 
 ## Last 15 commits
 
 | Date | Hash | Subject |
 |---|---|---|
+| 2026-09-13 | `796fcf2` | fix(stock): retry a write that clashes with another transaction |
+| 2026-09-13 | `19c8dfb` | docs: cut release 1.29.2 |
 | 2026-09-13 | `9115f54` | chore(mirror): scrub supplier invoice numbers from the public copy |
 | 2026-09-13 | `d6f3163` | chore: cut spent and scaffold-only code |
 | 2026-09-13 | `87fa827` | docs: cut release 1.29.1 |
@@ -55,5 +57,3 @@ Taken Sun, Sep 13, 2026 5:59 AM.
 | 2026-09-12 | `b8f604d` | docs: cut release 1.27 |
 | 2026-09-12 | `83b4ce4` | feat(purchases): open a purchase from its row |
 | 2026-09-11 | `b080151` | chore(skills): add sanitized-mirror for the public portfolio copy |
-| 2026-09-11 | `c0ba7e7` | docs: cut release 1.26.1 |
-| 2026-09-11 | `ec17468` | feat(production): make the dish cards feel clickable |

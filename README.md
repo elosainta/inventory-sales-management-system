@@ -130,7 +130,7 @@ resolves to files on disk.
 
 ## Testing
 
-366 feature and unit tests. The ones that matter are not the CRUD tests — they
+367 feature and unit tests. The ones that matter are not the CRUD tests — they
 are the invariants: the gate/sidebar agreement, the per-role access matrices
 (the *deny* half especially), the arithmetic on stock balances and plate costs,
 the guard against billing the same invoice twice, and a check that rendered

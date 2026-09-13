@@ -141,6 +141,11 @@ class LogProduction
             }
 
             return $batch;
-        });
+        // Three attempts. MariaDB 12 refuses a write that clashes with another
+        // transaction ("1020 Record has changed since last read") instead of
+        // waiting, and Laravel only retries that when told how many times — a
+        // junior chef lost a batch to it on 2026-09-12. Safe because everything
+        // written here is loaded inside the closure, so a retry starts clean.
+        }, 3);
     }
 }

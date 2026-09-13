@@ -25,6 +25,6 @@ class LogWastage
             $item->save();
 
             return $entry;
-        });
+        }, 3); // retried on a write clash; see LogProduction
     }
 }

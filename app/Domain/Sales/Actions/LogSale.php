@@ -55,6 +55,6 @@ class LogSale
             }
 
             return $sale;
-        });
+        }, 3); // retried on a write clash; see LogProduction (ignored when nested in the sales sheet)
     }
 }

@@ -121,7 +121,7 @@ class StockTakeController extends Controller
             }
 
             return $stockTake;
-        });
+        }, 3); // retried on a write clash; see LogProduction. applyMovements re-reads stock inside.
 
         return redirect()->route('stock-take.show', $stockTake)->with('success', 'Stock-take recorded — inventory updated.');
     }

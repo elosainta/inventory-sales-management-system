@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Sun, Sep 13, 2026 5:45 AM.
+Taken Sun, Sep 13, 2026 5:59 AM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,10 +19,10 @@ Taken Sun, Sep 13, 2026 5:45 AM.
 
 | | |
 |---|---|
-| Commits | 361 |
-| HEAD | `87fa827` |
+| Commits | 363 |
+| HEAD | `9115f54` |
 | Branch | `claude/inventory-tally-users-77c425` |
-| Released version | `1.29.1` |
+| Released version | `1.29.2` |
 
 ## Size
 
@@ -42,6 +42,8 @@ Taken Sun, Sep 13, 2026 5:45 AM.
 
 | Date | Hash | Subject |
 |---|---|---|
+| 2026-09-13 | `9115f54` | chore(mirror): scrub supplier invoice numbers from the public copy |
+| 2026-09-13 | `d6f3163` | chore: cut spent and scaffold-only code |
 | 2026-09-13 | `87fa827` | docs: cut release 1.29.1 |
 | 2026-09-13 | `9e30fe3` | fix(prep): phone photos upload, and a refused one says why |
 | 2026-09-13 | `b4bada8` | docs: cut release 1.29 |
@@ -55,5 +57,3 @@ Taken Sun, Sep 13, 2026 5:45 AM.
 | 2026-09-11 | `b080151` | chore(skills): add sanitized-mirror for the public portfolio copy |
 | 2026-09-11 | `c0ba7e7` | docs: cut release 1.26.1 |
 | 2026-09-11 | `ec17468` | feat(production): make the dish cards feel clickable |
-| 2026-09-11 | `e06f6f3` | docs: cut release 1.26 |
-| 2026-09-11 | `06d1776` | feat(sales): log a whole service on one sheet instead of dish by dish |

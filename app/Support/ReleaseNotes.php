@@ -29,14 +29,14 @@ namespace App\Support;
  */
 class ReleaseNotes
 {
-    public const CURRENT_VERSION = '1.29.1';
+    public const CURRENT_VERSION = '1.29.2';
 
     /** The very first commit, for the "since" line in the header. */
     public const FIRST_COMMIT      = '047cdf3';
     public const FIRST_RELEASE_DATE = '2026-04-29';
 
     /** Total commits behind the app — in the private repository it is developed in. */
-    public const TOTAL_COMMITS = 361;
+    public const TOTAL_COMMITS = 364;
 
     /**
      * @return array<int, array<string, mixed>> newest release first
@@ -44,6 +44,16 @@ class ReleaseNotes
     public static function all(): array
     {
         return [
+            [
+                'version' => '1.29.2',
+                'date'    => '2026-09-13',
+                'summary' => 'Tidying behind the scenes. Nothing changes on screen.',
+                'removed' => [
+                    "A one-time tool that moved old receipt and checklist photos to private storage. It did its job months ago and was never going to run again.",
+                    "Some leftover setup code from when the project was first created, and two small files the page layouts no longer need.",
+                ],
+                'commits' => '87fa827..HEAD',
+            ],
             [
                 'version' => '1.29.1',
                 'date'    => '2026-09-13',

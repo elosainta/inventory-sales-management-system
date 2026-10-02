@@ -39,7 +39,7 @@ class ScanInvoice
         'gif'  => 'image/gif',
     ];
 
-    public function execute(UploadedFile $file, ?int $userId): InvoiceScan
+    public function execute(UploadedFile $file, ?int $userId, string $documentType = InvoiceScan::TYPE_INVOICE): InvoiceScan
     {
         $path = $file->store('invoice-scans');
 
@@ -48,6 +48,7 @@ class ScanInvoice
             'file_path'         => $path,
             'original_filename' => $file->getClientOriginalName(),
             'status'            => InvoiceScan::STATUS_SCANNED,
+            'document_type'     => $documentType,
         ]);
 
         try {
@@ -133,12 +134,14 @@ class ScanInvoice
         }
 
         foreach ($response->json('content') ?? [] as $block) {
-            if (($block['type'] ?? null) === 'text') {
-                $decoded = json_decode($block['text'], true);
+            if (($block['type'] ?? null) !== 'text') {
+                continue;
+            }
 
-                if (is_array($decoded)) {
-                    return $this->clean($decoded);
-                }
+            $decoded = json_decode($block['text'], true);
+
+            if (is_array($decoded)) {
+                return $this->clean($decoded);
             }
         }
 

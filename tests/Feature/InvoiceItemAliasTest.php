@@ -81,7 +81,7 @@ class InvoiceItemAliasTest extends TestCase
     private function payload(array $lineOverrides = []): array
     {
         return [
-            'contact_id'   => 2,
+            'supplier_id'   => $this->supplierId(2),
             'invoice_date' => '2026-09-03',
             'term_id'      => 3,
             'lines'        => [array_merge([
@@ -92,6 +92,15 @@ class InvoiceItemAliasTest extends TestCase
                 'include'     => '1',
             ], $lineOverrides)],
         ];
+    }
+
+    /** A kitchen supplier already linked to Bukku contact $contactId. */
+    private function supplierId(int $contactId): int
+    {
+        return \App\Models\Supplier::firstOrCreate(
+            ['bukku_contact_id' => $contactId],
+            ['name' => 'Supplier ' . $contactId, 'contact' => '', 'email' => '', 'address' => ''],
+        )->id;
     }
 
     public function test_case_punctuation_and_spacing_fold_to_one_key(): void

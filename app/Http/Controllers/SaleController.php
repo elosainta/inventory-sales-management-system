@@ -127,14 +127,12 @@ class SaleController extends Controller
         DB::transaction(function () use ($sale) {
             $recipe = Recipe::with('ingredients.inventoryItem')->find($sale->recipe_id);
 
-            if ($recipe) {
-                foreach ($recipe->ingredients as $ingredient) {
-                    $item = $ingredient->inventoryItem;
-                    if (!$item) continue;
+            foreach ($recipe?->ingredients ?? [] as $ingredient) {
+                $item = $ingredient->inventoryItem;
+                if (!$item) continue;
 
-                    $item->quantity_on_hand += $ingredient->quantity * $sale->qty_sold;
-                    $item->save();
-                }
+                $item->quantity_on_hand += $ingredient->quantity * $sale->qty_sold;
+                $item->save();
             }
 
             $sale->delete();

@@ -31,6 +31,10 @@ services:
       DB_CACHE_CONNECTION: mariadb
       DB_CACHE_LOCK_CONNECTION: mariadb
       DB_QUEUE_CONNECTION: mariadb
+      # Kitchen time everywhere. config/database.php derives the MariaDB
+      # session offset from this, so the two cannot drift apart - one without
+      # the other would write every new timestamp 8 hours off.
+      APP_TIMEZONE: Asia/Kuala_Lumpur
     volumes:
       - storage_data:/var/www/html/storage/app
       - logs:/var/www/html/storage/logs

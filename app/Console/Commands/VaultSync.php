@@ -112,14 +112,7 @@ class VaultSync extends Command
 
         $rows = [];
         foreach (array_keys(Gate::abilities()) as $ability) {
-            $cells = [];
-            foreach ($users as $user) {
-                try {
-                    $cells[] = Gate::forUser($user)->allows($ability) ? '✅' : '—';
-                } catch (\Throwable) {
-                    $cells[] = '?';
-                }
-            }
+            $cells = array_map(fn (User $user) => $this->gateCell($user, $ability), $users);
             $rows[] = "| `{$ability}` | " . implode(' | ', $cells) . ' |';
         }
 
@@ -130,6 +123,15 @@ class VaultSync extends Command
             . "`?` means the gate needs state a synthetic user does not have. Explained in [[Authorization gates]].\n\n"
             . '| Gate | ' . implode(' | ', array_keys($roles)) . " |\n|---|" . str_repeat('---|', count($roles)) . "\n"
             . implode("\n", $rows) . "\n";
+    }
+
+    private function gateCell(User $user, string $ability): string
+    {
+        try {
+            return Gate::forUser($user)->allows($ability) ? '✅' : '—';
+        } catch (\Throwable) {
+            return '?';
+        }
     }
 
     /**

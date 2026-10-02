@@ -50,6 +50,13 @@ DB_QUEUE_CONNECTION=mariadb
 
 Pinning is in `.env`, not in code. [[Environment variables]].
 
+## What is not separated: uploads
+
+The sandbox is a second **database**, not a second disk. Receipts, invoice photos and prep photos sit on one storage volume that both databases point into, so a path cloned across names the live file.
+
+> [!danger] A cloned path lets a demo delete remove the live file
+> Until 2026-10-02 `purchases` and `market_purchases` were cloned with their `receipt_path`. `demochef` is Head-Chef-level and holds `delete-entries`, so deleting a cloned purchase ran `Storage::delete()` on the real receipt — and could open any of them. Invoice scans and prep photos, which every demo login can open, had the same hole. `demo:reset` now nulls upload columns as it copies (`DemoReset::CLEAR_UPLOADS`) and skips rows that are nothing but an upload (`sale_attachments`, `invoice_scans`, in `SKIP_DATA`). `DemoResetTest` fails when a `path` / `*_path` column on a cloned table is in neither list.
+
 ## Accounts
 
 Seeded by `DemoUserSeeder`, all `welcome1234`:

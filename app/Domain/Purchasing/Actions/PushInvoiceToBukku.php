@@ -38,6 +38,9 @@ class PushInvoiceToBukku
 
     public const DEFAULT_TERM_ID = 3;
 
+    /** The line that carries a typed bill total's gap from the lines. */
+    public const ADJUSTMENT = 'Adjustment to invoice total';
+
     public function execute(InvoiceScan $scan, array $data): InvoiceScan
     {
         if ($scan->isPosted()) {
@@ -55,6 +58,8 @@ class PushInvoiceToBukku
 
         $lines = array_values($data['lines'] ?? []);
 
+        $documentType = $data['document_type'] ?? $scan->document_type ?? InvoiceScan::TYPE_INVOICE;
+
         if ($lines === []) {
             throw new RuntimeException('A bill needs at least one line.');
         }
@@ -69,7 +74,10 @@ class PushInvoiceToBukku
             // Money in decimal, not float — the same rule InventoryItem
             // follows. 2.65 * 11.70 is a cent out in binary floating point,
             // and this figure is what the supplier gets paid.
-            $amount = bcmul((string) $quantity, (string) $unitPrice, 2);
+            // Rounded half up per line, as Bukku does (see Money::lineAmount):
+            // bcmul at scale 2 truncated, so 8.35 x 17.50 = 146.125 was stored
+            // as 146.12 while Bukku's bill said 146.13.
+            $amount = \App\Support\Money::lineAmount($quantity, $unitPrice);
             $total  = bcadd($total, $amount, 2);
 
             $item = [
@@ -98,6 +106,26 @@ class PushInvoiceToBukku
             $formItems[] = $item;
         }
 
+        // The reviewer typed what the invoice comes to. Bukku totals a bill
+        // from its lines, so a gap goes on as one line of its own, on the
+        // fallback account - visible on the bill, and never stock, because
+        // RecordPurchaseFromScan only takes lines matched to a shelf item.
+        if (filled($data['bill_total'] ?? null)) {
+            $billTotal = bcadd((string) $data['bill_total'], '0', 2);
+            $gap       = bcsub($billTotal, $total, 2);
+
+            if (bccomp($gap, '0', 2) !== 0) {
+                $formItems[] = [
+                    'line'        => count($formItems) + 1,
+                    'account_id'  => (int) config('services.bukku.default_account_id'),
+                    'description' => self::ADJUSTMENT,
+                    'quantity'    => 1,
+                    'unit_price'  => (float) $gap,
+                ];
+                $total = $billTotal;
+            }
+        }
+
         $fileIds = $this->attachPhoto($scan);
 
         $payload = [
@@ -113,7 +141,12 @@ class PushInvoiceToBukku
             // bills already on the books do.
             'tax_mode'    => 'exclusive',
             'status'      => 'ready',
-            'description' => 'Read from photo on the Inventory, Sales and Management System website (scan #' . $scan->id . ')',
+            // The (scan #N) marker is what send() looks the bill up by after an
+            // ambiguous failure, and the lookup confirms against this whole
+            // string - so the wording may differ by paper type, as long as it is
+            // built once, here, and reused unchanged for the lookup.
+            'description' => ($documentType === InvoiceScan::TYPE_DELIVERY_ORDER ? 'Delivery order read' : 'Read')
+                . ' from photo on the Inventory, Sales and Management System website (scan #' . $scan->id . ')',
             'form_items'  => $formItems,
             'term_items'  => [[
                 'term_id'     => $termId,
@@ -131,6 +164,7 @@ class PushInvoiceToBukku
 
         $scan->update([
             'status'               => InvoiceScan::STATUS_POSTED,
+            'document_type'        => $documentType,
             'supplier_name'        => $data['supplier_name'] ?? $scan->supplier_name,
             'invoice_number'       => $invoiceNumber,
             'invoice_date'         => $date->toDateString(),

@@ -53,7 +53,7 @@
                 @endphp
                 <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; overflow:hidden;">
                     <button type="button" onclick="toggleSaleGroup('day-{{ $day }}', this)"
-                            style="width:100%; display:flex; align-items:center; gap:12px; padding:14px 18px; background:hsl(30,15%,97%); border:none; cursor:pointer; text-align:left;">
+                            class="app-group-header" style="width:100%; display:flex; align-items:center; gap:12px; padding:14px 18px; background:hsl(30,15%,97%); border:none; cursor:pointer; text-align:left;">
                         <svg class="chev" style="transition:transform 0.15s; flex-shrink:0; color:hsl(24,5%,45%);" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                         <span style="font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500; flex:1;">{{ $dLabel }}</span>
                         <span style="font-size:13px; color:hsl(24,5%,45%); white-space:nowrap;">{{ $dQty }} sold · {{ $dCount }} {{ $dCount === 1 ? 'sale' : 'sales' }}</span>

@@ -5,7 +5,7 @@
     <div class="summary">
         Total items: <strong>{{ $suppliers->sum(fn ($g) => $g['items']->count()) }}</strong> &middot;
         Total stock value: <strong>RM {{ number_format($totalValue, 2) }}</strong> &middot;
-        Items with no stock: <strong>{{ $suppliers->sum(fn ($g) => $g['items']->filter->isOutOfStock()->count()) }}</strong>
+        Items low on stock: <strong>{{ $suppliers->sum(fn ($g) => $g['items']->filter->isOutOfStock()->count()) }}</strong>
     </div>
 
     @foreach($suppliers as $i => $group)
@@ -30,7 +30,7 @@
                             <td>
                                 {{ $item->name }}
                                 @if($item->isOutOfStock())
-                                    <span class="muted">(no stock)</span>
+                                    <span class="muted">(low stock)</span>
                                 @endif
                             </td>
                             <td>{{ $item->unit }}</td>

@@ -13,6 +13,15 @@
         @endcan
     </div>
 
+    {{-- The add/edit modals close on reload, so a refused save used to look
+         like nothing happened. --}}
+    @if($errors->any())
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:13px; color:#991b1b;">
+            <strong>The supplier was not saved.</strong>
+            @foreach($errors->all() as $error) {{ $error }} @endforeach
+        </div>
+    @endif
+
     @if($suppliers->isEmpty())
         <div style="text-align:center; padding:64px; color:hsl(24,5%,45%);">
             No suppliers yet. Add your first one.
@@ -31,6 +40,7 @@
                                     data-contact="{{ $supplier->contact }}"
                                     data-email="{{ $supplier->email }}"
                                     data-address="{{ $supplier->address }}"
+                                    data-bukku-contact="{{ $supplier->bukku_contact_id }}"
                                     style="background:none; border:none; cursor:pointer; color:hsl(24,5%,45%); padding:4px;" title="Edit">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
@@ -52,6 +62,9 @@
                         <div>{{ $supplier->contact }}</div>
                         <div>{{ $supplier->email }}</div>
                         <div>{{ $supplier->address }}</div>
+                        @if($supplier->bukku_contact_id && isset($bukkuContacts[$supplier->bukku_contact_id]))
+                            <div style="font-size:12px;">In Bukku: {{ $bukkuContacts[$supplier->bukku_contact_id] }}</div>
+                        @endif
                     </div>
                 </div>
             @endforeach
@@ -96,6 +109,21 @@
                     <input type="text" id="edit-address" name="address" required
                            style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px; box-sizing:border-box;">
                 </div>
+                @if(! empty($bukkuContacts))
+                <div style="margin-bottom:16px;">
+                    <label for="edit-bukku-contact" style="display:block; font-size:14px; font-weight:500; margin-bottom:4px;">Same supplier in Bukku <span style="color:hsl(24,5%,45%); font-weight:400;">(optional)</span></label>
+                    <p style="font-size:12px; color:hsl(24,5%,50%); margin-bottom:8px; line-height:1.5;">
+                        A scanned invoice sent under this Bukku supplier is then filed here, under this name.
+                    </p>
+                    <select id="edit-bukku-contact" name="bukku_contact_id"
+                            style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px; box-sizing:border-box;">
+                        <option value="">&mdash; not linked &mdash;</option>
+                        @foreach($bukkuContacts as $id => $contactName)
+                            <option value="{{ $id }}">{{ $contactName }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
                 <div style="display:flex; justify-content:flex-end; gap:8px; padding-top:8px;">
                     <button type="button"
                             onclick="document.getElementById('edit-modal').style.display='none'"
@@ -119,6 +147,8 @@
             document.getElementById('edit-contact').value = d.contact;
             document.getElementById('edit-email').value = d.email;
             document.getElementById('edit-address').value = d.address;
+            var link = document.getElementById('edit-bukku-contact');
+            if (link) link.value = d.bukkuContact || '';
             document.getElementById('edit-modal').style.display = 'flex';
             document.getElementById('edit-name').focus();
         }

@@ -16,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      * Not a deny list — these fall through to their own Gate::define, which
      * may still allow Admin (toggle-maintenance does, for a non-demo account).
      */
-    private const ADMIN_EXCEPT = ['view-dashboard', 'toggle-maintenance', 'decide-rnd'];
+    private const ADMIN_EXCEPT = ['toggle-maintenance', 'decide-rnd'];
 
     public function register(): void
     {
@@ -32,11 +32,15 @@ class AppServiceProvider extends ServiceProvider
 
         // ---------- Authorization Gates ----------
 
-        // Admin reaches every feature except the financial dashboard, on the
-        // Owner's instruction as at 2026-09-03. This supersedes the money-and-
-        // personal-data boundary drawn in 1.11.2: support now reads and writes
-        // sales, purchases, recipes, production, petty cash, invoice scan,
-        // leave and peer feedback as well as the operational screens.
+        // Admin reaches every feature, on the Owner's instruction as at
+        // 2026-09-03. This supersedes the money-and-personal-data boundary
+        // drawn in 1.11.2: support now reads and writes sales, purchases,
+        // recipes, production, petty cash, invoice scan, leave and peer
+        // feedback as well as the operational screens — and, since 2026-09-24,
+        // the financial dashboard, which was the one exclusion the Owner had
+        // named. Revenue, gross margin and spend by supplier are all on that
+        // page: the role is now trusted with the money figures, not merely
+        // with the screens that produce them.
         //
         // Written as a Gate::before rather than as `|| $user->isAdmin()` on
         // twenty-five closures, because "every feature" has to include the
@@ -46,19 +50,19 @@ class AppServiceProvider extends ServiceProvider
         //
         // Two abilities fall through to their own closure instead of being
         // granted outright:
-        //   view-dashboard     the one exclusion the Owner named.
         //   toggle-maintenance already grants Admin, but carries a `! is_demo`
         //                      guard — a blanket true would let a demo admin
         //                      503 the live app.
+        //   decide-rnd         approving spending is the Owner's, not clerical.
         //
         // What this does NOT lift: the anti-escalation guards on the Users
         // page. Those are explicit isAdmin() checks in UserController, not
         // gates, so an Admin still cannot reset, delete, re-language or
         // re-role an Owner or another Admin, and cannot grant the owner or
         // admin role to anyone. Reaching every feature is access; taking over
-        // the Owner's account is not a feature — and without that limit the
-        // dashboard exclusion above is one password reset and one promotion
-        // away from meaningless.
+        // the Owner's account is not a feature. Those guards are now the only
+        // line left between the two roles, the dashboard exclusion that used
+        // to back them up having gone on 2026-09-24 — do not weaken them.
         Gate::before(function (User $user, string $ability) {
             return $user->isAdmin() && ! in_array($ability, self::ADMIN_EXCEPT, true)
                 ? true

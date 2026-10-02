@@ -1,6 +1,8 @@
 {{-- The period filter every list page shares. The query half is
      App\Support\Period::filter(). Reads $range and $month from the page;
-     pass the page's own route, and the running total with its label. --}}
+     pass the page's own route, and the running total with its label.
+     Pass listSearch (a placeholder) for a search box beside the month; the
+     page filters its own list off #list-search. --}}
 @php
     $active = 'background:hsl(20,60%,45%); color:white; border-color:hsl(20,60%,45%);';
     $normal = 'background:white; color:hsl(24,10%,20%); border-color:hsl(30,15%,85%);';
@@ -12,9 +14,14 @@
     @endforeach
     <form method="GET" action="{{ route($route) }}" style="display:flex; gap:6px; align-items:center;">
         <input type="month" name="month" value="{{ $month }}"
+               onchange="this.form.submit()"
                style="padding:7px 10px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px;">
         <button type="submit" style="{{ $pill }} cursor:pointer; {{ ! $range ? $active : $normal }}">{{ __('Custom') }}</button>
     </form>
+    @isset($listSearch)
+        <input type="search" id="list-search" placeholder="{{ $listSearch }}" autocomplete="off"
+               style="width:220px; padding:7px 10px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px; background:white;">
+    @endisset
     <span style="margin-left:auto; font-size:14px; color:hsl(24,5%,45%);">
         {{ $totalLabel }}: <strong>@money($total)</strong>
     </span>

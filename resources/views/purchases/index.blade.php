@@ -21,7 +21,7 @@
             @endcan
         </div>
     </div>
-@include('partials.period-filter', ['route' => 'purchases.index', 'totalLabel' => 'Total spend', 'total' => $totalSpend])
+@include('partials.period-filter', ['route' => 'purchases.index', 'totalLabel' => 'Total spend', 'total' => $totalSpend, 'listSearch' => $purchases->isEmpty() ? null : 'Search suppliers…'])
     @if($purchases->isEmpty())
         <div style="text-align:center; padding:64px; color:hsl(24,5%,45%);">
             @if($totalOnRecord > 0)
@@ -32,12 +32,30 @@
             @endif
         </div>
     @else
-        <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; overflow:hidden;">
-            <table class="app-table" style="width:100%; border-collapse:collapse; font-size:14px;">
+        @php
+            // One collapsible section per supplier, like the Sales log is per
+            // day (the Owner, 2026-09-22), biggest spend first. Each supplier's
+            // purchases stay hidden until its header is clicked.
+            $bySupplier = $purchases->groupBy('supplier_id')->sortByDesc(fn ($g) => $g->sum('total_amount'));
+        @endphp
+        <p style="font-size:13px; color:hsl(24,5%,45%); margin-bottom:12px;"><span id="supplier-count">{{ $bySupplier->count() }} {{ \Illuminate\Support\Str::plural('supplier', $bySupplier->count()) }}</span> — click a supplier to see its purchases.</p>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+        @foreach($bySupplier as $supplierId => $group)
+            @php $gCount = $group->count(); $gItems = $group->sum(fn ($p) => $p->lines->count()); $gName = $group->first()->supplier?->name ?? 'Unknown supplier'; @endphp
+            <div data-supplier="{{ $gName }}" style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; overflow:hidden;">
+                <button type="button" onclick="togglePurchaseGroup('supplier-{{ $supplierId }}', this)"
+                        class="app-group-header" style="width:100%; display:flex; align-items:center; gap:12px; padding:14px 18px; background:hsl(30,15%,97%); border:none; cursor:pointer; text-align:left;">
+                    <svg class="chev" style="transition:transform 0.15s; flex-shrink:0; color:hsl(24,5%,45%);" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    <span style="font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500; flex:1;">{{ $gName }}</span>
+                    <span style="font-size:13px; color:hsl(24,5%,45%); white-space:nowrap;">{{ $gItems }} {{ \Illuminate\Support\Str::plural('item', $gItems) }} · {{ $gCount }} {{ \Illuminate\Support\Str::plural('purchase', $gCount) }}</span>
+                    <span style="font-family:'JetBrains Mono',monospace; font-weight:600; color:hsl(20,60%,38%); min-width:100px; text-align:right;">@money($group->sum('total_amount'))</span>
+                </button>
+                <div id="supplier-{{ $supplierId }}" style="display:none;">
+                @include('purchases._upload', ['pending' => $group->where('status', 'pending')])
+            <table class="app-table" style="width:100%; border-collapse:collapse; font-size:14px; border-top:1px solid hsl(30,15%,90%);">
                 <thead>
-                    <tr style="border-bottom:1px solid hsl(30,15%,90%); background:hsl(30,15%,97%);">
+                    <tr style="border-bottom:1px solid hsl(30,15%,90%);">
                         <th style="text-align:left; padding:12px 16px; font-weight:600;">Date</th>
-                        <th style="text-align:left; padding:12px 16px; font-weight:600;">Supplier</th>
                         <th style="text-align:left; padding:12px 16px; font-weight:600;">Invoice #</th>
                         <th style="text-align:left; padding:12px 16px; font-weight:600;">Items</th>
                         <th style="text-align:left; padding:12px 16px; font-weight:600;">Status</th>
@@ -49,13 +67,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($purchases as $purchase)
+                    @foreach($group as $purchase)
                         {{-- The row opens the purchase; the guard keeps the buttons,
                              forms and the receipt thumbnail doing their own job. --}}
                         <tr onclick="if (! event.target.closest('button,a,form,img')) location='{{ route('purchases.show', $purchase) }}'"
                             style="border-bottom:1px solid hsl(30,15%,93%); cursor:pointer;">
                             <td style="padding:12px 16px;">{{ $purchase->purchase_date->format('M d, Y') }}</td>
-                            <td style="padding:12px 16px;">{{ $purchase->supplier->name }}</td>
                             <td style="padding:12px 16px; color:hsl(24,5%,45%); font-family:'JetBrains Mono',monospace; font-size:13px;">
                                 {{ $purchase->invoice_number ?: '—' }}
                             </td>
@@ -128,7 +145,44 @@
                     @endforeach
                 </tbody>
             </table>
+                </div>
+            </div>
+        @endforeach
         </div>
+        <script>
+            function togglePurchaseGroup(id, btn) {
+                var body = document.getElementById(id);
+                var open = body.style.display === 'none' || body.style.display === '';
+                body.style.display = open ? 'block' : 'none';
+                var chev = btn.querySelector('.chev');
+                if (chev) chev.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+            }
+
+            // Search the suppliers on screen. Filters what this period already
+            // loaded; the month box beside it changes the period.
+            (function () {
+                const search = document.getElementById('list-search');
+                const count  = document.getElementById('supplier-count');
+                const groups = document.querySelectorAll('[data-supplier]');
+                const label  = (n) => n + (n === 1 ? ' supplier' : ' suppliers');
+
+                function filterSuppliers() {
+                    const term = search.value.trim().toLowerCase();
+                    let shown = 0;
+
+                    groups.forEach((group) => {
+                        const hit = group.dataset.supplier.toLowerCase().includes(term);
+                        group.style.display = hit ? '' : 'none';
+                        if (hit) shown++;
+                    });
+
+                    count.textContent = term ? shown + ' of ' + label(groups.length) : label(groups.length);
+                }
+
+                search.addEventListener('input', filterSuppliers);
+                search.addEventListener('keydown', (e) => { if (e.key === 'Escape') { search.value = ''; filterSuppliers(); } });
+            })();
+        </script>
     @endif
 
     {{-- Image lightbox overlay --}}

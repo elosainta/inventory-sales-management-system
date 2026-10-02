@@ -16,6 +16,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
             <form method="GET" action="{{ route('feedback.index') }}" style="display:flex; gap:8px; align-items:center;">
                 <input type="month" name="month" value="{{ $ownerData['month'] }}"
+                       onchange="this.form.submit()"
                        style="padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px; background:white;">
                 <button type="submit"
                         style="padding:8px 16px; background:hsl(24,10%,16%); color:white; border:none; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer;">

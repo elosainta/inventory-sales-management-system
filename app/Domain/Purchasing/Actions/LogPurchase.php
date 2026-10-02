@@ -24,18 +24,20 @@ class LogPurchase
                 $data['receipt_path'] = $receipt->store('receipts');
             }
 
-            $total = 0;
+            // The total is the sum of the rounded lines, as on the invoice -
+            // rounding a float sum once drifted a sen from the lines beneath it.
+            $total = '0.00';
             foreach ($lines as $line) {
-                $total += $line['quantity'] * $line['unit_price'];
+                $total = bcadd($total, \App\Support\Money::lineAmount($line['quantity'], $line['unit_price']), 2);
             }
 
-            $data['total_amount'] = round($total, 2);
+            $data['total_amount'] = $total;
             $purchase = Purchase::create($data);
 
             $updatedItemIds = [];
 
             foreach ($lines as $line) {
-                $lineTotal = round($line['quantity'] * $line['unit_price'], 2);
+                $lineTotal = \App\Support\Money::lineAmount($line['quantity'], $line['unit_price']);
 
                 PurchaseLine::create([
                     'purchase_id'       => $purchase->id,
@@ -46,14 +48,14 @@ class LogPurchase
                 ]);
 
                 $item = InventoryItem::find($line['inventory_item_id']);
-                if ($item) {
-                    $item->quantity_on_hand += $line['quantity'];
-                    $item->unit_cost         = $line['unit_price'];
-                    $item->last_updated      = now();
-                    $item->save();
+                if (! $item) continue;
 
-                    $updatedItemIds[] = $item->id;
-                }
+                $item->quantity_on_hand += $line['quantity'];
+                $item->unit_cost         = $line['unit_price'];
+                $item->last_updated      = now();
+                $item->save();
+
+                $updatedItemIds[] = $item->id;
             }
 
             // Recalculate plate cost for every recipe that uses a re-priced ingredient

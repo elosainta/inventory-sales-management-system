@@ -10,9 +10,11 @@
     <div class="app-page-header" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px;">
         <div>
             <h1 style="font-family:'DM Sans',sans-serif; font-size:32px; font-weight:400; margin-bottom:8px;">{{ __('Prep Checklist') }}</h1>
-            <p style="color:hsl(24,5%,45%); font-size:14px;">{{ now()->format('l, d M Y') }}</p>
+            <p style="color:hsl(24,5%,45%); font-size:14px;">{{ now(\App\Models\SectionCheck::TIMEZONE)->format('l, d M Y') }}</p>
         </div>
     </div>
+
+    @include('partials.prep-tabs', ['active' => 'today'])
 
     @if($sections->isEmpty())
         <div style="text-align:center; padding:64px; color:hsl(24,5%,45%);">
@@ -54,7 +56,7 @@
                         @foreach($section->tasks as $task)
                             @php $check = $taskChecks->get($task->id); @endphp
                             <div style="background:white; border:1px solid hsl(30,15%,{{ $check ? '80%' : '90%' }}); border-radius:8px; padding:18px 20px; opacity:{{ $check ? '0.75' : '1' }};">
-                                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                                <div class="app-task-row" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
                                     <div style="display:flex; align-items:center; gap:14px; min-width:0;">
                                         {{-- Tick circle --}}
                                         <div style="width:26px; height:26px; border-radius:50%; border:2px solid {{ $check ? 'hsl(140,60%,40%)' : 'hsl(30,15%,75%)' }}; background:{{ $check ? 'hsl(140,60%,40%)' : 'white' }}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
@@ -74,7 +76,7 @@
                                             @if($check)
                                                 <div style="font-size:12px; color:hsl(140,45%,32%); font-weight:600; margin-top:4px;">
                                                     {{ __('Done by :name', ['name' => $check->user?->name ?? __('a former team member')]) }}
-                                                    · {{ $check->updated_at->format('H:i') }}
+                                                    · {{ $check->time() }}
                                                 </div>
                                             @endif
                                             {{-- A refused photo used to redirect back with nothing on

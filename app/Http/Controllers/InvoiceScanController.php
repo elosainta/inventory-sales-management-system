@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Purchasing\Actions\LinkSupplierToBukku;
 use App\Domain\Purchasing\Actions\PushInvoiceToBukku;
 use App\Domain\Purchasing\Actions\RecordPurchaseFromScan;
 use App\Domain\Purchasing\Actions\ScanInvoice;
@@ -10,6 +11,7 @@ use App\Http\Requests\StoreInvoiceScanRequest;
 use App\Models\InventoryItem;
 use App\Models\InvoiceItemAlias;
 use App\Models\InvoiceScan;
+use App\Models\Supplier;
 use App\Support\Bukku;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -35,7 +37,16 @@ class InvoiceScanController extends Controller
     {
         Gate::authorize('use-invoice-scan');
 
+        // What is still owed to suppliers - money, so managers only.
+        // rescue(): Bukku being down must not take the scan page with it.
+        $bills = Gate::allows('send-invoice-scan') ? collect(rescue(fn () => Bukku::bills(), [])) : collect();
+
         return view('invoice-scan.index', [
+            'bills'        => $bills->keyBy('id'),
+            'owed'         => $bills->filter(fn ($b) => (float) ($b['balance'] ?? 0) > 0)->sortBy('date')->values(),
+            // Bukku contact id => the Suppliers-page name, so this reads the
+            // same as everywhere else.
+            'kitchenNames' => Supplier::whereNotNull('bukku_contact_id')->pluck('name', 'bukku_contact_id'),
             'scans'        => InvoiceScan::with('user')->latest()->paginate(25),
             'duplicateIds' => InvoiceScan::duplicateIds(),
             'configured'   => Bukku::configured() && filled(config('services.anthropic.key')),
@@ -46,17 +57,23 @@ class InvoiceScanController extends Controller
     {
         Gate::authorize('use-invoice-scan');
 
-        $scan = $action->execute($request->file('invoice'), auth()->id());
+        $scan = $action->execute(
+            $request->file('invoice'),
+            auth()->id(),
+            $request->validated('document_type') ?? InvoiceScan::TYPE_INVOICE,
+        );
+
+        $paper = strtolower($scan->documentLabel());
 
         if ($scan->status === InvoiceScan::STATUS_FAILED) {
             return redirect()
                 ->route('invoice-scan.show', $scan)
-                ->with('error', 'The invoice could not be read automatically — the details are blank, fill them in by hand.');
+                ->with('error', 'The ' . $paper . ' could not be read automatically — the details are blank, fill them in by hand.');
         }
 
         return redirect()
             ->route('invoice-scan.show', $scan)
-            ->with('success', 'Invoice read. Check the details before sending it to Bukku.');
+            ->with('success', ucfirst($paper) . ' read. Check the details before sending it to Bukku.');
     }
 
     public function show(InvoiceScan $invoiceScan)
@@ -69,6 +86,13 @@ class InvoiceScanController extends Controller
             'scan'           => $invoiceScan,
             'duplicates'     => $invoiceScan->possibleDuplicates(),
             'contacts'       => Bukku::contacts(),
+            // The picker lists the kitchen's own suppliers, so one added on
+            // the Suppliers page is here at once; Send registers it in Bukku.
+            'suppliers'      => Supplier::orderBy('name')->pluck('name', 'id'),
+            'suggestedSupplierId' => $this->suggestedSupplier($invoiceScan->supplier_name),
+            // Where a delivery order goes when no supplier is picked; null
+            // until a kitchen supplier stands for delivery orders.
+            'doSupplierId'   => InvoiceScan::deliveryOrderSupplierId(),
             'accounts'       => Bukku::accounts(),
             'products'       => Bukku::products(),
             'terms'          => PushInvoiceToBukku::TERMS,
@@ -88,6 +112,7 @@ class InvoiceScanController extends Controller
         InvoiceScan $invoiceScan,
         PushInvoiceToBukku $action,
         RecordPurchaseFromScan $recordPurchase,
+        LinkSupplierToBukku $linkSupplier,
     ) {
         // The one method on this controller that spends money.
         Gate::authorize('send-invoice-scan');
@@ -103,6 +128,22 @@ class InvoiceScanController extends Controller
                 InvoiceItemAlias::remember($line['description'], (int) $line['inventory_item_id']);
             }
         }
+
+        // The reviewer picked one of the kitchen's own suppliers. Its Bukku
+        // contact is the saved link, a same-named Bukku supplier, or a new one
+        // registered now - before the bill, which cannot exist without it.
+        // The scan and the purchase both carry the Suppliers-page name.
+        $supplier = Supplier::findOrFail($data['supplier_id']);
+
+        try {
+            $data['contact_id'] = $linkSupplier->execute($supplier);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withInput()->with('error', 'Could not set up ' . $supplier->name . ' in Bukku: ' . $e->getMessage());
+        }
+
+        $data['supplier_name'] = $supplier->name;
 
         try {
             $scan = $action->execute($invoiceScan, $data);
@@ -127,12 +168,7 @@ class InvoiceScanController extends Controller
         $note = '';
 
         try {
-            $supplierName = collect(Bukku::contacts())
-                ->firstWhere('id', (int) $request->validated()['contact_id'])['name']
-                ?? $data['supplier_name']
-                ?? $scan->supplier_name;
-
-            $purchase = $recordPurchase->execute($scan, $data, $supplierName);
+            $purchase = $recordPurchase->execute($scan, $data, $data['supplier_name']);
 
             $note = $purchase
                 ? ' Stock updated — recorded as purchase #' . $purchase->id . '.'
@@ -146,6 +182,30 @@ class InvoiceScanController extends Controller
         return redirect()
             ->route('invoice-scan.show', $scan)
             ->with('success', 'Sent to Bukku as ' . $scan->bukku_number . '.' . $note);
+    }
+
+    /**
+     * The kitchen supplier the name read off the paper most likely is: same
+     * name, or linked to the Bukku supplier of that name. Only a suggestion -
+     * the reviewer still sees and can change it.
+     */
+    private function suggestedSupplier(?string $readName): ?int
+    {
+        $name = mb_strtolower(trim((string) $readName));
+
+        if ($name === '') {
+            return null;
+        }
+
+        $byName = Supplier::whereRaw('LOWER(name) = ?', [$name])->value('id');
+
+        if ($byName) {
+            return $byName;
+        }
+
+        $contactId = rescue(fn () => Bukku::contactIdNamed($name), null, false);
+
+        return $contactId ? Supplier::where('bukku_contact_id', $contactId)->value('id') : null;
     }
 
     public function photo(InvoiceScan $invoiceScan)

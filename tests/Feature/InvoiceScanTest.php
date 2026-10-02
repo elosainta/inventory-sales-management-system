@@ -96,6 +96,15 @@ class InvoiceScanTest extends TestCase
         return InvoiceScan::firstOrFail();
     }
 
+    /** A kitchen supplier already linked to Bukku contact $contactId. */
+    private function supplierId(int $contactId): int
+    {
+        return \App\Models\Supplier::firstOrCreate(
+            ['bukku_contact_id' => $contactId],
+            ['name' => 'Supplier ' . $contactId, 'contact' => '', 'email' => '', 'address' => ''],
+        )->id;
+    }
+
     public function test_every_role_can_reach_it(): void
     {
         // Junior chefs and part timers were refused until 2026-09-10, and
@@ -127,9 +136,12 @@ class InvoiceScanTest extends TestCase
     public function test_the_review_screen_renders_with_what_was_read(): void
     {
         $scan = $this->scannedRow();
+        foreach (range(1, 12) as $n) {
+            \App\Models\Supplier::create(['name' => "Supplier $n", 'contact' => '', 'email' => '', 'address' => '']);
+        }
 
         Http::fake([
-            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'name' => 'GREEN VALLEY FARM SDN BHD']]]),
+            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'GREEN VALLEY FARM SDN BHD']]]),
             '*/accounts*' => Http::response(['accounts' => [['id' => 33, 'code' => '6508', 'name' => 'General Expense']]]),
             '*/products*' => Http::response(['products' => [['id' => 77, 'name' => 'Italian Sweet Basil - Normal 20g']]]),
         ]);
@@ -142,6 +154,8 @@ class InvoiceScanTest extends TestCase
             ->assertSee('Italian Sweet Basil 20g')   // a line that was read
             ->assertSee('Your inventory item')       // the match column
             ->assertSee('Send to Bukku')
+            // Every kitchen supplier is offered, not the first ten.
+            ->assertSee('data-select-max="' . \App\Models\Supplier::count() . '"', false)
             // The account and Bukku-product pickers were removed on 2026-09-03
             // at the Owner's request; every line now takes the fallback
             // account server-side.
@@ -176,7 +190,7 @@ class InvoiceScanTest extends TestCase
         $scan = $this->scannedRow();
 
         Http::fake([
-            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'name' => 'GREEN VALLEY FARM SDN BHD']]]),
+            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'GREEN VALLEY FARM SDN BHD']]]),
             '*/accounts*' => Http::response(['accounts' => [['id' => 33, 'code' => '6508', 'name' => 'General Expense']]]),
             '*/products*' => Http::response(['products' => [['id' => 77, 'name' => 'Italian Sweet Basil - Normal 20g']]]),
         ]);
@@ -198,7 +212,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($chef)
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [['description' => 'x', 'quantity' => 1, 'unit_price' => 1, 'include' => '1', 'account_id' => 33]],
@@ -224,7 +238,7 @@ class InvoiceScanTest extends TestCase
         $scan = $this->scannedRow();
 
         Http::fake([
-            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'name' => 'GREEN VALLEY FARM SDN BHD']]]),
+            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'GREEN VALLEY FARM SDN BHD']]]),
             '*/accounts*' => Http::response(['accounts' => [['id' => 33, 'code' => '6508', 'name' => 'General Expense']]]),
             '*/products*' => Http::response(['products' => [['id' => 77, 'name' => 'Italian Sweet Basil - Normal 20g']]]),
         ]);
@@ -280,7 +294,7 @@ class InvoiceScanTest extends TestCase
     private function fakeReferenceLists(): void
     {
         Http::fake([
-            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'name' => 'GREEN VALLEY FARM SDN BHD']]]),
+            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'GREEN VALLEY FARM SDN BHD']]]),
             '*/accounts*' => Http::response(['accounts' => [['id' => 33, 'code' => '6508', 'name' => 'General Expense']]]),
             '*/products*' => Http::response(['products' => []]),
         ]);
@@ -432,7 +446,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'     => 2,
+                'supplier_id'     => $this->supplierId(2),
                 'invoice_number' => 'INV-20001',
                 'invoice_date'   => '2026-08-28',
                 'term_id'        => 3,
@@ -477,7 +491,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [['description' => 'x', 'quantity' => 1, 'unit_price' => 1, 'include' => '1', 'account_id' => 33]],
@@ -498,7 +512,7 @@ class InvoiceScanTest extends TestCase
                 'term_id'      => 3,
                 'lines'        => [['description' => 'x', 'quantity' => 1, 'unit_price' => 1, 'include' => '1', 'account_id' => 33]],
             ])
-            ->assertSessionHasErrors('contact_id');
+            ->assertSessionHasErrors('supplier_id');
 
         $this->assertNull($scan->fresh()->bukku_transaction_id);
     }
@@ -514,6 +528,30 @@ class InvoiceScanTest extends TestCase
 
         $this->assertModelMissing($scan);
         Http::assertNotSent(fn ($request) => str_contains($request->url(), 'bukku'));
+    }
+
+
+    /**
+     * The list is readable by everyone, but only the roles that hold
+     * `delete-entries` — Owner, Head Chef and (via Gate::before) Admin — get
+     * the Remove button. A junior chef who scanned a duplicate asks one of
+     * them; the route already refuses them, this keeps the screen honest.
+     */
+    public function test_only_deleters_see_the_remove_button(): void
+    {
+        $this->scannedRow();
+
+        foreach ([User::ROLE_OWNER, User::ROLE_HEAD_CHEF, User::ROLE_ADMIN] as $role) {
+            $this->actingAs(User::factory()->create(['role' => $role]))
+                ->get(route('invoice-scan.index'))
+                ->assertSee('Remove');
+        }
+
+        foreach ([User::ROLE_JUNIOR_CHEF, User::ROLE_PART_TIMER] as $role) {
+            $this->actingAs(User::factory()->create(['role' => $role]))
+                ->get(route('invoice-scan.index'))
+                ->assertDontSee('Remove');
+        }
     }
 
     /**
@@ -537,7 +575,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [
@@ -577,7 +615,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [['description' => 'Basil', 'quantity' => 5, 'unit_price' => 4, 'include' => '1', 'account_id' => 33, 'product_id' => 77]],
@@ -614,7 +652,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [['description' => 'Basil', 'quantity' => 5, 'unit_price' => 4, 'include' => '1', 'account_id' => 33, 'product_id' => 77]],
@@ -665,7 +703,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [['description' => 'Basil', 'quantity' => 5, 'unit_price' => 4, 'include' => '1', 'account_id' => 33]],
@@ -705,7 +743,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [['description' => 'Basil', 'quantity' => 5, 'unit_price' => 4, 'include' => '1', 'account_id' => 33]],
@@ -745,7 +783,7 @@ class InvoiceScanTest extends TestCase
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [['description' => 'Basil', 'quantity' => 5, 'unit_price' => 4, 'include' => '1', 'account_id' => 33]],
@@ -801,14 +839,14 @@ class InvoiceScanTest extends TestCase
         Http::fake([
             '*/products/77'     => Http::response(['product' => self::PRODUCT_77]),
             '*/locations*'      => Http::response(['locations' => [['id' => 1, 'is_archived' => false]]]),
-            '*/contacts*'       => Http::response(['contacts' => [['id' => 2, 'name' => 'S']], 'paging' => ['total' => 1]]),
+            '*/contacts*'       => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'S']], 'paging' => ['total' => 1]]),
             '*/files'           => Http::response(['file' => ['id' => 73]]),
             '*/purchases/bills' => Http::response(['transaction' => ['id' => 55, 'number' => 'BL-00055']]),
         ]);
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 // No product_id and no account_id: the screen no longer asks.
@@ -843,14 +881,14 @@ class InvoiceScanTest extends TestCase
         ]);
 
         Http::fake([
-            '*/contacts*'       => Http::response(['contacts' => [['id' => 2, 'name' => 'S']], 'paging' => ['total' => 1]]),
+            '*/contacts*'       => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'S']], 'paging' => ['total' => 1]]),
             '*/files'           => Http::response(['file' => ['id' => 73]]),
             '*/purchases/bills' => Http::response(['transaction' => ['id' => 56, 'number' => 'BL-00056']]),
         ]);
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
-                'contact_id'   => 2,
+                'supplier_id'   => $this->supplierId(2),
                 'invoice_date' => '2026-08-28',
                 'term_id'      => 3,
                 'lines'        => [['description' => 'X', 'quantity' => 1, 'unit_price' => 1, 'include' => '1', 'inventory_item_id' => $item->id]],
@@ -866,5 +904,321 @@ class InvoiceScanTest extends TestCase
 
             return $line['account_id'] === 33 && ! isset($line['product_id']);
         });
+    }
+
+    /** A bill that Bukku accepts, for the delivery-order tests below. */
+    private function fakeBukkuAccepts(): void
+    {
+        Http::fake([
+            '*/files'           => Http::response(['file' => ['id' => 73]]),
+            '*/purchases/bills' => Http::response(['transaction' => [
+                'id' => 48, 'number' => 'BL-00040', 'short_link' => 'https://yourcompany.bukku.my/l/example',
+            ]]),
+        ]);
+    }
+
+    private function pushAs(InvoiceScan $scan, array $extra = []): void
+    {
+        $this->actingAs($this->manager())
+            ->post(route('invoice-scan.push', $scan), $extra + [
+                'supplier_id'     => $this->supplierId(2),
+                'invoice_number' => '1871',
+                'invoice_date'   => '2026-09-17',
+                'term_id'        => 3,
+                'lines'          => [
+                    ['description' => 'Pumpkin', 'quantity' => 3, 'unit_price' => 5, 'include' => '1'],
+                ],
+            ])
+            ->assertRedirect();
+    }
+
+    public function test_an_upload_that_names_no_type_is_an_invoice(): void
+    {
+        $scan = $this->scannedRow();
+
+        $this->assertSame(InvoiceScan::TYPE_INVOICE, $scan->document_type);
+        $this->assertFalse($scan->isDeliveryOrder());
+    }
+
+    public function test_a_delivery_order_is_labelled_as_one_and_billed_exactly_like_an_invoice(): void
+    {
+        Http::fake(['api.anthropic.com/*' => Http::response($this->fakeScanResponse())]);
+
+        $this->actingAs($this->manager())
+            ->post(route('invoice-scan.store'), [
+                'invoice'       => UploadedFile::fake()->image('do.jpg'),
+                'document_type' => InvoiceScan::TYPE_DELIVERY_ORDER,
+            ])
+            ->assertSessionHas('success', 'Delivery order read. Check the details before sending it to Bukku.');
+
+        $scan = InvoiceScan::firstOrFail();
+        $this->assertTrue($scan->isDeliveryOrder());
+
+        Http::fake([
+            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'C.Y.H FRESH SUPPLY ENTERPRISE']]]),
+            '*/accounts*' => Http::response(['accounts' => []]),
+            '*/products*' => Http::response(['products' => []]),
+        ]);
+        $this->actingAs($this->manager())
+            ->get(route('invoice-scan.show', $scan))
+            ->assertOk()
+            ->assertSee('Check this delivery order');
+
+        $this->fakeBukkuAccepts();
+        $this->pushAs($scan);
+
+        // Same bill as an invoice: posted, numbered, on the books. Only the
+        // wording differs - and it still carries the (scan #N) marker the
+        // duplicate-bill guard looks it up by.
+        $scan->refresh();
+        $this->assertSame(InvoiceScan::STATUS_POSTED, $scan->status);
+        $this->assertSame('BL-00040', $scan->bukku_number);
+        $this->assertTrue($scan->isDeliveryOrder());
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/purchases/bills')
+            && $request['description'] === 'Delivery order read from photo on the Inventory, Sales and Management System website (scan #' . $scan->id . ')'
+            && $request['number2'] === '1871');
+    }
+
+    public function test_the_type_can_be_corrected_on_the_review_screen_before_sending(): void
+    {
+        $scan = $this->scannedRow();
+        $this->assertFalse($scan->isDeliveryOrder());
+
+        $this->fakeBukkuAccepts();
+        $this->pushAs($scan, ['document_type' => InvoiceScan::TYPE_DELIVERY_ORDER]);
+
+        $this->assertTrue($scan->refresh()->isDeliveryOrder());
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/purchases/bills')
+            && str_starts_with($request['description'], 'Delivery order read'));
+    }
+
+    public function test_an_unknown_document_type_is_refused(): void
+    {
+        $this->actingAs($this->manager())
+            ->post(route('invoice-scan.store'), [
+                'invoice'       => UploadedFile::fake()->image('receipt.jpg'),
+                'document_type' => 'receipt',
+            ])
+            ->assertSessionHasErrors('document_type');
+
+        $this->assertSame(0, InvoiceScan::count());
+    }
+
+    public function test_a_delivery_order_with_no_supplier_is_filed_under_the_delivery_order_supplier(): void
+    {
+        $scan = $this->scannedRow();
+
+        Http::fake([
+            '*/contacts*'       => Http::response(['contacts' => [
+                ['id' => 2, 'legal_name' => 'GREEN VALLEY FARM SDN BHD'],
+                ['id' => 15, 'legal_name' => 'Delivery Order'],
+            ], 'paging' => ['total' => 2]]),
+            '*/files'           => Http::response(['file' => ['id' => 73]]),
+            '*/purchases/bills' => Http::response(['transaction' => ['id' => 49, 'number' => 'BL-00041']]),
+        ]);
+        // The kitchen's own stand-in for delivery orders, as on the live site.
+        \App\Models\Supplier::create(['name' => 'D/O', 'contact' => '', 'email' => '', 'address' => '', 'bukku_contact_id' => 15]);
+
+        $this->actingAs($this->manager())
+            ->post(route('invoice-scan.push', $scan), [
+                'document_type' => InvoiceScan::TYPE_DELIVERY_ORDER,
+                'invoice_date'  => '2026-09-17',
+                'term_id'       => 3,
+                'lines'         => [['description' => 'Pumpkin', 'quantity' => 3, 'unit_price' => 5, 'include' => '1']],
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertSame('BL-00041', $scan->refresh()->bukku_number);
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/purchases/bills')
+            && $request['contact_id'] === 15);
+
+        // The list shows the supplier the bill was filed under, not the blank
+        // (or whatever) the model read off the slip.
+        $this->assertSame('D/O', $scan->supplier_name);
+    }
+
+    /**
+     * "How does the Owner know which invoices are outstanding?" - off Bukku's
+     * own balance, for every bill, and only to those who handle the money.
+     */
+    public function test_managers_see_what_is_still_owed_and_chefs_do_not(): void
+    {
+        InvoiceScan::create([
+            'file_path' => 'x.jpg', 'original_filename' => 'x.jpg', 'status' => InvoiceScan::STATUS_POSTED,
+            'supplier_name' => 'RIVERSIDE', 'bukku_transaction_id' => 48, 'bukku_number' => 'BL-00040',
+        ]);
+        InvoiceScan::create([
+            'file_path' => 'y.jpg', 'original_filename' => 'y.jpg', 'status' => InvoiceScan::STATUS_POSTED,
+            'supplier_name' => 'HILLSIDE', 'bukku_transaction_id' => 50, 'bukku_number' => 'BL-00042',
+        ]);
+        \App\Models\Supplier::create(['name' => 'RIVERSIDE', 'contact' => '', 'email' => '', 'address' => '', 'bukku_contact_id' => 9]);
+
+        Http::fake(['*/purchases/bills*' => Http::response(['transactions' => [
+            ['id' => 48, 'number' => 'BL-00040', 'number2' => 'INV26090033', 'contact_id' => 9, 'contact_name' => 'RIVERSIDE FOOD INDUSTRY SDN BHD', 'date' => '2026-09-03', 'amount' => 242.56, 'balance' => 242.56, 'status' => 'ready'],
+            ['id' => 50, 'number' => 'BL-00042', 'contact_id' => 7, 'contact_name' => 'HILLSIDE AGROFARM SDN BHD', 'date' => '2026-09-05', 'amount' => 80, 'balance' => 0, 'status' => 'ready'],
+            ['id' => 51, 'number' => 'BL-00043', 'contact_id' => 7, 'contact_name' => 'HILLSIDE AGROFARM SDN BHD', 'date' => '2026-09-06', 'amount' => 99, 'balance' => 99, 'status' => 'void'],
+        ], 'paging' => ['total' => 3]])]);
+
+        $this->actingAs($this->manager())
+            ->get(route('invoice-scan.index'))
+            ->assertOk()
+            ->assertSee('Owed to suppliers: RM 242.56')
+            ->assertSee('on 1 unpaid bill')
+            ->assertSee('INV26090033')
+            ->assertSee('Owes RM 242.56')
+            ->assertSee('Paid')
+            ->assertDontSee('BL-00043');
+
+        $this->actingAs(User::factory()->create(['role' => User::ROLE_JUNIOR_CHEF]))
+            ->get(route('invoice-scan.index'))
+            ->assertOk()
+            ->assertDontSee('Owed to suppliers')
+            ->assertDontSee('Owes RM');
+    }
+
+    /**
+     * Live bill BL-00040 (scan #1): Bukku rounds each line half up and totals
+     * 242.56; the scan truncated 8.35 x 17.50 = 146.125 to 146.12 and sent a
+     * payment term of 242.54. The two must agree to the sen.
+     */
+    public function test_line_amounts_round_half_up_like_bukku(): void
+    {
+        $scan = $this->scannedRow();
+
+        Http::fake([
+            '*/contacts*'       => Http::response(['contacts' => [['id' => 9, 'legal_name' => 'RIVERSIDE FOOD INDUSTRY SDN BHD']], 'paging' => ['total' => 1]]),
+            '*/files'           => Http::response(['file' => ['id' => 73]]),
+            '*/purchases/bills' => Http::response(['transaction' => ['id' => 48, 'number' => 'BL-00040']]),
+        ]);
+
+        $this->actingAs($this->manager())
+            ->post(route('invoice-scan.push', $scan), [
+                'supplier_id'   => $this->supplierId(9),
+                'invoice_date' => '2026-09-08',
+                'term_id'      => 3,
+                'lines'        => [
+                    ['description' => 'A', 'quantity' => 8.35, 'unit_price' => 17.5, 'include' => '1'],
+                    ['description' => 'B', 'quantity' => 6.05, 'unit_price' => 14.5, 'include' => '1'],
+                    ['description' => 'C', 'quantity' => 1.5, 'unit_price' => 5.8, 'include' => '1'],
+                ],
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertSame('242.56', number_format((float) $scan->refresh()->total_amount, 2, '.', ''));
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/purchases/bills')
+            && abs($request['term_items'][0]['amount'] - 242.56) < 0.001);
+    }
+
+    /**
+     * Scan #52 (C.W.P, 2026-09-22): three lines read, 442.50; the paper says
+     * 466.80. The reviewer types the paper's total and the gap goes to Bukku
+     * as one visible adjustment line - Bukku totals a bill from its lines.
+     */
+    public function test_a_typed_bill_total_sends_the_gap_as_an_adjustment_line(): void
+    {
+        $scan = $this->scannedRow();
+
+        Http::fake([
+            '*/files'           => Http::response(['file' => ['id' => 73]]),
+            '*/purchases/bills' => Http::response(['transaction' => ['id' => 70, 'number' => 'BL-00070']]),
+        ]);
+
+        $post = fn (?string $billTotal) => $this->actingAs($this->manager())
+            ->post(route('invoice-scan.push', $scan), [
+                'supplier_id'  => $this->supplierId(20),
+                'invoice_date' => '2026-09-02',
+                'term_id'      => 3,
+                'bill_total'   => $billTotal,
+                'lines'        => [
+                    ['description' => 'udang galah', 'quantity' => 1.25, 'unit_price' => 66, 'include' => '1'],
+                    ['description' => 'ZQP 3/40', 'quantity' => 6, 'unit_price' => 30, 'include' => '1'],
+                    ['description' => 'Sotong Billet', 'quantity' => 10, 'unit_price' => 18, 'include' => '1'],
+                ],
+            ]);
+
+        $post('466.80')->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame('466.80', number_format((float) $scan->refresh()->total_amount, 2, '.', ''));
+        Http::assertSent(function ($request) {
+            if (! str_contains($request->url(), '/purchases/bills')) {
+                return false;
+            }
+            $items = $request['form_items'];
+            $last  = end($items);
+
+            return count($request['form_items']) === 4
+                && $last['description'] === \App\Domain\Purchasing\Actions\PushInvoiceToBukku::ADJUSTMENT
+                && abs($last['unit_price'] - 24.30) < 0.001 && $last['account_id'] === 33
+                && abs($request['term_items'][0]['amount'] - 466.80) < 0.001;
+        });
+    }
+
+    public function test_a_bill_total_that_matches_the_lines_adds_nothing(): void
+    {
+        $scan = $this->scannedRow();
+
+        Http::fake([
+            '*/files'           => Http::response(['file' => ['id' => 73]]),
+            '*/purchases/bills' => Http::response(['transaction' => ['id' => 71, 'number' => 'BL-00071']]),
+        ]);
+
+        $this->actingAs($this->manager())
+            ->post(route('invoice-scan.push', $scan), [
+                'supplier_id'  => $this->supplierId(20),
+                'invoice_date' => '2026-09-02',
+                'term_id'      => 3,
+                'bill_total'   => '180.00',
+                'lines'        => [['description' => 'ZQP 3/40', 'quantity' => 6, 'unit_price' => 30, 'include' => '1']],
+            ])
+            ->assertSessionHasNoErrors();
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/purchases/bills')
+            && count($request['form_items']) === 1);
+    }
+
+    public function test_a_delivery_order_with_no_supplier_is_refused_until_that_supplier_exists_in_bukku(): void
+    {
+        $scan = $this->scannedRow();
+
+        // Bukku has suppliers, but none called Delivery Order - so there is
+        // nowhere to file a DO with no supplier, and no bill may be sent.
+        Http::fake([
+            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'GREEN VALLEY FARM SDN BHD']], 'paging' => ['total' => 1]]),
+        ]);
+
+        $this->actingAs($this->manager())
+            ->post(route('invoice-scan.push', $scan), [
+                'document_type' => InvoiceScan::TYPE_DELIVERY_ORDER,
+                'invoice_date'  => '2026-09-17',
+                'term_id'       => 3,
+                'lines'         => [['description' => 'Pumpkin', 'quantity' => 3, 'unit_price' => 5, 'include' => '1']],
+            ])
+            ->assertSessionHasErrors(['supplier_id' => 'Choose a supplier, or link one on the Suppliers page to "Delivery Order" in Bukku so a delivery order can be sent without one.']);
+
+        $this->assertNull($scan->fresh()->bukku_transaction_id);
+        Http::assertNotSent(fn ($request) => str_contains($request->url(), '/purchases/bills'));
+    }
+
+    public function test_an_invoice_still_needs_a_supplier_even_when_the_delivery_order_supplier_exists(): void
+    {
+        $scan = $this->scannedRow();
+
+        Http::fake([
+            '*/contacts*' => Http::response(['contacts' => [['id' => 15, 'legal_name' => 'Delivery Order']], 'paging' => ['total' => 1]]),
+        ]);
+
+        $this->actingAs($this->manager())
+            ->post(route('invoice-scan.push', $scan), [
+                'document_type' => InvoiceScan::TYPE_INVOICE,
+                'invoice_date'  => '2026-09-17',
+                'term_id'       => 3,
+                'lines'         => [['description' => 'Pumpkin', 'quantity' => 3, 'unit_price' => 5, 'include' => '1']],
+            ])
+            ->assertSessionHasErrors('supplier_id');
+
+        $this->assertNull($scan->fresh()->bukku_transaction_id);
     }
 }

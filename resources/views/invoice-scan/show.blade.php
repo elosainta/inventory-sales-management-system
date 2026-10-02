@@ -1,5 +1,6 @@
 @php
     $posted   = $scan->isPosted();
+    $paper    = strtolower($scan->documentLabel());
     $lines    = old('lines', $scan->lines() ?: [['description' => '', 'quantity' => 1, 'unit_price' => 0]]);
     $inputCss = 'width:100%; padding:8px 10px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;';
     $labelCss = 'display:block; font-size:13px; font-weight:600; margin-bottom:5px;';
@@ -10,15 +11,18 @@
         <a href="{{ route('invoice-scan.index') }}" style="color:hsl(24,5%,45%); font-size:13px; text-decoration:none;">← All scans</a>
         <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
             <h1 style="font-family:'DM Sans',sans-serif; font-size:28px; font-weight:400;">
-                {{ $posted ? 'Bill ' . $scan->bukku_number : 'Check this invoice' }}
+                {{ $posted ? 'Bill ' . $scan->bukku_number : 'Check this ' . $paper }}
             </h1>
+            @if($scan->isDeliveryOrder())
+                <span style="background:hsl(210,60%,94%); color:hsl(210,55%,32%); font-size:11px; font-weight:600; letter-spacing:0.06em; padding:3px 9px; border-radius:999px;">DO</span>
+            @endif
             <span style="background:hsl(20,60%,45%); color:white; font-size:11px; font-weight:600; letter-spacing:0.06em; padding:3px 9px; border-radius:999px;">BETA</span>
         </div>
     </div>
 
     @if($scan->status === \App\Models\InvoiceScan::STATUS_FAILED)
         <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:14px 18px; margin-bottom:24px; font-size:13px; color:#991b1b; line-height:1.6;">
-            <strong>The invoice could not be read.</strong> The photo is still here — read it yourself and fill the form in by hand.
+            <strong>The {{ $paper }} could not be read.</strong> The photo is still here — read it yourself and fill the form in by hand.
             <br><span style="opacity:0.75; font-size:12px;">{{ $scan->scan_error }}</span>
         </div>
     @endif
@@ -51,7 +55,7 @@
         </div>
     @endif
 
-    <div style="display:grid; grid-template-columns:minmax(260px,1fr) minmax(320px,2fr); gap:24px; align-items:start;">
+    <div class="app-review-grid" style="display:grid; grid-template-columns:minmax(260px,1fr) minmax(320px,2fr); gap:24px; align-items:start;">
 
         {{-- The paper, kept next to the numbers so they can be compared without leaving the page --}}
         <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; padding:16px; position:sticky; top:16px;">
@@ -79,7 +83,8 @@
 
                     <table style="width:100%; font-size:14px; border-collapse:collapse;">
                         <tr><td style="padding:6px 0; color:hsl(24,5%,45%);">Supplier</td><td style="padding:6px 0; font-weight:500;">{{ $scan->supplier_name ?: '—' }}</td></tr>
-                        <tr><td style="padding:6px 0; color:hsl(24,5%,45%);">Invoice No.</td><td style="padding:6px 0; font-family:'JetBrains Mono',monospace;">{{ $scan->invoice_number ?: '—' }}</td></tr>
+                        <tr><td style="padding:6px 0; color:hsl(24,5%,45%);">Document</td><td style="padding:6px 0;">{{ $scan->documentLabel() }}</td></tr>
+                        <tr><td style="padding:6px 0; color:hsl(24,5%,45%);">{{ $scan->isDeliveryOrder() ? 'DO No.' : 'Invoice No.' }}</td><td style="padding:6px 0; font-family:'JetBrains Mono',monospace;">{{ $scan->invoice_number ?: '—' }}</td></tr>
                         <tr><td style="padding:6px 0; color:hsl(24,5%,45%);">Date</td><td style="padding:6px 0;">{{ $scan->invoice_date?->format('M d, Y') }}</td></tr>
                         <tr><td style="padding:6px 0; color:hsl(24,5%,45%);">Total</td><td style="padding:6px 0; font-family:'JetBrains Mono',monospace; font-weight:600;">@money($scan->total_amount)</td></tr>
                     </table>
@@ -123,31 +128,78 @@
 
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
                         <div style="grid-column:1 / -1;">
-                            <label for="contact_id" style="{{ $labelCss }}">Supplier in Bukku *</label>
+                            <label for="supplier_id" style="{{ $labelCss }}">Supplier <span data-supplier-required>*</span></label>
+                            {{-- Optional for a delivery order, which is often a
+                                 handwritten slip with no company on it. Shown
+                                 and hidden by the Document select below. --}}
+                            <p data-do-supplier-note style="font-size:12px; color:hsl(210,45%,35%); background:hsl(210,60%,96%); border-radius:6px; padding:8px 10px; margin-bottom:8px; line-height:1.5;">
+                                @if($doSupplierId)
+                                    Optional for a delivery order. Leave it blank and the bill is filed under
+                                    <strong>{{ $suppliers[$doSupplierId] ?? \App\Models\InvoiceScan::DELIVERY_ORDER_SUPPLIER }}</strong>.
+                                @else
+                                    Optional for a delivery order once a supplier on the Suppliers page is linked to
+                                    <strong>{{ \App\Models\InvoiceScan::DELIVERY_ORDER_SUPPLIER }}</strong> in Bukku &mdash;
+                                    there is none yet, so pick one for now.
+                                @endif
+                            </p>
                             @if($scan->supplier_name)
                                 <p style="font-size:12px; color:hsl(24,5%,45%); margin-bottom:6px;">
-                                    Read off the invoice as “<strong>{{ $scan->supplier_name }}</strong>” — pick the matching account.
+                                    Read off the invoice as “<strong>{{ $scan->supplier_name }}</strong>” — pick the matching supplier.
                                 </p>
                             @endif
-                            <select name="contact_id" id="contact_id" required style="{{ $inputCss }}">
-                                <option value="">Choose a supplier…</option>
-                                @foreach($contacts as $contact)
-                                    <option value="{{ $contact['id'] }}" @selected((int) old('contact_id') === (int) $contact['id'])>
-                                        {{ $contact['name'] ?? $contact['legal_name'] ?? ('Contact #' . $contact['id']) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <input type="hidden" name="supplier_name" value="{{ $scan->supplier_name }}">
+                            {{-- The kitchen's own suppliers, so one added on the
+                                 Suppliers page is here straight away. Send links
+                                 it to Bukku, registering it there if it is new. --}}
+                            @include('partials.select-menu', [
+                                'name'        => 'supplier_id',
+                                'options'     => $suppliers->all(),
+                                'selected'    => old('supplier_id', $suggestedSupplierId),
+                                'placeholder' => 'Choose a supplier…',
+                                'required'    => true,
+                            ])
+                            <p style="font-size:12px; color:hsl(24,5%,45%); margin-top:6px;">
+                                Not listed? Add it on the <a href="{{ route('suppliers.index') }}" target="_blank" style="color:hsl(20,60%,45%);">Suppliers page</a>, then reload this page. It is set up in Bukku when you send.
+                            </p>
                         </div>
 
                         <div>
-                            <label for="invoice_number" style="{{ $labelCss }}">Invoice number</label>
+                            <label for="document_type" style="{{ $labelCss }}">Document *</label>
+                            <select name="document_type" id="document_type" required style="{{ $inputCss }}">
+                                @foreach(\App\Models\InvoiceScan::TYPES as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('document_type', $scan->document_type) === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <script>
+                                // The supplier is required for an invoice and optional
+                                // for a delivery order - but only when there is a
+                                // Delivery Order supplier in Bukku to fall back on.
+                                // The server decides either way; this only stops the
+                                // form refusing a blank supplier it would accept.
+                                (function () {
+                                    var type = document.getElementById('document_type');
+                                    var canSkip = @json((bool) $doSupplierId);
+                                    function sync() {
+                                        var isDo = type.value === @json(\App\Models\InvoiceScan::TYPE_DELIVERY_ORDER);
+                                        var hidden = document.querySelector('input[name=supplier_id]');
+                                        if (isDo && canSkip) { hidden.removeAttribute('data-select-required'); }
+                                        else { hidden.setAttribute('data-select-required', ''); }
+                                        document.querySelector('[data-supplier-required]').hidden = isDo && canSkip;
+                                        document.querySelector('[data-do-supplier-note]').hidden = ! isDo;
+                                    }
+                                    type.addEventListener('change', sync);
+                                    sync();
+                                })();
+                            </script>
+                        </div>
+
+                        <div>
+                            <label for="invoice_number" style="{{ $labelCss }}">Invoice / DO number</label>
                             <input type="text" name="invoice_number" id="invoice_number"
                                    value="{{ old('invoice_number', $scan->invoice_number) }}" style="{{ $inputCss }}">
                         </div>
 
                         <div>
-                            <label for="invoice_date" style="{{ $labelCss }}">Invoice date *</label>
+                            <label for="invoice_date" style="{{ $labelCss }}">Date *</label>
                             <input type="date" name="invoice_date" id="invoice_date" required
                                    value="{{ old('invoice_date', $scan->invoice_date?->toDateString() ?? today()->toDateString()) }}"
                                    style="{{ $inputCss }}">
@@ -163,7 +215,7 @@
                         </div>
                     </div>
 
-                    <h3 style="font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500; margin:24px 0 4px;">What was read off the invoice</h3>
+                    <h3 style="font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500; margin:24px 0 4px;">What was read off the {{ $paper }}</h3>
                     <p style="font-size:12px; color:hsl(24,5%,45%); margin-bottom:12px; line-height:1.6;">
                         Untick a row to leave it off the bill. Match a row to something on your shelf and the
                         system remembers that wording &mdash; the next invoice calling it the same thing arrives
@@ -258,15 +310,26 @@
                     @enderror
 
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px; padding-top:20px; border-top:1px solid hsl(30,15%,90%);">
+                        {{-- Editable, starting at what was read off the paper: the
+                             bill should say what the invoice says. Bukku totals a
+                             bill from its lines, so a gap is sent as one
+                             adjustment line (no stock) - shown here before Send. --}}
                         <div style="font-size:14px;">
-                            Bill total
-                            <strong id="grand-total" style="font-family:'JetBrains Mono',monospace; font-size:20px; margin-left:10px;">RM 0.00</strong>
-                            @if($scan->extracted['total'] ?? null)
-                                <span id="read-total" data-read="{{ $scan->extracted['total'] }}"
-                                      style="display:block; font-size:12px; color:hsl(24,5%,45%); margin-top:4px;">
-                                    Read off the invoice as RM {{ number_format((float) $scan->extracted['total'], 2) }}
-                                </span>
-                            @endif
+                            <label for="bill_total">Bill total</label>
+                            <span style="font-family:'JetBrains Mono',monospace; font-size:20px; margin-left:10px;">RM</span>
+                            <input type="number" name="bill_total" id="bill_total" step="0.01" min="0"
+                                   value="{{ old('bill_total', isset($scan->extracted['total']) ? number_format((float) $scan->extracted['total'], 2, '.', '') : '') }}"
+                                   style="width:130px; padding:6px 8px; border:1px solid hsl(30,15%,80%); border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700;">
+                            <span style="display:block; font-size:12px; color:hsl(24,5%,45%); margin-top:6px;">
+                                The lines add up to <strong id="grand-total" style="font-family:'JetBrains Mono',monospace;">RM 0.00</strong>
+                                @if($scan->extracted['total'] ?? null)
+                                    &middot; read off the invoice as RM {{ number_format((float) $scan->extracted['total'], 2) }}
+                                @endif
+                            </span>
+                            <span id="adjust-note" style="display:block; font-size:12px; margin-top:4px;"></span>
+                            @error('bill_total')
+                                <span style="display:block; color:#b91c1c; font-size:12px; margin-top:4px;">{{ $message }}</span>
+                            @enderror
                         </div>
                         @can('send-invoice-scan')
                             <button type="submit" @disabled(empty($contacts))
@@ -303,7 +366,9 @@
             document.querySelectorAll('.line-row').forEach(function (row) {
                 const qty   = parseFloat(row.querySelector('.ln-qty').value) || 0;
                 const price = parseFloat(row.querySelector('.ln-price').value) || 0;
-                const total = qty * price;
+                // To the sen, half up, as the server and Bukku do: 3.05 * 14.50
+                // is 44.2249... in float and would show 44.22 where the bill says 44.23.
+                const total = Math.round(qty * price * 100 + 1e-6) / 100;
                 const on    = row.querySelector('input[type=checkbox]').checked;
 
                 // An unticked row is not billed, so it must not be counted. The
@@ -315,16 +380,25 @@
 
                 syncMatch(row);
             });
+            grand = Math.round(grand * 100) / 100;
             document.getElementById('grand-total').textContent = 'RM ' + grand.toFixed(2);
 
-            // Flag a drift from what the scan read. A beta should say when it
-            // disagrees with itself rather than let a wrong total go quietly.
-            const readEl = document.getElementById('read-total');
-            if (readEl) {
-                const read = parseFloat(readEl.dataset.read);
-                const off  = Math.abs(read - grand) > 0.01;
-                readEl.style.color = off ? '#b91c1c' : 'hsl(24,5%,45%)';
-                readEl.style.fontWeight = off ? '600' : '400';
+            // Say what Send will do with a gap between the typed total and the
+            // lines, rather than let an adjustment go to the books unseen.
+            const billEl = document.getElementById('bill_total');
+            const note   = document.getElementById('adjust-note');
+            billEl.placeholder = grand.toFixed(2);
+            const typed = billEl.value === '' ? grand : parseFloat(billEl.value);
+            const diff  = Math.round((typed - grand) * 100) / 100;
+            if (Math.abs(diff) < 0.005) {
+                note.textContent = 'Matches the lines.';
+                note.style.color = '#166534';
+                note.style.fontWeight = '400';
+            } else {
+                note.textContent = (diff > 0 ? '+' : '-') + 'RM ' + Math.abs(diff).toFixed(2)
+                    + ' will be sent to Bukku as an "Adjustment to invoice total" line. It moves no stock. Check the lines first: a gap usually means one was misread or missed.';
+                note.style.color = '#b45309';
+                note.style.fontWeight = '600';
             }
         }
 
@@ -388,7 +462,7 @@
 
         document.addEventListener('input', function (e) {
             const t = e.target;
-            if (t.classList.contains('ln-qty') || t.classList.contains('ln-price') || t.classList.contains('ln-match')) {
+            if (t.classList.contains('ln-qty') || t.classList.contains('ln-price') || t.classList.contains('ln-match') || t.id === 'bill_total') {
                 recalc();
             }
         });

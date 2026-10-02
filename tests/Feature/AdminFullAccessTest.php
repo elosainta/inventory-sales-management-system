@@ -9,22 +9,22 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Admin reaches every feature except the financial dashboard.
+ * Admin reaches every feature, the financial dashboard included.
  *
  * This replaces AdminOperationalAccessTest, which pinned the opposite policy:
  * from 1.11.2 the role was a support operator held off anything carrying money
  * or personal data, and that file's deny list was the valuable half of it. The
- * Owner widened the role on 2026-09-03, so the deny list is now three entries
- * long — and those three are the ones that still matter.
+ * Owner widened the role on 2026-09-03 — keeping the dashboard back — and gave
+ * the dashboard too on 2026-09-24. The deny list is now two entries long, and
+ * those two are the ones that still matter.
  *
  * What is still denied, and why:
- *   view-dashboard  the exclusion the Owner named.
  *   privilege escalation on the Users page — an Admin may not reset, delete,
  *                   re-language or re-role an Owner or another Admin, and may
  *                   not grant the owner role to anyone. Those are guards in
  *                   UserController, not gates, so the blanket Gate::before
- *                   does not lift them. Without them the dashboard exclusion
- *                   is one password reset and one promotion away from nothing.
+ *                   does not lift them. They are now the whole of what keeps
+ *                   an Admin from simply becoming the Owner.
  *   toggle-maintenance for a DEMO admin — maintenance state lives in the
  *                   live-pinned cache, so a demo toggle would 503 the real app.
  */
@@ -42,6 +42,7 @@ class AdminFullAccessTest extends TestCase
     {
         return [
             'support tickets' => ['support-tickets.index'],
+            'dashboard'       => ['dashboard'],
             'prep checklist'  => ['prep.index'],
             'prep overview'   => ['prep.overview'],
             'daily report'    => ['daily-report.index'],
@@ -83,19 +84,28 @@ class AdminFullAccessTest extends TestCase
         $this->actingAs($this->admin())->get(route('tally.create'))->assertOk();
     }
 
-    public function test_admin_is_sent_away_from_the_dashboard_rather_than_shown_it(): void
+    public function test_admin_reads_the_dashboard_but_still_lands_on_the_support_queue(): void
     {
-        // The dashboard answers 302, not 403: DashboardController redirects
-        // each role to its own landing page before rendering anything. The
-        // gate assertion is the one that matters — a refactor dropping the
-        // redirect must fail here rather than quietly serve revenue and margin.
+        // Two separate questions, and the controller used to answer the first
+        // with the second: it redirected anyone whose homeRoute() was not the
+        // dashboard, so granting the gate alone would have left an Admin
+        // bounced off a page they may now open. Landing stays on the queue —
+        // that is where the job is — so both halves are pinned here.
         $admin = $this->admin();
 
-        $this->actingAs($admin)
-            ->get(route('dashboard'))
-            ->assertRedirect(route('support-tickets.index'));
+        $this->assertTrue(Gate::forUser($admin)->allows('view-dashboard'));
+        $this->actingAs($admin)->get(route('dashboard'))->assertOk();
+        $this->assertSame('support-tickets.index', $admin->homeRoute());
+        $this->actingAs($admin)->get('/')->assertRedirect(route('support-tickets.index'));
+    }
 
-        $this->assertFalse(Gate::forUser($admin)->allows('view-dashboard'));
+    public function test_a_junior_chef_is_still_sent_home_from_the_dashboard(): void
+    {
+        // The redirect is what keeps the sidebar logo (which points at
+        // route('dashboard') on every page, for every role) off a 403.
+        $chef = User::factory()->create(['role' => User::ROLE_JUNIOR_CHEF]);
+
+        $this->actingAs($chef)->get(route('dashboard'))->assertRedirect(route('prep.index'));
     }
 
     public function test_a_demo_admin_still_cannot_toggle_maintenance(): void

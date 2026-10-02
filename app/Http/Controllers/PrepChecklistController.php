@@ -6,6 +6,7 @@ use App\Http\Requests\StoreTaskCheckRequest;
 use App\Models\Section;
 use App\Models\SectionCheck;
 use App\Models\SectionTask;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
@@ -42,7 +43,7 @@ class PrepChecklistController extends Controller
         // renders that name.
         $taskChecks = SectionCheck::with('user')
             ->whereIn('section_task_id', $sections->flatMap->tasks->pluck('id'))
-            ->where('checked_date', today())
+            ->where('checked_date', SectionCheck::kitchenToday())
             ->get()
             ->keyBy('section_task_id');
 
@@ -55,7 +56,7 @@ class PrepChecklistController extends Controller
         Gate::authorize('overview-checklist');
 
         $sections = Section::with(['tasks.checks' => function ($q) {
-            $q->where('checked_date', today())->with('user');
+            $q->where('checked_date', SectionCheck::kitchenToday())->with('user');
         }])->get();
 
         // Mark unread database notifications as read
@@ -64,6 +65,42 @@ class PrepChecklistController extends Controller
             ->each->markAsRead();
 
         return view('prep.overview', compact('sections'));
+    }
+
+    /**
+     * Who did the prep, on any past day — and open to everyone.
+     *
+     * The overview above is the manager's read of *today*: what is still
+     * outstanding and whose name is against it right now. This is the record
+     * instead — one day at a time, every section, who ticked what and when.
+     * It sits on `view-checklist` rather than `overview-checklist` because
+     * the point of it is that the kitchen can see its own work: a chef asking
+     * "did anyone close the fryer on Sunday" should not have to ask a manager.
+     */
+    public function history(Request $request)
+    {
+        Gate::authorize('view-checklist');
+
+        // The date arrives on the query string, so it has to survive anything
+        // typed there: an unparseable one reads as today rather than a 500,
+        // and a future one is clamped, since there is nothing after today.
+        $date = rescue(fn () => $request->date('date') ?? SectionCheck::kitchenToday(), SectionCheck::kitchenToday(), false);
+        $date = $date->startOfDay()->min(SectionCheck::kitchenToday());
+
+        $sections = Section::with(['tasks.checks' => fn ($q) => $q->where('checked_date', $date)->with('user')])
+            ->orderBy('name')
+            ->get();
+
+        // The days that actually hold work, newest first, so the page can be
+        // browsed without guessing dates into the box.
+        $recentDays = SectionCheck::query()
+            ->select('checked_date')
+            ->distinct()
+            ->orderByDesc('checked_date')
+            ->limit(14)
+            ->pluck('checked_date');
+
+        return view('prep.history', compact('sections', 'date', 'recentDays'));
     }
 
     // Tick a prep task, with a photo where the task demands one.
@@ -80,7 +117,7 @@ class PrepChecklistController extends Controller
             : null;
 
         $existing = SectionCheck::where('section_task_id', $task->id)
-            ->where('checked_date', today())
+            ->where('checked_date', SectionCheck::kitchenToday())
             ->first();
 
         if ($existing) {
@@ -88,12 +125,12 @@ class PrepChecklistController extends Controller
             // should say who last stood in front of it.
             $attributes = ['user_id' => auth()->id()];
 
+            // Guarded: a task that needs no photo has a null path, and
+            // Storage::delete(null) is a TypeError.
+            if ($path && $existing->photo_path) {
+                Storage::delete($existing->photo_path);
+            }
             if ($path) {
-                // Guarded: a task that needs no photo has a null path, and
-                // Storage::delete(null) is a TypeError.
-                if ($existing->photo_path) {
-                    Storage::delete($existing->photo_path);
-                }
                 $attributes['photo_path'] = $path;
             }
 
@@ -102,7 +139,7 @@ class PrepChecklistController extends Controller
             SectionCheck::create([
                 'section_task_id' => $task->id,
                 'user_id'         => auth()->id(),
-                'checked_date'    => today(),
+                'checked_date'    => SectionCheck::kitchenToday(),
                 'photo_path'      => $path,
             ]);
         }

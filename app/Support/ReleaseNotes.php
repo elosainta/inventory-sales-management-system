@@ -24,19 +24,20 @@ namespace App\Support;
  * the system fundamentally is, and is not on the roadmap.
  *
  * Each release: 'version', 'date' (Y-m-d), 'summary', and any of
- * 'added' / 'improved' / 'removed' (arrays of plain sentences). 'commits' is a
+ * 'added' / 'improved' / 'changed' / 'fixed' / 'removed' (arrays of plain
+ * sentences; about/index must render every key used, AboutPageTest checks). 'commits' is a
  * short reference to the Git range it covers, shown as a small technical note.
  */
 class ReleaseNotes
 {
-    public const CURRENT_VERSION = '1.29.3';
+    public const CURRENT_VERSION = '1.38.1';
 
     /** The very first commit, for the "since" line in the header. */
     public const FIRST_COMMIT      = '047cdf3';
     public const FIRST_RELEASE_DATE = '2026-04-29';
 
     /** Total commits behind the app — in the private repository it is developed in. */
-    public const TOTAL_COMMITS = 366;
+    public const TOTAL_COMMITS = 428;
 
     /**
      * @return array<int, array<string, mixed>> newest release first
@@ -44,6 +45,294 @@ class ReleaseNotes
     public static function all(): array
     {
         return [
+            [
+                'version' => '1.38.1',
+                'date'    => '2026-10-02',
+                'summary' => 'Backup fix: the newest copy of the database is never deleted.',
+                'changed' => [
+                    'The backup on the office laptop deletes copies older than 3 days. After the laptop had been off for 9 days it deleted every copy, including the one it had just made, leaving no backup on that machine. It now always keeps the newest copy.',
+                ],
+                'commits' => 'e110829..HEAD',
+            ],
+            [
+                'version' => '1.38',
+                'date'    => '2026-10-02',
+                'summary' => 'Complete a supplier\'s pending purchases with one photo, and search suppliers on Purchases.',
+                'added'   => [
+                    'Open a supplier on Purchases and press Upload to add one photo, such as their statement or payment slip. Every Pending purchase from that supplier in the month on screen turns Completed, and the photo shows as their receipt.',
+                    'A purchase that already had its own receipt photo keeps it. The Completed and Pending buttons still work on each purchase, so a mistake can be undone.',
+                    'Purchases has a search box next to the month. Type part of a supplier\'s name to show only that supplier.',
+                ],
+                'changed' => [
+                    'Picking a month now shows it straight away, with no need to press Custom. This works on Purchases, Market, Production, Sales, Wastage, the Dashboard, Events and Feedback.',
+                ],
+                'fixed'   => [
+                    'On a phone, the totals on the Purchase and Sales logs were cut off at the edge. They now show in full.',
+                    'This page now shows every note for every release. Many earlier releases were showing only their one-line summary.',
+                ],
+                'commits' => 'f2f58c0..HEAD',
+            ],
+            [
+                'version' => '1.37',
+                'date'    => '2026-09-24',
+                'summary' => 'Admins can now open the Dashboard.',
+                'added'   => [
+                    'The Dashboard is now in the Admin sidebar, showing the same figures a Head Chef sees: inventory value, sales, purchase spend, wastage, gross margin, petty cash and the charts below them.',
+                    'Admins still start on the Support Tickets queue when they sign in. The Dashboard is a page they can open, not where they land.',
+                ],
+                'commits' => 'ed7dcb7..HEAD',
+            ],
+            [
+                'version' => '1.36.2',
+                'date'    => '2026-09-22',
+                'summary' => 'The "Log a delivery" box is gone from Purchases.',
+                'changed' => [
+                    'Removed the "Log a delivery" box from the top of Purchases. Add a purchase with + New Purchase, as before.',
+                    'The list of purchases grouped by supplier stays.',
+                ],
+                'commits' => 'e8ad925..HEAD',
+            ],
+            [
+                'version' => '1.36.1',
+                'date'    => '2026-09-22',
+                'summary' => 'Purchases are now listed supplier by supplier, like the Sales log.',
+                'changed' => [
+                    'The Purchase log shows one row per supplier, with how many purchases and items and the total spent. Click a supplier to see its purchases.',
+                ],
+                'commits' => 'e86a006..HEAD',
+            ],
+            [
+                'version' => '1.36',
+                'date'    => '2026-09-22',
+                'summary' => 'Log a delivery on Purchases by picking the supplier, like the Log Sales sheet.',
+                'added'   => [
+                    'Purchases now opens on "Log a delivery". Pick a supplier and everything you have bought from them is listed, each at 0 with the price they last charged.',
+                    'Type how much of each item arrived and press Save delivery. Anything left at 0 is not recorded. Stock goes up exactly as before.',
+                    'Something new from that supplier? Use + Add item. The + New Purchase button still works as before.',
+                ],
+                'commits' => '47cff6c..HEAD',
+            ],
+            [
+                'version' => '1.35',
+                'date'    => '2026-09-22',
+                'summary' => 'Every time in the app now shows Malaysia time.',
+                'changed' => [
+                    'Times on every page were 8 hours behind - Invoice Scan, the audit log, login history, sales and the rest. They now show Malaysia time, including everything recorded before today.',
+                    'Days and months now change at midnight Malaysia time, not at 8am.',
+                ],
+                'commits' => '92a6175..HEAD',
+            ],
+            [
+                'version' => '1.34.1',
+                'date'    => '2026-09-22',
+                'summary' => 'Sending an invoice for a supplier that is new to Bukku now works.',
+                'changed' => [
+                    'Bukku refused to add a new supplier because it needs a contact code. The code is now made for you, in the same style Bukku uses. Nothing was created by the refused attempt, so just send again.',
+                ],
+                'commits' => '4f2a745..HEAD',
+            ],
+            [
+                'version' => '1.34',
+                'date'    => '2026-09-22',
+                'summary' => 'The bill total on Invoice Scan / DO can now be typed in.',
+                'changed' => [
+                    'The bill total on the checking screen is now a box you can change. It starts at the total read off the invoice.',
+                    'If it differs from the lines, the difference goes to Bukku as an "Adjustment to invoice total" line. The screen says so before you send, and it does not add anything to stock.',
+                    'Check the lines first: a difference usually means a line was misread or missed.',
+                ],
+                'commits' => '2ec527a..HEAD',
+            ],
+            [
+                'version' => '1.33.1',
+                'date'    => '2026-09-22',
+                'summary' => 'Every supplier now shows on the Invoice Scan / DO checking screen.',
+                'changed' => [
+                    'The supplier list on the checking screen showed only the first ten suppliers until you typed. It now shows them all.',
+                    'If a supplier cannot be saved on the Suppliers page, the page now says why. Before, it looked as if nothing had happened.',
+                ],
+                'commits' => 'b83f1c7..HEAD',
+            ],
+            [
+                'version' => '1.33',
+                'date'    => '2026-09-22',
+                'summary' => 'Invoice Scan / DO now picks the supplier from your Suppliers page, so a new supplier can be used straight away.',
+                'changed' => [
+                    'The supplier list on the checking screen is now your Suppliers page, not Bukku. A supplier you have just added can be picked at once.',
+                    'When you send, a supplier that is not in Bukku yet is added to Bukku for you and linked, so you never have to create it there by hand.',
+                    'The supplier matching the name read off the invoice is picked for you. You can still change it.',
+                ],
+                'commits' => 'ac4b457..HEAD',
+            ],
+            [
+                'version' => '1.32.2',
+                'date'    => '2026-09-19',
+                'summary' => 'Purchase totals now match the supplier invoice to the sen.',
+                'changed' => [
+                    'A purchase line such as 3.05 kg at RM 14.50 now comes to RM 44.23, as it does on the invoice and in Bukku. It sometimes came out a sen less before.',
+                    'A purchase total is now the lines added up, so it always matches the lines shown under it. Three purchases that were a sen out have been corrected.',
+                ],
+                'commits' => '7f4227e..HEAD',
+            ],
+            [
+                'version' => '1.32.1',
+                'date'    => '2026-09-19',
+                'summary' => 'What is owed to suppliers is now on the dashboard too.',
+                'added'   => [
+                    'The dashboard shows "Owed to suppliers": the total still unpaid in Bukku, how many bills that is, and how old the oldest one is. Click it to open the full list on Invoice Scan / DO.',
+                ],
+                'commits' => 'a48a423..HEAD',
+            ],
+            [
+                'version' => '1.32',
+                'date'    => '2026-09-19',
+                'summary' => 'See what is still owed to suppliers, right on Invoice Scan / DO.',
+                'added'   => [
+                    'Managers now see "Owed to suppliers" at the top of Invoice Scan / DO: the total still unpaid, and each unpaid bill by supplier with its date and how many days old it is. It is read from Bukku, so it includes bills entered there directly.',
+                    'Every scan already sent to Bukku now shows Paid, or how much is still owed on it.',
+                ],
+                'changed' => [
+                    'A scanned bill total now rounds each line the same way Bukku does. Four earlier scans that showed a sen or two less than their Bukku bill have been corrected.',
+                ],
+                'commits' => 'ed5b6f0..HEAD',
+            ],
+            [
+                'version' => '1.31.1',
+                'date'    => '2026-09-19',
+                'summary' => 'Duplicate suppliers merged, and every scanned invoice shows the name on the Suppliers page.',
+                'changed' => [
+                    'Eight suppliers that Invoice Scan had added a second time are merged back into the original, keeping the kitchen name. Their purchases moved with them.',
+                    'Thirteen suppliers are now linked to their supplier in Bukku.',
+                    'Every scan on Invoice Scan / DO now shows the supplier name used on the Suppliers page.',
+                ],
+                'commits' => '8f97eb7..HEAD',
+            ],
+            [
+                'version' => '1.31',
+                'date'    => '2026-09-19',
+                'summary' => 'Each supplier is linked to its supplier in Bukku, so scanned invoices stop creating duplicates.',
+                'added'   => [
+                    'Editing a supplier now has a "Same supplier in Bukku" setting. A scanned invoice sent under that Bukku supplier is filed under this supplier and shows its name.',
+                ],
+                'changed' => [
+                    'Sending a scanned invoice no longer adds a second copy of a supplier just because Bukku spells its name differently. Duplicates already created were merged into the supplier the kitchen already had, with their purchases.',
+                    'The supplier shown on Invoice Scan / DO now matches the Suppliers page.',
+                ],
+                'commits' => 'f46d7e4..HEAD',
+            ],
+            [
+                'version' => '1.30.4',
+                'date'    => '2026-09-19',
+                'summary' => 'Invoice Scan / DO now always shows the supplier a bill was sent under.',
+                'changed' => [
+                    'The supplier on the list of scans is now the one picked when the bill was sent. It used to be the name read off the photo, so a delivery order or invoice with no company name on it showed a dash even after it was filed under a supplier in Bukku.',
+                ],
+                'commits' => 'f78e7f1..HEAD',
+            ],
+            [
+                'version' => '1.30.3',
+                'date'    => '2026-09-19',
+                'summary' => 'The prep checklist now shows Malaysia time.',
+                'changed' => [
+                    'The time next to a ticked prep task is now kitchen time. It used to show a time 8 hours behind, so a task ticked at 9:41pm read 13:41.',
+                    'A task ticked before 8am now counts for that day. Before, it would have been put on the checklist for the day before.',
+                    'The date at the top of the prep pages now changes at midnight in Malaysia, not at 8am.',
+                ],
+                'commits' => 'b83686f..HEAD',
+            ],
+            [
+                'version' => '1.30.2',
+                'date'    => '2026-09-17',
+                'summary' => 'Delivery orders without a supplier now actually go through, and scanned stock is filed under the right supplier.',
+                'changed' => [
+                    'A delivery order sent without choosing a supplier is now filed under the Delivery Order supplier in Bukku, as intended. Before this fix it was refused even though that supplier existed.',
+                    'When a scanned bill adds stock, the purchase is now filed under the supplier you picked in Bukku. It used to take the name read off the paper instead, so a misread letterhead could add a misspelt supplier to the Suppliers page.',
+                ],
+                'commits' => '66109f6..HEAD',
+            ],
+            [
+                'version' => '1.30.1',
+                'date'    => '2026-09-17',
+                'summary' => 'Delivery orders no longer need a supplier, and Invoice Scan / DO works properly on a phone.',
+                'changed' => [
+                    'A delivery order can be sent without choosing a supplier. It is filed in Bukku under a supplier called "Delivery Order" - once that supplier has been created in Bukku. An invoice still needs its supplier.',
+                    'On a phone, the list of scans is now one card per scan, with the supplier, total, status and the Check & send link all on screen. Before, most of that was off the right-hand edge.',
+                    'On a phone, the checking screen now puts the photo above the form. Before, the form sat half off the screen, supplier list included.',
+                ],
+                'commits' => 'b01459f..HEAD',
+            ],
+            [
+                'version' => '1.30',
+                'date'    => '2026-09-17',
+                'summary' => 'Scan a delivery order (DO) the same way you scan an invoice.',
+                'added'   => [
+                    'Invoice Scan is now Invoice Scan / DO. Before you take the photo, choose whether it is an invoice or a delivery order.',
+                    'A delivery order is checked, sent to Bukku and added to stock exactly like an invoice. The only difference is the label: it shows as DO in the list, and the bill in Bukku says it came from a delivery order.',
+                    'Picked the wrong one? You can change it on the checking screen before the bill is sent.',
+                ],
+                'commits' => 'bd9d937..HEAD',
+            ],
+            [
+                'version' => '1.29.9',
+                'date'    => '2026-09-16',
+                'summary' => 'The logo and tab icon can be corrected without waiting a year.',
+                'changed' => [
+                    'The site used to tell browsers and Cloudflare that the logo files would never change, and to keep the first copy they saw for a year. That is true of the styling files, which get a new name every time they change, but not of the logo and the tab icon, which keep one name for life. They are now kept for an hour instead, so a corrected logo reaches everyone the same day.',
+                ],
+                'commits' => '286b1fe..HEAD',
+            ],
+            [
+                'version' => '1.29.8',
+                'date'    => '2026-09-16',
+                'summary' => 'Three things that only looked wrong on a phone.',
+                'changed' => [
+                    'The money figures on the Overview page no longer break after the "RM" — every one of them now sits on a single line on a phone.',
+                    'A prep task that wants a photo gives its name the full width of the row, with the camera and Upload buttons underneath, instead of squeezing the name into a narrow column. Tasks that are only ticked are unchanged.',
+                    'The supplier picker on an invoice scan no longer shows an empty box above its own search field before you have chosen anyone.',
+                    'Every page was opened at phone size as all five kinds of account first: nothing scrolls sideways and nothing is cut off.',
+                ],
+                'commits' => 'f78011e..HEAD',
+            ],
+            [
+                'version' => '1.29.7',
+                'date'    => '2026-09-16',
+                'summary' => 'The browser tab now shows the isms f instead of a grey globe.',
+                'changed' => [
+                    "Every tab, bookmark and phone home-screen shortcut now carries the isms f on its copper tile, taken from the logo itself. The icon file that should have done this was empty, which is why browsers fell back to their own grey globe.",
+                ],
+                'commits' => 'e5d8edd..HEAD',
+            ],
+            [
+                'version' => '1.29.6',
+                'date'    => '2026-09-16',
+                'summary' => 'The real isms logo, on the sidebar and the sign-in page.',
+                'changed' => [
+                    "The \"isms\" name in the sidebar, on the mobile bar at the top and on the sign-in page is now the actual hand-drawn logo instead of a lookalike font. It is cut out with a see-through background, so it sits on the dark sidebar and the pale sign-in page equally well.",
+                ],
+                'commits' => '3cf618f..HEAD',
+            ],
+            [
+                'version' => '1.29.5',
+                'date'    => '2026-09-16',
+                'summary' => 'Prep now has a History tab anyone can read, and picking a supplier is a search box.',
+                'added'   => [
+                    "Prep Checklist has a History tab: pick a day and see every section, which tasks were ticked, who ticked them and at what time, with the photos. Anyone signed in can read it — a chef can check whether Sunday's fryer got turned off without asking a manager. Today's live progress view is still the manager's Prep Overview.",
+                    "The day is chosen with a date box, and the days that actually have work on them are listed as buttons, so there is nothing to guess.",
+                ],
+                'changed' => [
+                    "Choosing the supplier on an invoice scan used to open the phone's own list — a full-screen grey thing that looked nothing like the app. It is now a search box with the matches underneath, the same way items are added to a stock-take sheet: type a few letters, tap the one you want.",
+                ],
+                'commits' => '685030f..HEAD',
+            ],
+            [
+                'version' => '1.29.4',
+                'date'    => '2026-09-16',
+                'summary' => 'A scan you photographed twice can now be removed, and the stock warning reads "Low stock".',
+                'changed' => [
+                    "Invoice Scan: the Owner, a Head Chef or the Admin can now remove a scan from the list — the duplicate you photographed twice, or the one the reader could not make out. Removing it here never touches a bill already sent to Bukku; that is still voided in Bukku, never deleted. Anyone signed in can still open and check a scan, as before.",
+                    "The stock warning now reads \"Low stock\" instead of \"No stock\" — on the Inventory page, the dashboard, the inventory PDF and the red banner. Only the wording changed: it still appears when an item has nothing left.",
+                ],
+                'commits' => 'be759b5..HEAD',
+            ],
             [
                 'version' => '1.29.3',
                 'date'    => '2026-09-13',

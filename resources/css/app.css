@@ -104,6 +104,98 @@ div:has(> .app-table)::-webkit-scrollbar-thumb  { background: hsl(30,15%,78%); b
     }
     .app-table { min-width: 520px; }
 
+    /* A prep task row is label | buttons. At 375px a photo task's two buttons
+       take 180 of the 295px inside the card, so the task name was squeezing
+       into five short lines — and this is the screen a chef holds every
+       morning. A floor under the label lets the row wrap instead: the buttons
+       drop to their own line only when they genuinely will not fit, so the
+       plain Mark Done rows stay one line and the list does not get longer. */
+    .app-task-row {
+        flex-wrap: wrap !important;
+    }
+    .app-task-row > div:first-child {
+        min-width: 60%;
+    }
+    .app-task-row > div:last-child {
+        margin-left: auto;
+    }
+
+    /* Purchases log (a card per supplier) and Sales log (a card per day): the
+       header is chevron | name | count | total, about 380px of content where a
+       375px phone leaves 305. The name was crushed into three to six lines and
+       the card's overflow:hidden cut the total to "RM 30.0". The name now takes
+       the top line, and the count and the whole total share the one below it;
+       if even that is too narrow the total wraps again, still to the right. */
+    .app-group-header {
+        flex-wrap: wrap !important;
+        row-gap: 2px !important;
+    }
+    .app-group-header > :nth-child(2) {
+        flex-basis: calc(100% - 28px) !important;
+    }
+    .app-group-header > :nth-child(3) {
+        margin-left: 28px; /* under the name, past the 16px chevron and 12px gap */
+    }
+    .app-group-header > :nth-child(4) {
+        margin-left: auto;
+    }
+
+    /* Invoice review screen: photo above the form, not beside it. The two
+       columns have minimums of 260px and 320px, so they could never fit a
+       phone and pushed the whole form - supplier picker included - half off
+       the screen with a sideways scroll. */
+    /* minmax(0, ...) and not plain 1fr: a lone 1fr track sizes to its widest
+       content, which here was 811px, so stacking alone still clipped the form.
+       The photo is sticky beside the form on a desktop; stacked above it on a
+       phone, sticky just floats it over the lines being checked. */
+    .app-review-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .app-review-grid > * {
+        position: static !important;
+        min-width: 0;
+    }
+    .app-review-grid p {
+        overflow-wrap: anywhere;
+    }
+
+    /* Invoice Scan / DO list: one card per scan instead of a sideways table.
+       Seven columns came to 813px in a 343px space, so Status and the
+       Check & send link - the two things a phone user opens the list for -
+       started off-screen, and supplier names were crushed into five lines.
+       Same markup as desktop, re-laid by grid areas; cells in order are
+       scanned, supplier, document, by, status, total, action. Scoped to this
+       one table, so every other .app-table keeps scrolling as before. */
+    table.app-scan-list {
+        min-width: 0 !important;
+    }
+    .app-scan-list thead {
+        display: none;
+    }
+    .app-scan-list tbody tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "supplier total"
+            "document scanned"
+            "by       by"
+            "status   action";
+        gap: 4px 12px;
+        padding: 14px 16px;
+    }
+    .app-scan-list tbody td {
+        display: block;
+        padding: 0 !important;
+    }
+    .app-scan-list td:nth-child(1) { grid-area: scanned; text-align: right; font-size: 12px; color: hsl(24,5%,45%); }
+    .app-scan-list td:nth-child(2) { grid-area: supplier; font-size: 15px; }
+    .app-scan-list td:nth-child(3) { grid-area: document; }
+    .app-scan-list td:nth-child(4) { grid-area: by; font-size: 12px; }
+    .app-scan-list td:nth-child(4)::before { content: "by "; }
+    .app-scan-list td:nth-child(5) { grid-area: status; margin-top: 6px; }
+    .app-scan-list td:nth-child(6) { grid-area: total; font-weight: 600; }
+    .app-scan-list td:nth-child(7) { grid-area: action; margin-top: 6px; align-self: center; white-space: nowrap; }
+
     /* Filter rows wrap */
     .app-filters {
         flex-wrap: wrap !important;
@@ -120,6 +212,19 @@ div:has(> .app-table)::-webkit-scrollbar-thumb  { background: hsl(30,15%,78%); b
     /* KPI grids: 2 columns on mobile */
     .app-kpi-grid {
         grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Two tiles across leaves 122px of room inside a 20px-padded card, and
+       "RM 11,760.05" wants 151px at 26px — so every money figure on the
+       dashboard broke after the RM and read as two lines. Tighter padding buys
+       12px, the smaller type buys the rest, and five figures of ringgit still
+       fit on one line. Deliberately no nowrap: if the kitchen ever clears
+       RM 1,000,000 it should wrap rather than shove the grid sideways. */
+    .app-kpi-grid > div {
+        padding: 14px !important;
+    }
+    .app-kpi {
+        font-size: 20px !important;
     }
 
     /* Chart grid: single column */

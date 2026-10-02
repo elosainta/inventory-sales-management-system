@@ -23,12 +23,50 @@ class InvoiceScan extends Model
 
     public const STATUS_FAILED = 'failed';
 
+    /**
+     * Which paper was photographed. A delivery order is billed exactly like an
+     * invoice - same review, same Bukku bill, same stock - it is only labelled
+     * differently, so the accountant can tell a bill raised off a DO from one
+     * raised off a proper invoice.
+     */
+    public const TYPE_INVOICE = 'invoice';
+
+    public const TYPE_DELIVERY_ORDER = 'delivery_order';
+
+    public const TYPES = [
+        self::TYPE_INVOICE        => 'Invoice',
+        self::TYPE_DELIVERY_ORDER => 'Delivery Order',
+    ];
+
+    /**
+     * The Bukku contact a delivery order is filed under when nobody picks a
+     * supplier. A DO is often a handwritten slip with no company on it, so the
+     * supplier is optional for one - but every bill in Bukku carries a contact
+     * (51 of 51 as at 2026-09-17), so "no supplier" has to mean this one.
+     * Found by name, the same join RecordPurchaseFromScan already uses.
+     */
+    public const DELIVERY_ORDER_SUPPLIER = 'Delivery Order';
+
+    /**
+     * The kitchen supplier a delivery order with no supplier is filed under:
+     * the one linked to Bukku's "Delivery Order" contact (live: "D/O"), else
+     * one named "Delivery Order". Null when there is neither.
+     */
+    public static function deliveryOrderSupplierId(): ?int
+    {
+        $contactId = rescue(fn () => \App\Support\Bukku::contactIdNamed(self::DELIVERY_ORDER_SUPPLIER), null, false);
+
+        return ($contactId ? Supplier::where('bukku_contact_id', $contactId)->value('id') : null)
+            ?? Supplier::whereRaw('LOWER(name) = ?', [mb_strtolower(self::DELIVERY_ORDER_SUPPLIER)])->value('id');
+    }
+
     protected $fillable = [
         'user_id',
         'purchase_id',
         'file_path',
         'original_filename',
         'status',
+        'document_type',
         'extracted',
         'scan_error',
         'supplier_name',
@@ -61,6 +99,17 @@ class InvoiceScan extends Model
     public function isPosted(): bool
     {
         return $this->status === self::STATUS_POSTED;
+    }
+
+    public function isDeliveryOrder(): bool
+    {
+        return $this->document_type === self::TYPE_DELIVERY_ORDER;
+    }
+
+    /** "Invoice" or "Delivery Order", for headings and labels. */
+    public function documentLabel(): string
+    {
+        return self::TYPES[$this->document_type] ?? self::TYPES[self::TYPE_INVOICE];
     }
 
     /** Line items as read, each [description, quantity, unit_price]. */
@@ -127,9 +176,7 @@ class InvoiceScan extends Model
         $ids = [];
         foreach ($byKey as $group) {
             if (count($group) > 1) {
-                foreach ($group as $id) {
-                    $ids[$id] = true;
-                }
+                $ids += array_fill_keys($group, true);
             }
         }
 

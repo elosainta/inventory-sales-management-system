@@ -44,6 +44,7 @@
     <form method="GET" action="{{ route('events.index') }}"
           class="app-filters" style="display:flex; gap:12px; align-items:center; margin-bottom:24px; flex-wrap:wrap;">
         <input type="month" name="month" value="{{ $month }}"
+               onchange="this.form.submit()"
                style="padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;">
         <button type="submit"
                 style="padding:8px 16px; background:hsl(30,15%,92%); border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px; cursor:pointer;">

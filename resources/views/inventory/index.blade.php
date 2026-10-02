@@ -69,7 +69,7 @@
                             <td style="padding:12px 16px;">
                                 {{ $item->name }}
                                 @if($item->isOutOfStock())
-                                    <span style="margin-left:8px; background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">No stock</span>
+                                    <span style="margin-left:8px; background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">Low stock</span>
                                 @endif
                             </td>
                             <td style="padding:12px 16px;">

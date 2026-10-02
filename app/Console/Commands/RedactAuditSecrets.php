@@ -22,43 +22,54 @@ class RedactAuditSecrets extends Command
         // trade than replacing the value with a placeholder.
         Audit::where('action', 'updated')->chunkById(200, function ($audits) use (&$fixed, $dryRun) {
             foreach ($audits as $audit) {
-                if (! class_exists($audit->auditable_type)) {
-                    continue;
-                }
-
-                $hidden = array_flip((new $audit->auditable_type)->getHidden());
-                if (empty($hidden)) {
-                    continue;
-                }
-
-                $before = $audit->before ?? [];
-                $after  = $audit->after ?? [];
-                $leakedKeys = array_keys(array_intersect_key($hidden, $before + $after));
-
-                if (empty($leakedKeys)) {
-                    continue;
-                }
-
-                $fixed++;
-                if ($dryRun) {
-                    continue;
-                }
-
-                foreach ($leakedKeys as $key) {
-                    if (array_key_exists($key, $before)) {
-                        $before[$key] = '[redacted]';
-                    }
-                    if (array_key_exists($key, $after)) {
-                        $after[$key] = '[redacted]';
-                    }
-                }
-
-                $audit->forceFill(['before' => $before, 'after' => $after])->saveQuietly();
+                $fixed += (int) $this->redactAudit($audit, $dryRun);
             }
         });
 
         $this->info(($dryRun ? '[dry-run] ' : '') . "Redacted hidden-attribute values in {$fixed} audit row(s).");
 
         return self::SUCCESS;
+    }
+
+    /** Whether the row leaked a hidden value; it is only rewritten outside a dry run. */
+    private function redactAudit(Audit $audit, bool $dryRun): bool
+    {
+        $leakedKeys = $this->leakedKeys($audit);
+
+        if (empty($leakedKeys)) {
+            return false;
+        }
+
+        if (! $dryRun) {
+            $audit->forceFill([
+                'before' => $this->redact($audit->before ?? [], $leakedKeys),
+                'after'  => $this->redact($audit->after ?? [], $leakedKeys),
+            ])->saveQuietly();
+        }
+
+        return true;
+    }
+
+    /** The model's hidden attributes that were written into this audit row. */
+    private function leakedKeys(Audit $audit): array
+    {
+        if (! class_exists($audit->auditable_type)) {
+            return [];
+        }
+
+        $hidden = array_flip((new $audit->auditable_type)->getHidden());
+
+        return array_keys(array_intersect_key($hidden, ($audit->before ?? []) + ($audit->after ?? [])));
+    }
+
+    private function redact(array $values, array $keys): array
+    {
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $values)) {
+                $values[$key] = '[redacted]';
+            }
+        }
+
+        return $values;
     }
 }

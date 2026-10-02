@@ -53,10 +53,9 @@ class SearchController extends Controller
 
             if (Gate::allows('view-purchases')) {
                 $purchases = Purchase::with('supplier')
-                    ->where(function ($query) use ($q) {
-                        $query->where('invoice_number', 'like', "%{$q}%")
-                              ->orWhereHas('supplier', fn ($s) => $s->where('name', 'like', "%{$q}%"));
-                    })
+                    ->where(fn ($query) => $query
+                        ->where('invoice_number', 'like', "%{$q}%")
+                        ->orWhereHas('supplier', fn ($s) => $s->where('name', 'like', "%{$q}%")))
                     ->orderByDesc('purchase_date')->limit(10)->get();
             }
 
@@ -72,10 +71,9 @@ class SearchController extends Controller
 
             if (Gate::allows('view-wastage')) {
                 $wastage = WastageEntry::with('inventoryItem')
-                    ->where(function ($query) use ($q) {
-                        $query->whereHas('inventoryItem', fn ($i) => $i->where('name', 'like', "%{$q}%"))
-                              ->orWhere('reason', 'like', "%{$q}%");
-                    })
+                    ->where(fn ($query) => $query
+                        ->whereHas('inventoryItem', fn ($i) => $i->where('name', 'like', "%{$q}%"))
+                        ->orWhere('reason', 'like', "%{$q}%"))
                     ->orderByDesc('recorded_date')->limit(10)->get();
             }
 
@@ -85,11 +83,10 @@ class SearchController extends Controller
                 // ingredient was called when it was recorded, which is also
                 // what the results list renders.
                 $rnd = RndEntry::with(['creator', 'lines'])
-                    ->where(function ($query) use ($q) {
-                        $query->where('menu_name', 'like', "%{$q}%")
-                              ->orWhere('remark', 'like', "%{$q}%")
-                              ->orWhereHas('lines', fn ($l) => $l->where('item', 'like', "%{$q}%"));
-                    })
+                    ->where(fn ($query) => $query
+                        ->where('menu_name', 'like', "%{$q}%")
+                        ->orWhere('remark', 'like', "%{$q}%")
+                        ->orWhereHas('lines', fn ($l) => $l->where('item', 'like', "%{$q}%")))
                     ->orderByDesc('purchased_on')->limit(10)->get();
             }
 
@@ -107,10 +104,10 @@ class SearchController extends Controller
             }
 
             if (Gate::allows('view-users')) {
-                $users = User::where(function ($query) use ($q) {
-                        $query->where('name', 'like', "%{$q}%")
-                              ->orWhere('email', 'like', "%{$q}%");
-                    })
+                $users = User::query()
+                    ->where(fn ($query) => $query
+                        ->where('name', 'like', "%{$q}%")
+                        ->orWhere('email', 'like', "%{$q}%"))
                     // The hidden demo account is only surfaced to Admins.
                     ->when(! $request->user()->isAdmin(), fn ($query) => $query->where('is_demo', false))
                     ->orderBy('name')->limit(10)->get();

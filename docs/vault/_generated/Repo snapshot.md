@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Sun, Sep 13, 2026 8:01 AM.
+Taken Thu, Oct 1, 2026 7:35 PM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,10 +19,10 @@ Taken Sun, Sep 13, 2026 8:01 AM.
 
 | | |
 |---|---|
-| Commits | 365 |
-| HEAD | `796fcf2` |
-| Branch | `claude/inventory-tally-users-77c425` |
-| Released version | `1.29.3` |
+| Commits | 428 |
+| HEAD | `1701d68` |
+| Branch | `claude/zealous-euler-3cf219` |
+| Released version | `1.38.1` |
 
 ## Size
 
@@ -30,30 +30,30 @@ Taken Sun, Sep 13, 2026 8:01 AM.
 |---|---|
 | Models | 40 |
 | Controllers | 35 |
-| Form Requests | 36 |
-| Domain actions | 11 |
+| Form Requests | 37 |
+| Domain actions | 12 |
 | Middleware | 3 |
 | Console commands | 9 |
-| Migrations | 86 |
-| Blade views | 75 |
-| Tests | 40 |
+| Migrations | 91 |
+| Blade views | 79 |
+| Tests | 49 |
 
 ## Last 15 commits
 
 | Date | Hash | Subject |
 |---|---|---|
-| 2026-09-13 | `796fcf2` | fix(stock): retry a write that clashes with another transaction |
-| 2026-09-13 | `19c8dfb` | docs: cut release 1.29.2 |
-| 2026-09-13 | `9115f54` | chore(mirror): scrub supplier invoice numbers from the public copy |
-| 2026-09-13 | `d6f3163` | chore: cut spent and scaffold-only code |
-| 2026-09-13 | `87fa827` | docs: cut release 1.29.1 |
-| 2026-09-13 | `9e30fe3` | fix(prep): phone photos upload, and a refused one says why |
-| 2026-09-13 | `b4bada8` | docs: cut release 1.29 |
-| 2026-09-13 | `a73ff10` | feat(inventory): add a new unit from any unit dropdown |
-| 2026-09-12 | `26bcf4e` | docs: cut release 1.28.1 |
-| 2026-09-12 | `2543412` | feat(production): call the section Production and drop the note |
-| 2026-09-12 | `9d37f06` | docs: cut release 1.28 |
-| 2026-09-12 | `201fdd8` | feat(inventory): flag an item when it has run out, not when it dips |
-| 2026-09-12 | `b8f604d` | docs: cut release 1.27 |
-| 2026-09-12 | `83b4ce4` | feat(purchases): open a purchase from its row |
-| 2026-09-11 | `b080151` | chore(skills): add sanitized-mirror for the public portfolio copy |
+| 2026-10-02 | `1701d68` | docs: cut release 1.38.1 |
+| 2026-10-02 | `8bb42cf` | fix(backup): never prune the newest dump |
+| 2026-10-02 | `e110829` | docs: cut release 1.38 |
+| 2026-10-02 | `3e2d7b0` | fix(about): show the Changed and Fixed notes of every release |
+| 2026-10-02 | `b3f9618` | feat(purchases): search suppliers, complete a supplier with one photo, load a picked month at once |
+| 2026-10-02 | `655207d` | fix: show the whole total on purchase and sales log headers on a phone |
+| 2026-10-02 | `f90b37d` | test: assert the prep history fallback against the kitchen date |
+| 2026-10-01 | `571fa90` | refactor: apply the readable-code rules across actions and commands |
+| 2026-09-24 | `f2f58c0` | docs: cut release 1.37 |
+| 2026-09-24 | `6b6d3ef` | feat(dashboard): give Admin the financial dashboard |
+| 2026-09-22 | `ed7dcb7` | docs: cut release 1.36.2 |
+| 2026-09-22 | `47a61a6` | revert(purchases): remove the Log a delivery sheet |
+| 2026-09-22 | `e8ad925` | docs: cut release 1.36.1 |
+| 2026-09-22 | `5bbdf50` | feat(purchases): group the purchase log by supplier, like the Sales log |
+| 2026-09-22 | `e86a006` | docs: cut release 1.36 |

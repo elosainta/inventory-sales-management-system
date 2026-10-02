@@ -88,12 +88,7 @@ class BukkuLinkProducts extends Command
             $product = $byName[$key] ?? null;
 
             if ($product && ! in_array((int) $product['id'], $taken, true)) {
-                $this->line(sprintf('  <fg=green>link</>  %-42s → %s', $this->trim($item->name), $product['name']));
-
-                if ($apply) {
-                    $item->update(['bukku_product_id' => (int) $product['id']]);
-                }
-
+                $this->link($item, $product, $apply);
                 $taken[] = (int) $product['id'];
                 $linked++;
 
@@ -140,6 +135,15 @@ class BukkuLinkProducts extends Command
         $this->line('');
 
         return self::SUCCESS;
+    }
+
+    private function link(InventoryItem $item, array $product, bool $apply): void
+    {
+        $this->line(sprintf('  <fg=green>link</>  %-42s → %s', $this->trim($item->name), $product['name']));
+
+        if ($apply) {
+            $item->update(['bukku_product_id' => (int) $product['id']]);
+        }
     }
 
     /** @return array{name:string,score:float}|null */

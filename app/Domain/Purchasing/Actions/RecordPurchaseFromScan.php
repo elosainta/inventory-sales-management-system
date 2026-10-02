@@ -58,7 +58,7 @@ class RecordPurchaseFromScan
         }
 
         $purchase = $this->logPurchase->execute([
-            'supplier_id'    => $this->supplier($supplierName)->id,
+            'supplier_id'    => Supplier::forBukkuContact((int) ($data['contact_id'] ?? 0) ?: null, $supplierName)->id,
             'user_id'        => auth()->id(),
             'invoice_number' => $data['invoice_number'] ?? null,
             'status'         => 'completed',
@@ -69,34 +69,5 @@ class RecordPurchaseFromScan
         $scan->update(['purchase_id' => $purchase->id]);
 
         return $purchase;
-    }
-
-    /**
-     * The kitchen's own supplier record for whoever this bill is from.
-     *
-     * Bukku's contacts and this system's suppliers are separate lists that
-     * happen to hold the same companies — HILLSIDE AGROFARM is in both — so
-     * the name is the only join available. Matched case-insensitively because
-     * the two lists were typed by different people at different times.
-     *
-     * Created when it is genuinely new: `purchases.supplier_id` is NOT NULL,
-     * so the alternative to creating one is refusing to record the purchase at
-     * all, which would be a worse answer to "we bought from someone new".
-     */
-    private function supplier(?string $name): Supplier
-    {
-        $name = trim((string) $name) ?: 'Unknown supplier';
-
-        // contact, email and address are NOT NULL on this table, and an invoice
-        // carries none of them. Empty is the honest value — the Owner fills
-        // them in on the Suppliers page — and it beats refusing to record the
-        // delivery because nobody typed a phone number.
-        return Supplier::whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first()
-            ?? Supplier::create([
-                'name'    => $name,
-                'contact' => '',
-                'email'   => '',
-                'address' => '',
-            ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Purchasing\Actions\LogPurchase;
+use App\Http\Requests\CompletePurchasesRequest;
 use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Requests\UpdatePurchaseRequest;
 use App\Models\Purchase;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PurchaseController extends Controller
 {
@@ -92,7 +94,9 @@ public function destroy(Purchase $purchase)
             $item->save();
         }
 
-        if ($purchase->receipt_path) {
+        // One supplier Upload is the receipt of every purchase it completed,
+        // so the photo goes only with the last purchase still showing it.
+        if ($purchase->receipt_path && ! Purchase::where('receipt_path', $purchase->receipt_path)->whereKeyNot($purchase->id)->exists()) {
             Storage::delete($purchase->receipt_path);
         }
 
@@ -110,6 +114,39 @@ public function destroy(Purchase $purchase)
         ]);
 
         return back()->with('success', 'Purchase status updated.');
+    }
+
+    /**
+     * The Upload button on a supplier's dropdown (the Owner, 2026-10-02): one
+     * photo — a statement or a payment slip — completes every pending
+     * purchase the button was shown beside, instead of pressing each Pending
+     * button in turn. It becomes the receipt of each that had none, as one
+     * shared file; destroy() keeps it until the last of them goes.
+     */
+    public function complete(CompletePurchasesRequest $request)
+    {
+        Gate::authorize('manage-purchases');
+
+        $pending = Purchase::whereIn('id', $request->validated('purchase_ids'))
+            ->where('status', 'pending')
+            ->get();
+
+        if ($pending->isEmpty()) {
+            return back()->with('error', 'Nothing here is pending any more.');
+        }
+
+        // Stored only when some purchase will show it, so no file is orphaned.
+        $photo = $pending->contains(fn ($p) => ! $p->receipt_path) ? $request->file('photo')->store('receipts') : null;
+
+        DB::transaction(function () use ($pending, $photo) {
+            foreach ($pending as $purchase) {
+                $purchase->update(['status' => 'completed', 'receipt_path' => $purchase->receipt_path ?? $photo]);
+            }
+        });
+
+        $count = $pending->count();
+
+        return back()->with('success', "{$count} " . Str::plural('purchase', $count) . ' marked completed.');
     }
 
     public function exportPdf()

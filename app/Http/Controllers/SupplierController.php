@@ -13,7 +13,13 @@ class SupplierController extends Controller
         Gate::authorize('view-suppliers');
 
         $suppliers = Supplier::orderBy('name')->get();
-        return view('suppliers.index', compact('suppliers'));
+
+        // id => name, for the link picker and the "In Bukku" line on each card.
+        $bukkuContacts = Gate::allows('manage-suppliers')
+            ? collect(\App\Support\Bukku::contacts())->mapWithKeys(fn ($c) => [(int) $c['id'] => \App\Support\Bukku::contactName($c)])->sort()->all()
+            : [];
+
+        return view('suppliers.index', compact('suppliers', 'bukkuContacts'));
     }
 
     public function store(StoreSupplierRequest $request)

@@ -3,6 +3,15 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+// The MariaDB session time zone, derived from the app's so the two can never
+// disagree. Every time column here is TIMESTAMP, which MariaDB stores as UTC
+// and converts to the session zone - so with the app on Asia/Kuala_Lumpur and this
+// on +08:00, old rows read in kitchen time and new ones are written right,
+// with no data migrated. (Until 2026-09-22 both were UTC and every time on
+// every page but the prep checklist was 8 hours behind.) An offset, not a
+// name: named zones need MariaDB's tz tables, and Malaysia has no DST.
+$dbTimezone = (new DateTime('now', new DateTimeZone(env('APP_TIMEZONE', 'UTC'))))->format('P');
+
 return [
 
     /*
@@ -79,6 +88,7 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            'timezone' => $dbTimezone,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
@@ -94,6 +104,7 @@ return [
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DEMO_DATABASE', 'isms_demo'),
+            'timezone' => $dbTimezone,
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),

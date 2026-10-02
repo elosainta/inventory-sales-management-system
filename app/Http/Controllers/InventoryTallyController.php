@@ -82,11 +82,11 @@ class InventoryTallyController extends Controller
                 // source of truth. Setting quantity_on_hand is enough — the model
                 // derives monetary_value from it. unit_cost is untouched, so recipe
                 // plate costs are unaffected and need no recalculation.
-                if ($item) {
-                    $item->quantity_on_hand = $row['counted_quantity'];
-                    $item->last_updated     = now();
-                    $item->save();
-                }
+                if (! $item) continue;
+
+                $item->quantity_on_hand = $row['counted_quantity'];
+                $item->last_updated     = now();
+                $item->save();
             }
 
             return $tally;

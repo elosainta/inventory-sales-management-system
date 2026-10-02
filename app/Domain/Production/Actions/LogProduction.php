@@ -51,23 +51,8 @@ class LogProduction
             $batch = ProductionBatch::create($data);
 
             // ---- Inventory -> : the formula comes off the shelf ----
-            $consumed = $recipe->consumptionFor($quantity);
-
-            if ($used !== null) {
-                $used = array_map(fn ($q) => round(max(0, (float) $q), 4), $used);
-
-                if (array_diff_key($used, $consumed) !== []) {
-                    throw ValidationException::withMessages([
-                        'used' => "Only this dish's own ingredients can be taken off the shelf here.",
-                    ]);
-                }
-
-                // Anything the chef did not give an amount for goes by the recipe.
-                $consumed = $used + $consumed;
-            }
+            $consumed = $this->consumption($recipe, $quantity, $used);
             $items    = InventoryItem::whereIn('id', array_keys($consumed))->get();
-
-            $emptyItems = [];
 
             foreach ($items as $item) {
                 $used = $consumed[$item->id];
@@ -86,10 +71,6 @@ class LogProduction
                 $item->quantity_on_hand = max(0, (float) $item->quantity_on_hand - $used);
                 $item->last_updated     = now();
                 $item->save();
-
-                if ($item->isOutOfStock()) {
-                    $emptyItems[] = $item;
-                }
             }
 
             // ---- -> Production : the finished dish becomes stock ----
@@ -110,35 +91,7 @@ class LogProduction
                     ->each(fn ($r) => $r->recalculatePlateCost());
             }
 
-            // Notify head chefs of any item this batch emptied. The alert class
-            // keeps its old name because the notifications table stores it as
-            // the row's type — renaming it would orphan every unread alert.
-            // Keep the alert inside the actor's own world: a demo user's action
-            // notifies only the demo head chef (in the sandbox DB), a real user's
-            // action only real head chefs. Scheduled/CLI runs have no actor and
-            // fall through to the real head chefs.
-            if ($emptyItems) {
-                $actorIsDemo = (bool) auth()->user()?->is_demo;
-                $headChefs = User::where('role', User::ROLE_HEAD_CHEF)
-                    ->where('is_demo', $actorIsDemo)
-                    ->get();
-                foreach ($emptyItems as $item) {
-                    foreach ($headChefs as $chef) {
-                        try {
-                            $chef->notify(new LowStockAlert($item));
-                        } catch (\Throwable $e) {
-                            // This runs inside the transaction that just saved
-                            // the batch. Resend can refuse a send outright (an
-                            // empty reply cost the 20 August reminder), and an
-                            // uncaught throw here would roll the whole batch
-                            // back — the chef would lose work they had already
-                            // logged because an email failed. The batch is the
-                            // record that matters; the alert is not.
-                            Log::error("Low stock alert failed for {$chef->email}: " . $e->getMessage());
-                        }
-                    }
-                }
-            }
+            $this->alertHeadChefs($items->filter(fn ($item) => $item->isOutOfStock())->all());
 
             return $batch;
         // Three attempts. MariaDB 12 refuses a write that clashes with another
@@ -147,5 +100,72 @@ class LogProduction
         // junior chef lost a batch to it on 2026-09-12. Safe because everything
         // written here is loaded inside the closure, so a retry starts clean.
         }, 3);
+    }
+
+    /**
+     * What comes off the shelf, [inventory_item_id => quantity]: the recipe,
+     * overridden by whatever the chef says each ingredient actually took.
+     */
+    private function consumption(Recipe $recipe, float $quantity, ?array $used): array
+    {
+        $consumed = $recipe->consumptionFor($quantity);
+
+        if ($used === null) {
+            return $consumed;
+        }
+
+        $used = array_map(fn ($q) => round(max(0, (float) $q), 4), $used);
+
+        if (array_diff_key($used, $consumed) !== []) {
+            throw ValidationException::withMessages([
+                'used' => "Only this dish's own ingredients can be taken off the shelf here.",
+            ]);
+        }
+
+        // Anything the chef did not give an amount for goes by the recipe.
+        return $used + $consumed;
+    }
+
+    /**
+     * Notify head chefs of any item this batch emptied. The alert class keeps
+     * its old name because the notifications table stores it as the row's
+     * type — renaming it would orphan every unread alert.
+     *
+     * Keep the alert inside the actor's own world: a demo user's action
+     * notifies only the demo head chef (in the sandbox DB), a real user's
+     * action only real head chefs. Scheduled/CLI runs have no actor and fall
+     * through to the real head chefs.
+     */
+    private function alertHeadChefs(array $emptyItems): void
+    {
+        if (! $emptyItems) {
+            return;
+        }
+
+        $headChefs = User::where('role', User::ROLE_HEAD_CHEF)
+            ->where('is_demo', (bool) auth()->user()?->is_demo)
+            ->get();
+
+        foreach ($emptyItems as $item) {
+            foreach ($headChefs as $chef) {
+                $this->notifyQuietly($chef, $item);
+            }
+        }
+    }
+
+    /**
+     * This runs inside the transaction that just saved the batch. Resend can
+     * refuse a send outright (an empty reply cost the 20 August reminder), and
+     * an uncaught throw here would roll the whole batch back — the chef would
+     * lose work they had already logged because an email failed. The batch is
+     * the record that matters; the alert is not.
+     */
+    private function notifyQuietly(User $chef, InventoryItem $item): void
+    {
+        try {
+            $chef->notify(new LowStockAlert($item));
+        } catch (\Throwable $e) {
+            Log::error("Low stock alert failed for {$chef->email}: " . $e->getMessage());
+        }
     }
 }

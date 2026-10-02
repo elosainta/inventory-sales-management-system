@@ -47,6 +47,18 @@
     {{-- ═══════════ RELEASE TIMELINE ═══════════ --}}
     <h2 style="font-family:'DM Sans',sans-serif; font-size:18px; font-weight:500; margin-bottom:16px;">{{ __('Release history') }}</h2>
 
+    {{-- Every key a release in ReleaseNotes::all() may use. This named only
+         three until 1.38, while 41 releases were written under 'changed' and
+         8 under 'fixed', so their notes never showed (AboutPageTest). --}}
+    @php
+        $sections = [
+            'added'    => ['New',      'hsl(145,45%,38%)', 'hsl(145,45%,96%)'],
+            'improved' => ['Improved', 'hsl(20,60%,42%)',  'hsl(20,60%,96%)'],
+            'changed'  => ['Changed',  'hsl(24,10%,35%)',  'hsl(30,15%,93%)'],
+            'fixed'    => ['Fixed',    'hsl(205,55%,38%)', 'hsl(205,55%,96%)'],
+            'removed'  => ['Removed',  'hsl(0,55%,45%)',   'hsl(0,55%,97%)'],
+        ];
+    @endphp
     <div style="position:relative;">
         @foreach($releases as $release)
             <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:10px; padding:24px; margin-bottom:16px;">
@@ -64,7 +76,7 @@
                     {{ $release['summary'] }}
                 </p>
 
-                @foreach(['added' => ['New', 'hsl(145,45%,38%)', 'hsl(145,45%,96%)'], 'improved' => ['Improved', 'hsl(20,60%,42%)', 'hsl(20,60%,96%)'], 'removed' => ['Removed', 'hsl(0,55%,45%)', 'hsl(0,55%,97%)']] as $key => $meta)
+                @foreach($sections as $key => $meta)
                     @if(!empty($release[$key]))
                         <div style="margin-bottom:12px;">
                             <div style="display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:{{ $meta[1] }}; background:{{ $meta[2] }}; padding:2px 8px; border-radius:4px; margin-bottom:8px;">

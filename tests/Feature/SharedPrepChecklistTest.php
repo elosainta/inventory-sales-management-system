@@ -39,6 +39,29 @@ class SharedPrepChecklistTest extends TestCase
         ])];
     }
 
+    /**
+     * The app runs on UTC; the kitchen is UTC+8. 23:41 UTC on the 18th is
+     * 7:41am on the 19th in Malaysia — the tick belongs to the 19th's sheet
+     * and reads 07:41, not 23:41 on the 18th.
+     */
+    public function test_prep_ticks_use_kitchen_time_not_utc(): void
+    {
+        [, $task] = $this->sectionWithTask();
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-09-18 23:41:00', 'UTC'));
+        $chef = User::factory()->create(['role' => User::ROLE_JUNIOR_CHEF]);
+
+        $this->actingAs($chef)
+            ->post(route('prep.task-check'), ['task_id' => $task->id])
+            ->assertRedirect();
+
+        $this->assertSame('2026-09-19', SectionCheck::sole()->checked_date->toDateString());
+
+        $this->get(route('prep.index'))
+            ->assertOk()
+            ->assertSee('Saturday, 19 Sep 2026')
+            ->assertSee('07:41');
+    }
+
     public function test_a_chef_sees_every_section_not_just_an_assigned_one(): void
     {
         Section::create(['name' => 'Pantry']);

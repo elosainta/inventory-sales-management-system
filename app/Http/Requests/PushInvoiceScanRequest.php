@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Domain\Purchasing\Actions\PushInvoiceToBukku;
+use App\Models\InvoiceScan;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -48,16 +49,30 @@ class PushInvoiceScanRequest extends FormRequest
         );
 
         $this->merge(['lines' => array_values($lines)]);
+
+        // A delivery order may go without a supplier. Bukku will not take a
+        // bill without one, so blank means the kitchen supplier that stands
+        // for delivery orders - filled in here, before validation, so the
+        // `required` rule below still has the last word when there is none.
+        if ($this->input('document_type') === InvoiceScan::TYPE_DELIVERY_ORDER && blank($this->input('supplier_id'))) {
+            $this->merge(['supplier_id' => InvoiceScan::deliveryOrderSupplierId()]);
+        }
     }
 
     public function rules(): array
     {
         return [
-            'contact_id'     => ['required', 'integer', 'min:1'],
-            'supplier_name'  => ['nullable', 'string', 'max:255'],
+            // The kitchen's own supplier (the Suppliers page), not a Bukku
+            // contact: LinkSupplierToBukku finds or registers that on Send.
+            'supplier_id'    => ['required', 'integer', 'exists:suppliers,id'],
             'invoice_number' => ['nullable', 'string', 'max:100'],
             'invoice_date'   => ['required', 'date'],
+            // What the paper says the bill comes to. Blank means "the lines".
+            'bill_total'     => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
             'term_id'        => ['required', Rule::in(array_keys(PushInvoiceToBukku::TERMS))],
+            // Correctable here, because whoever uploaded it may have picked the
+            // wrong one; absent means keep what the scan already says.
+            'document_type'  => ['nullable', Rule::in(array_keys(InvoiceScan::TYPES))],
 
             'lines'                => ['required', 'array', 'min:1'],
             'lines.*.description'  => ['required', 'string', 'max:255'],
@@ -75,7 +90,9 @@ class PushInvoiceScanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'contact_id.required' => 'Choose which supplier this invoice is from.',
+            'supplier_id.required' => $this->input('document_type') === InvoiceScan::TYPE_DELIVERY_ORDER
+                ? 'Choose a supplier, or link one on the Suppliers page to "' . InvoiceScan::DELIVERY_ORDER_SUPPLIER . '" in Bukku so a delivery order can be sent without one.'
+                : 'Choose which supplier this invoice is from.',
             'lines.required'      => 'A bill needs at least one line — fill in a description.',
             'lines.min'           => 'A bill needs at least one line — fill in a description.',
         ];

@@ -54,7 +54,7 @@ All 59 gates from `AppServiceProvider::boot()`, evaluated live against a synthet
 | `view-audit-log` | ✅ | — | — | ✅ |
 | `view-checklist` | ✅ | ✅ | ✅ | ✅ |
 | `view-daily-report` | ✅ | ✅ | — | ✅ |
-| `view-dashboard` | ✅ | ✅ | — | — |
+| `view-dashboard` | ✅ | ✅ | — | ✅ |
 | `view-feedback` | ✅ | ✅ | ✅ | ✅ |
 | `view-inventory` | ✅ | ✅ | ✅ | ✅ |
 | `view-leave` | ✅ | ✅ | ✅ | ✅ |

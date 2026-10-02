@@ -8,7 +8,7 @@ generated: true
 
 # Routes
 
-All 137 registered routes, read straight from Laravel's router.
+All 139 registered routes, read straight from Laravel's router.
 Every controller method behind these is required to open with `Gate::authorize()` — see [[Authorization gates]].
 
 | Method | URI | Name | Action | Middleware |
@@ -54,6 +54,7 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `GET` | `/market-purchases/{marketPurchase}/receipt` | `market-purchases.receipt` | `MarketPurchaseController@receipt` | auth |
 | `GET` | `/market-purchases/{marketPurchase}` | `market-purchases.show` | `MarketPurchaseController@show` | auth |
 | `GET` | `/market-purchases` | `market-purchases.index` | `MarketPurchaseController@index` | auth |
+| `GET` | `/prep/history` | `prep.history` | `PrepChecklistController@history` | auth |
 | `GET` | `/prep/overview` | `prep.overview` | `PrepChecklistController@overview` | auth |
 | `GET` | `/prep/task-check/{sectionCheck}/photo` | `prep.task-check.photo` | `PrepChecklistController@taskCheckPhoto` | auth |
 | `GET` | `/prep` | `prep.index` | `PrepChecklistController@index` | auth |
@@ -129,6 +130,7 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `POST` | `/notifications/dismiss-low-stock` | `notifications.dismiss-low-stock` | `Closure` | auth |
 | `POST` | `/prep/task-check` | `prep.task-check` | `PrepChecklistController@storeTaskCheck` | auth |
 | `POST` | `/production/dish/{recipe}` | `production.dish.store` | `ProductionController@storeDish` | auth |
+| `POST` | `/purchases/complete` | `purchases.complete` | `PurchaseController@complete` | auth |
 | `POST` | `/purchases` | `purchases.store` | `PurchaseController@store` | auth |
 | `POST` | `/recipes/{id}/restore` | `recipes.restore` | `RecipeController@restore` | auth |
 | `POST` | `/recipes` | `recipes.store` | `RecipeController@store` | auth |

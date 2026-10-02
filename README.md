@@ -34,13 +34,13 @@ That constraint shaped most of the design decisions below.
 | **Production** | Tap a dish, say how many were made and what each ingredient actually took, with the recipe's amount beside every box. Raw stock out, finished dishes in; removing a batch puts the stock back. |
 | **Sales** | A whole service on one sheet — every dish with a quantity box, one save. Stock is deducted automatically: the finished dish where one exists, otherwise the raw ingredients. Off-menu staff orders and receipt photos go through a pop-up. |
 | **Wastage** | Log what was thrown away and what it cost. |
-| **Purchases** | Supplier orders and ad-hoc market buys, both repricing inventory. Each opens its own page, with the receipt beside the lines. |
+| **Purchases** | Supplier orders and ad-hoc market buys, both repricing inventory. The log is one collapsible row per supplier, searchable, with one upload of a statement or payment slip marking all of that supplier's pending purchases paid. Each purchase opens its own page, with the receipt beside the lines. |
 | **Stock-take** | A movement sheet: current stock, in, out, balance. |
 | **Tally** | A physical count that reconciles live stock to what a human actually saw on the shelf. |
-| **Invoice scan** | Photograph a supplier invoice → an LLM extracts the lines → a human checks them → it posts as a purchase bill in the accounting system, and as a purchase that moves stock. It learns each supplier's wording for next time and flags invoices scanned twice. |
+| **Invoice scan** | Photograph a supplier invoice → an LLM extracts the lines → a human checks them → it posts as a purchase bill in the accounting system, and as a purchase that moves stock. It learns each supplier's wording for next time and flags invoices scanned twice. Delivery orders go through the same flow, and what is still owed to each supplier is read back from the accounting system. |
 | **R&D trials** | Costing sheets for dishes under development, with an approval workflow. |
 | **Staff meals** | What the kitchen cooked for its own team, as costing sheets picked from inventory — deducted from stock and reported per month. |
-| **Prep checklist** | Per-section daily tasks with photo evidence. |
+| **Prep checklist** | Per-section daily tasks with photo evidence, and a history of past days. |
 | **Staff** | Roles, leave requests, anonymous peer feedback, daily reports, audit log. |
 | **Dashboard** | Inventory value, sales, gross margin, wastage rate, petty cash. |
 
@@ -130,7 +130,7 @@ resolves to files on disk.
 
 ## Testing
 
-367 feature and unit tests. The ones that matter are not the CRUD tests — they
+404 feature and unit tests. The ones that matter are not the CRUD tests — they
 are the invariants: the gate/sidebar agreement, the per-role access matrices
 (the *deny* half especially), the arithmetic on stock balances and plate costs,
 the guard against billing the same invoice twice, and a check that rendered

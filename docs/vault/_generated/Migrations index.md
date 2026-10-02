@@ -8,7 +8,7 @@ generated: true
 
 # Migrations index
 
-86 migrations, oldest first. The schema they build is described in [[Database overview]].
+91 migrations, oldest first. The schema they build is described in [[Database overview]].
 
 | Date | Migration | Tables touched |
 |---|---|---|
@@ -98,3 +98,8 @@ generated: true
 | 2026-09-03 | add bukku product id to inventory items | `inventory_items` |
 | 2026-09-09 | create staff meals table | `staff_meals`, `staff_meal_lines` |
 | 2026-09-09 | drop pax from staff meals | `staff_meals` |
+| 2026-09-17 | add document type to invoice scans | `invoice_scans` |
+| 2026-09-19 | add bukku contact id to suppliers | `suppliers` |
+| 2026-09-19 | merge duplicate suppliers and link bukku | — |
+| 2026-09-19 | correct truncated invoice scan totals | — |
+| 2026-09-19 | correct float rounded purchase totals | — |

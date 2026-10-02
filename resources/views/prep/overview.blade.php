@@ -2,7 +2,7 @@
     <div class="app-page-header" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px;">
         <div>
             <h1 style="font-family:'DM Sans',sans-serif; font-size:32px; font-weight:400; margin-bottom:8px;">Prep Overview</h1>
-            <p style="color:hsl(24,5%,45%); font-size:14px;">All sections for {{ now()->format('l, d M Y') }}</p>
+            <p style="color:hsl(24,5%,45%); font-size:14px;">All sections for {{ now(\App\Models\SectionCheck::TIMEZONE)->format('l, d M Y') }}</p>
         </div>
         {{-- A Head Chef has no Sections entry in the sidebar, so this is their way
              in to editing one. Same gate as the page itself enforces. --}}
@@ -13,6 +13,8 @@
             </a>
         @endcan
     </div>
+
+    @include('partials.prep-tabs', ['active' => 'today'])
 
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;">
         @foreach($sections as $section)

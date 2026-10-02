@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Inventory, Sales and Management System</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
     {{-- app.js exists only to import app.css — that is how Tailwind gets built.
          Remove this and every page loses its styling. --}}
     @vite(['resources/js/app.js'])
@@ -70,7 +71,7 @@
                         // Procurement
                         ['route' => 'purchases.index',        'label' => 'Purchases',      'gate' => 'view-purchases',         'icon' => '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>'],
                         ['route' => 'market-purchases.index', 'label' => 'Market',         'gate' => 'view-market-purchases',  'icon' => '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>'],
-                        ['route' => 'invoice-scan.index',     'label' => 'Invoice Scan',   'gate' => 'use-invoice-scan',       'icon' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M12 12v6"/>'],
+                        ['route' => 'invoice-scan.index',     'label' => 'Invoice Scan / DO', 'gate' => 'use-invoice-scan',       'icon' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M12 12v6"/>'],
                         ['route' => 'production.index',       'label' => 'Production',     'gate' => 'view-production',        'icon' => '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/>'],
                         // Tracking
                         ['route' => 'inventory.index',        'label' => 'Inventory',      'gate' => 'view-inventory',         'icon' => '<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>'],
@@ -220,7 +221,7 @@
                     @if($lowStockAlerts->isNotEmpty())
                         <div style="margin-bottom:24px; padding:14px 18px; border-radius:6px; background:#fee2e2; color:#991b1b; font-size:14px;">
                             <div style="font-weight:600; margin-bottom:6px;">
-                                No stock — {{ $lowStockAlerts->count() }} item{{ $lowStockAlerts->count() > 1 ? 's have' : ' has' }} run out:
+                                Low stock — {{ $lowStockAlerts->count() }} item{{ $lowStockAlerts->count() > 1 ? 's have' : ' has' }} run out:
                             </div>
                             <ul style="margin:0; padding-left:18px;">
                                 @foreach($lowStockAlerts as $alert)

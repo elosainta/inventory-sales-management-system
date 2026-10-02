@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -23,7 +24,7 @@ class DemoReset extends Command
      * purchases, stock takes — is still cloned, which is what makes the demo
      * realistic. A new table is cloned in full unless it is named here.
      */
-    private const SKIP_DATA = [
+    public const SKIP_DATA = [
         // Credentials and request state.
         'sessions', 'cache', 'cache_locks', 'jobs', 'job_batches',
         'failed_jobs', 'password_reset_tokens',
@@ -34,7 +35,29 @@ class DemoReset extends Command
         'notifications', 'audits',
         // Rows pointing at real uploads on the shared storage volume — a demo
         // user with view-sales would otherwise pull up real receipt photos.
-        'sale_attachments',
+        // An invoice scan is its photo (file_path is NOT NULL), so it cannot
+        // cross with the pointer cleared the way CLEAR_UPLOADS rows do.
+        'sale_attachments', 'invoice_scans',
+    ];
+
+    /**
+     * Upload pointers dropped from rows that ARE cloned.
+     *
+     * Storage is one volume shared with live, so a cloned path names the live
+     * file: a demo Head Chef deleting a cloned purchase deleted the real
+     * receipt, and could open any of them. The row is operational data and
+     * stays; only the pointer goes, and every view already hides the link
+     * when it is null. DemoResetTest fails when an upload column on a cloned
+     * table is in neither this list nor SKIP_DATA.
+     */
+    public const CLEAR_UPLOADS = [
+        'purchases'        => 'receipt_path',
+        'market_purchases' => 'receipt_path',
+        'section_checks'   => 'photo_path',
+        'support_tickets'  => 'media_path',
+        // Unread since the float receipt upload was pulled on 2026-05-01, but
+        // where the column survives a row may still hold a path.
+        'float_issuances'  => 'receipt_path',
     ];
 
     /**
@@ -92,19 +115,7 @@ class DemoReset extends Command
                 return;
             }
 
-            // Stream rows across in batches so large tables (e.g. sales) don't
-            // load entirely into memory.
-            $buffer = [];
-            foreach ($src->table($table)->cursor() as $row) {
-                $buffer[] = (array) $row;
-                if (count($buffer) >= 500) {
-                    $dst->table($table)->insert($buffer);
-                    $buffer = [];
-                }
-            }
-            if ($buffer !== []) {
-                $dst->table($table)->insert($buffer);
-            }
+            $this->copyRows($src, $dst, $table);
         });
 
         // Real staff rows are kept so names still render on cloned records, but
@@ -119,9 +130,36 @@ class DemoReset extends Command
         $dst->statement('SET FOREIGN_KEY_CHECKS=1');
 
         $this->newLine(2);
-        $this->info("Demo sandbox \"{$name}\" rebuilt from live — ".count($tables).' tables cloned, '
-            .count(self::SKIP_DATA).' emptied of data, '."{$scrubbed} live password hashes scrubbed.");
+        $this->info(sprintf('Demo sandbox "%s" rebuilt from live — %d tables cloned, %d emptied of data, %d live password hashes scrubbed.', $name, count($tables), count(self::SKIP_DATA), $scrubbed));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Stream rows across in batches so large tables (e.g. sales) don't load
+     * entirely into memory. Upload pointers are dropped on the way rather than
+     * after, so a clone that fails halfway never leaves one in the sandbox.
+     */
+    private function copyRows(Connection $src, Connection $dst, string $table): void
+    {
+        $pointer = self::CLEAR_UPLOADS[$table] ?? null;
+        $buffer  = [];
+        foreach ($src->table($table)->cursor() as $row) {
+            $row = (array) $row;
+            // Only if the row has it: a migration behind float_issuances was
+            // rewritten after it ran, so live and a fresh install disagree on
+            // whether receipt_path exists.
+            if ($pointer && array_key_exists($pointer, $row)) {
+                $row[$pointer] = null;
+            }
+            $buffer[] = $row;
+            if (count($buffer) >= 500) {
+                $dst->table($table)->insert($buffer);
+                $buffer = [];
+            }
+        }
+        if ($buffer !== []) {
+            $dst->table($table)->insert($buffer);
+        }
     }
 }

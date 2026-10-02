@@ -135,7 +135,7 @@ class Bukku
      * hour — and the review screen refuses to send when the supplier list is
      * empty. A failure now degrades for one request, not for an hour.
      */
-    private static function cached(string $key, callable $fetch): array
+    private static function cached(string $key, callable $fetch, int $ttl = self::CACHE_TTL): array
     {
         // No token is not an error on a read. The review screen is built to
         // show "nothing came back from Bukku" and refuse to send; throwing
@@ -156,9 +156,33 @@ class Bukku
             return [];
         }
 
-        Cache::put($key, $fresh, self::CACHE_TTL);
+        Cache::put($key, $fresh, $ttl);
 
         return $fresh;
+    }
+
+    /**
+     * Every purchase bill with what is still owed on it (`balance`), from any
+     * source - the Telegram bot's and hand-keyed ones too, not only scans.
+     * Five minutes, not an hour: payments are made in Bukku, and the Owner
+     * reads this to see who is still owed. Voided bills owe nothing and are
+     * left out here, so no caller has to remember to.
+     */
+    public static function bills(): array
+    {
+        return array_values(array_filter(
+            self::cached('bukku.bills', fn () => self::paged('/purchases/bills', 'transactions'), 300),
+            fn ($bill) => ($bill['status'] ?? '') !== 'void',
+        ));
+    }
+
+    /** The bills with money still owed on them, oldest first. */
+    public static function unpaidBills(): array
+    {
+        $unpaid = array_filter(self::bills(), fn ($bill) => (float) ($bill['balance'] ?? 0) > 0);
+        usort($unpaid, fn ($a, $b) => strcmp((string) ($a['date'] ?? ''), (string) ($b['date'] ?? '')));
+
+        return $unpaid;
     }
 
     /** Suppliers, for the review screen's contact picker. */
@@ -168,6 +192,31 @@ class Bukku
             'bukku.contacts',
             fn () => self::paged('/contacts', 'contacts', ['type' => 'supplier']),
         );
+    }
+
+    /**
+     * What a contact is called. Bukku's contact list has no `name` field -
+     * it sends `display_name` and `legal_name` - and reading `name` quietly
+     * came back empty everywhere it was tried, while tests that faked a
+     * `name` key kept passing.
+     */
+    public static function contactName(array $contact): string
+    {
+        return trim((string) ($contact['display_name'] ?? $contact['legal_name'] ?? $contact['name'] ?? ''));
+    }
+
+    /** A supplier's id by name, ignoring case and stray spaces; null if there is none. */
+    public static function contactIdNamed(string $name): ?int
+    {
+        $want = mb_strtolower(trim($name));
+
+        foreach (self::contacts() as $contact) {
+            if (mb_strtolower(self::contactName($contact)) === $want) {
+                return (int) $contact['id'];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -225,14 +274,10 @@ class Bukku
     {
         return Cache::remember('bukku.location', self::CACHE_TTL, function () {
             $response = self::http()->get('/locations');
+            $locations = $response->successful() ? ($response->json('locations') ?? []) : [];
+            $active = collect($locations)->first(fn ($location) => ! ($location['is_archived'] ?? false));
 
-            foreach ($response->successful() ? ($response->json('locations') ?? []) : [] as $location) {
-                if (! ($location['is_archived'] ?? false)) {
-                    return (int) $location['id'];
-                }
-            }
-
-            return null;
+            return $active ? (int) $active['id'] : null;
         });
     }
 
@@ -323,5 +368,48 @@ class Bukku
         }
 
         return $response->json('transaction') ?? $response->json() ?? [];
+    }
+
+    /**
+     * Register a supplier in Bukku and return its new contact id.
+     *
+     * The payload is what the "Delivery Order" contact carries, which was
+     * made by hand in Bukku on 2026-09-17 with nothing but a name: legal name,
+     * the supplier type, a company entity - plus `contact_code`, which Bukku's
+     * screen fills in by itself but its API requires (the first live send, for
+     * BOON SENG on 2026-09-22, was a 422 without it). The code copies the shape
+     * Bukku generates: "C-" + the first 9 letters/digits of the name in
+     * capitals + 4 hex, e.g. C-HILLSIDEAa396.
+     *
+     * No retry, same as createBill(): a blind second POST after a timeout is a
+     * second contact. The caller looks the name up again before ever creating,
+     * so a contact that did land is found and linked on the next attempt.
+     */
+    public static function createSupplier(string $name): int
+    {
+        $stem = substr(strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $name)), 0, 9) ?: 'SUPPLIER';
+
+        $response = self::http()->post('/contacts', [
+            'contact_code' => 'C-' . $stem . bin2hex(random_bytes(2)),
+            'legal_name'  => $name,
+            'types'       => ['supplier'],
+            'entity_type' => 'MALAYSIAN_COMPANY',
+        ]);
+
+        $id = (int) ($response->json('contact.id') ?? $response->json('id') ?? 0);
+
+        if (! $response->successful() || $id < 1) {
+            throw new RuntimeException('Bukku did not create the supplier: ' . $response->body());
+        }
+
+        self::forgetContacts();
+
+        return $id;
+    }
+
+    /** Drop the cached supplier list, so the next read sees Bukku as it is now. */
+    public static function forgetContacts(): void
+    {
+        Cache::forget('bukku.contacts');
     }
 }

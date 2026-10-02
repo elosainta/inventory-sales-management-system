@@ -47,12 +47,10 @@ class GenerateMonthlyFeedbackReport extends Command
         $body = $isEmpty
             ? "<p>Hi {$owner->name},</p>"
                 . "<p>No peer feedback was submitted in <strong>{$monthLabel}</strong>, so there is no report to attach.</p>"
-                . "<p>This note goes out even on an empty month, so that no email always means something is wrong "
-                . "rather than simply that nobody rated anyone.</p>"
+                . "<p>This note goes out even on an empty month, so that no email always means something is wrong rather than simply that nobody rated anyone.</p>"
                 . "<p>— Inventory, Sales and Management System</p>"
             : "<p>Hi {$owner->name},</p>"
-                . "<p>Attached is the peer feedback report for <strong>{$monthLabel}</strong> — "
-                . "{$entries->count()} rating(s) exchanged this month.</p>"
+                . "<p>Attached is the peer feedback report for <strong>{$monthLabel}</strong> — {$entries->count()} rating(s) exchanged this month.</p>"
                 . "<p>Sender identities are included; they are visible only to you.</p>"
                 . "<p>— Inventory, Sales and Management System</p>";
 

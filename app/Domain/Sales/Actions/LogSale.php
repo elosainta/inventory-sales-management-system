@@ -24,37 +24,41 @@ class LogSale
             $recipe = Recipe::with('ingredients.inventoryItem', 'outputInventoryItem')
                 ->find($data['recipe_id'] ?? null);
 
+            // Inventory -> Production -> Sales. An open order is off-menu,
+            // has no recipe, and deducts nothing. The low-stock alert is
+            // raised from LogProduction, not here.
             if ($recipe) {
-                // Inventory -> Production -> Sales. An open order is off-menu,
-                // has no recipe, and deducts nothing. The low-stock alert is
-                // raised from LogProduction, not here.
-                if ($output = $recipe->outputInventoryItem) {
-                    // The dish is made before it is sold, and production has
-                    // already taken the raw ingredients off the shelf. The sale
-                    // takes the finished dish and nothing else — deducting the
-                    // ingredients again here would take them off twice and read
-                    // the kitchen as far emptier than it is.
-                    $output->quantity_on_hand = max(0, $output->quantity_on_hand - $data['qty_sold']);
-                    $output->save();
-                } else {
-                    // No production step for this recipe, so the sale is still
-                    // the only thing that moves stock and deducts the raw
-                    // ingredients itself. This is every recipe until someone
-                    // gives it a finished good on the Recipes page.
-                    foreach ($recipe->ingredients as $ingredient) {
-                        $item = $ingredient->inventoryItem;
-                        if (!$item) continue;
-
-                        $deduct = $ingredient->quantity * $data['qty_sold'];
-                        $newQty = max(0, $item->quantity_on_hand - $deduct);
-
-                        $item->quantity_on_hand = $newQty;
-                        $item->save();
-                    }
-                }
+                $this->deductStock($recipe, $data['qty_sold']);
             }
 
             return $sale;
         }, 3); // retried on a write clash; see LogProduction (ignored when nested in the sales sheet)
+    }
+
+    private function deductStock(Recipe $recipe, $qtySold): void
+    {
+        // The dish is made before it is sold, and production has already taken
+        // the raw ingredients off the shelf. The sale takes the finished dish
+        // and nothing else — deducting the ingredients again here would take
+        // them off twice and read the kitchen as far emptier than it is.
+        if ($output = $recipe->outputInventoryItem) {
+            $output->quantity_on_hand = max(0, $output->quantity_on_hand - $qtySold);
+            $output->save();
+
+            return;
+        }
+
+        // No production step for this recipe, so the sale is still the only
+        // thing that moves stock and deducts the raw ingredients itself. This
+        // is every recipe until someone gives it a finished good on the
+        // Recipes page.
+        foreach ($recipe->ingredients as $ingredient) {
+            $item = $ingredient->inventoryItem;
+            if (!$item) continue;
+
+            $deduct = $ingredient->quantity * $qtySold;
+            $item->quantity_on_hand = max(0, $item->quantity_on_hand - $deduct);
+            $item->save();
+        }
     }
 }

@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
     Route::patch('/purchases/{purchase}', [PurchaseController::class, 'update'])->name('purchases.update');
     Route::patch('/purchases/{purchase}/toggle-status', [PurchaseController::class, 'toggleStatus'])->name('purchases.toggle-status');
+    Route::post('/purchases/complete', [PurchaseController::class, 'complete'])->name('purchases.complete');
     Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
     Route::get('/purchases/{purchase}/receipt', [PurchaseController::class, 'receipt'])->name('purchases.receipt');
     Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('purchases.show');
@@ -131,6 +132,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/prep', [PrepChecklistController::class, 'index'])->name('prep.index');
     Route::get('/prep/overview', [PrepChecklistController::class, 'overview'])->name('prep.overview');
+    Route::get('/prep/history', [PrepChecklistController::class, 'history'])->name('prep.history');
     Route::post('/prep/task-check', [PrepChecklistController::class, 'storeTaskCheck'])->name('prep.task-check');
     Route::get('/prep/task-check/{sectionCheck}/photo', [PrepChecklistController::class, 'taskCheckPhoto'])->name('prep.task-check.photo');
 

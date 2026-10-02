@@ -12,6 +12,7 @@
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-start;">
             <form method="GET" action="{{ route('dashboard') }}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                 <input type="month" name="month" value="{{ $month }}"
+                       onchange="this.form.submit()"
                        style="padding:7px 10px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:13px;">
                 <button type="submit"
                         style="background-color:hsl(20,60%,45%); color:white; padding:7px 16px; border-radius:6px; font-size:13px; font-weight:500; border:none; cursor:pointer;">
@@ -25,6 +26,22 @@
             @endif
         </div>
     </div>
+
+    {{-- Owed to suppliers - read off Bukku; the list lives on Invoice Scan / DO. --}}
+    @if($owed && $owed['count'] > 0)
+        <a href="{{ route('invoice-scan.index') }}#owed"
+           style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; background:white; border:1px solid hsl(30,15%,90%); border-left:3px solid #d97706; border-radius:8px; padding:16px 20px; margin-bottom:16px; text-decoration:none; color:inherit;">
+            <div>
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:hsl(24,5%,45%); margin-bottom:6px;">Owed to suppliers</div>
+                <div style="font-size:26px; font-weight:500; font-family:'DM Sans',sans-serif;">@money($owed['total'])</div>
+                <div style="font-size:12px; color:hsl(24,5%,45%); margin-top:4px;">
+                    {{ $owed['count'] }} unpaid {{ Str::plural('bill', $owed['count']) }} in Bukku ·
+                    <span style="color:{{ $owed['oldest'] > 30 ? '#b91c1c' : 'inherit' }};">oldest {{ $owed['oldest'] }} {{ Str::plural('day', $owed['oldest']) }}</span>
+                </div>
+            </div>
+            <span style="color:hsl(20,60%,45%); font-size:13px; font-weight:500;">See the bills →</span>
+        </a>
+    @endif
 
     {{-- KPI Cards --}}
     <div style="margin-bottom:32px;">
@@ -69,7 +86,7 @@
                 <div style="font-size:12px; color:hsl(24,5%,45%); margin-top:4px;">Wastage / purchase spend</div>
             </div>
             <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; padding:20px;">
-                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:hsl(24,5%,45%); margin-bottom:8px;">No Stock Items</div>
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:hsl(24,5%,45%); margin-bottom:8px;">Low Stock Items</div>
                 <div class="app-kpi" data-value="{{ $outOfStockCount }}" data-decimals="0" style="font-size:26px; font-weight:500; font-family:'DM Sans',sans-serif; color:{{ $outOfStockCount > 0 ? 'hsl(0,70%,50%)' : 'inherit' }};">{{ $outOfStockCount }}</div>
                 <div style="font-size:12px; color:hsl(24,5%,45%); margin-top:4px;">Run out — nothing left</div>
             </div>
@@ -110,14 +127,14 @@
     <div class="app-bottom-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
         {{-- Run out --}}
         <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; padding:24px;">
-            <h3 style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:500; margin-bottom:16px;">No Stock</h3>
+            <h3 style="font-family:'DM Sans',sans-serif; font-size:17px; font-weight:500; margin-bottom:16px;">Low Stock</h3>
             @forelse($outOfStockItems as $item)
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid hsl(30,15%,93%);">
                     <div>
                         <div style="font-size:14px; font-weight:500;">{{ $item->name }}</div>
                         <div style="font-size:12px; color:hsl(24,5%,45%);">{{ $item->quantity_on_hand }} {{ $item->unit }} on hand</div>
                     </div>
-                    <span style="background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">No stock</span>
+                    <span style="background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">Low stock</span>
                 </div>
             @empty
                 <p style="font-size:14px; color:hsl(24,5%,45%);">Nothing has run out.</p>
@@ -196,7 +213,7 @@
                 <td style="padding:11px 16px; font-weight:500;">
                     {{ $item->name }}
                     @if($item->isOutOfStock())
-                        <span style="margin-left:6px; background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px;">No stock</span>
+                        <span style="margin-left:6px; background:#fee2e2; color:#991b1b; font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px;">Low stock</span>
                     @endif
                 </td>
                 <td class="edit-only" style="display:none; padding:11px 16px;">

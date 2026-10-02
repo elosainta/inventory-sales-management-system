@@ -41,7 +41,7 @@ The models that carry real behaviour are explained in [[Code paths index]] and [
 | `Sale` | `sales` | ✅ | `getLabelAttribute` belongsTo, `attachments` hasMany |
 | `SaleAttachment` | `sale_attachments` | — | `sale` belongsTo |
 | `Section` | `sections` | ✅ | `tasks` hasMany |
-| `SectionCheck` | `section_checks` | — | `task` belongsTo, `user` belongsTo |
+| `SectionCheck` | `section_checks` | — | `time` belongsTo, `user` belongsTo |
 | `SectionTask` | `section_tasks` | ✅ | `section` belongsTo, `checks` hasMany |
 | `SpecialEvent` | `special_events` | ✅ | — |
 | `StaffMeal` | `staff_meals` | — | `lines` hasMany, `creator` belongsTo |

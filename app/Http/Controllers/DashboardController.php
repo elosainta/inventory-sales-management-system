@@ -19,12 +19,16 @@ class DashboardController extends Controller
     {
         // /dashboard is the landing route as well as the financial page — the
         // sidebar logo points here from every page and so does the bare domain
-        // — so anyone whose home is elsewhere is sent there rather than shown a
+        // — so anyone who may not read it is sent home rather than shown a
         // refusal. This used to name the roles, and every role added after it
         // was written fell through to the 403 below. See User::homeRoute().
+        //
+        // The test is the gate, not homeRoute(): an Admin reads the dashboard
+        // (2026-09-24) but still LANDS on the support queue, so a homeRoute
+        // comparison would bounce them off a page they are allowed to open.
         $user = auth()->user();
 
-        if ($user->homeRoute() !== 'dashboard') {
+        if (! Gate::allows('view-dashboard')) {
             return redirect()->route($user->homeRoute());
         }
 
@@ -88,6 +92,16 @@ class DashboardController extends Controller
             ->whereYear('purchase_date', $year)->whereMonth('purchase_date', $mon)
             ->groupBy('supplier_id')->orderByDesc('total')->take(5)->get();
 
+        // Owed to suppliers, off Bukku (every unpaid bill, not just scanned
+        // ones). null when Bukku cannot be read, so the line is hidden rather
+        // than claiming nothing is owed.
+        $unpaid = rescue(fn () => \App\Support\Bukku::configured() ? \App\Support\Bukku::unpaidBills() : null, null);
+        $owed = $unpaid === null ? null : [
+            'total'  => array_sum(array_column($unpaid, 'balance')),
+            'count'  => count($unpaid),
+            'oldest' => $unpaid ? (int) \Illuminate\Support\Carbon::parse($unpaid[0]['date'])->diffInDays(today()) : 0,
+        ];
+
         $ownerData = null;
         if (auth()->user()?->role === 'owner') {
             $ownerData = [
@@ -113,7 +127,7 @@ class DashboardController extends Controller
             'wastageRate', 'grossMargin', 'pettyCashBalance', 'outOfStockCount',
             'salesTrend', 'purchaseTrend', 'wastageByReason', 'inventoryByCategory',
             'wastageTrend', 'outOfStockItems', 'topWasted', 'spendBySupplier',
-            'ownerData'
+            'ownerData', 'owed'
         ));
     }
 }

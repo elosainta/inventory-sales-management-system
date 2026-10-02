@@ -146,7 +146,7 @@ php artisan test
 
 ## Try it offline on Windows
 
-Download `ISMS.exe` from [Releases](../../releases) and double-click it: one
+Download [`portable/ISMS.exe`](https://github.com/elosainta/inventory-sales-management-system/raw/main/portable/ISMS.exe) (74 MB) and double-click it: one
 file, no installs, no internet. It runs the whole system on the PC with eight
 weeks of sample data and a one-click demo account for every role. Details and
 how it is built: [portable/README.md](portable/README.md).

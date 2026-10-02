@@ -1,8 +1,9 @@
 # Offline Windows demo
 
 `ISMS.exe` is the whole system in one file, for trying it on a Windows PC with
-no server, no installs and no internet. Download it from the
-[Releases](../../releases) page.
+no server, no installs and no internet. Download it here:
+[ISMS.exe](https://github.com/elosainta/inventory-sales-management-system/raw/main/portable/ISMS.exe)
+(74 MB).
 
 ## Using it
 
@@ -32,7 +33,7 @@ Requires 64-bit Windows 10 or 11.
 ## How it is built
 
 ```bash
-bash portable/build.sh     # writes portable/dist/ISMS.exe
+bash portable/build.sh     # rebuilds portable/ISMS.exe - commit it afterwards
 ```
 
 `build.sh` takes the committed app, adds `SampleDataSeeder` and the sign-in

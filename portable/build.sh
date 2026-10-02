@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the offline Windows demo as ONE file: portable/dist/ISMS.exe, with PHP
+# Build the offline Windows demo as ONE file: portable/ISMS.exe, with PHP
 # and this app embedded in it. See portable/README.md.
 #
 #   bash portable/build.sh
@@ -29,10 +29,10 @@ rm -rf "$OUT"
 mkdir -p "$APP"
 
 # The app: the committed tree, plus the gitignored installs it needs to run.
-git -C "$REPO" archive HEAD | tar -x -C "$APP"
+git -C "$REPO" archive HEAD -- . ":!portable" | tar -x -C "$APP"
 cp -r "$REPO/vendor" "$APP/vendor"
 cp -r "$REPO/public/build" "$APP/public/build"
-rm -rf "$APP/tests" "$APP/docs" "$APP/scripts" "$APP/portable" "$APP/.github" \
+rm -rf "$APP/tests" "$APP/docs" "$APP/scripts" "$APP/.github" \
        "$APP/docker-compose.yml" "$APP/Dockerfile" "$APP/docker"
 cp "$HERE/SampleDataSeeder.php" "$APP/database/seeders/"
 
@@ -113,4 +113,6 @@ FW=/c/Windows/Microsoft.NET/Framework64/v4.0.30319
   -out:"$(cygpath -w "$OUT/ISMS.exe")" "$(cygpath -w "$HERE/Launcher.cs")" "$(cygpath -w "$OUT/BuildInfo.cs")"
 
 rm -rf "$STAGE" "$OUT/payload.zip" "$OUT/BuildInfo.cs"
-ls -la "$OUT"
+mv "$OUT/ISMS.exe" "$HERE/ISMS.exe"
+rm -rf "$OUT"
+ls -la "$HERE/ISMS.exe"

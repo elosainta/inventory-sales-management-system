@@ -194,6 +194,13 @@ class AppServiceProvider extends ServiceProvider
         // for the books sends it.
         Gate::define('send-invoice-scan', fn (User $user) => $user->isManager());
 
+        // Every supplier bill on the books, paid and unpaid, read off Bukku.
+        // Owner and Head Chefs (Admin passes via Gate::before) — the Head
+        // Chefs order the deliveries, so what is still owed on them is theirs
+        // to read. Same reach as the "owed" panel they already see on Invoice
+        // Scan; this is the whole picture rather than only the arrears.
+        Gate::define('view-supplier-bills', fn (User $user) => $user->isManager());
+
         // R&D purchases: something bought to try out. Chefs, Admin and the
         // Owner record and correct them; the Owner alone decides.
         //

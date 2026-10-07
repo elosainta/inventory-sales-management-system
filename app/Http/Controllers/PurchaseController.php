@@ -10,6 +10,7 @@ use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Models\InventoryItem;
 use App\Support\Period;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -153,20 +154,61 @@ public function destroy(Purchase $purchase)
     {
         Gate::authorize('export-pdf');
 
-        // One page per supplier, not one row per purchase order: what the Owner
-        // wants off this PDF is "what did we buy from X and what did it cost",
-        // which lives on the line items, not the order headers.
-        $suppliers = Purchase::with(['supplier', 'lines.inventoryItem'])
-            ->get()
-            ->groupBy('supplier_id')
-            ->map(fn ($purchases) => [
-                'supplier' => $purchases->first()->supplier,
-                'lines'    => $purchases->flatMap->lines,
-            ])
-            ->sortBy(fn ($group) => $group['supplier']->name ?? '')
-            ->values();
+        // A month per sheet, and a line per supplier: what is owed to whom.
+        // It was a page per supplier listing every ingredient, which on live
+        // ran to fourteen sheets to answer a question about five numbers.
+        //
+        // Only the line totals are needed, so inventoryItem is not loaded.
+        $purchases = Purchase::with(['supplier', 'lines'])->get();
 
-        $pdf = Pdf::loadView('pdfs.purchases', compact('suppliers'));
+        // The label comes off a row's own date and never by re-parsing the
+        // Y-m key: Carbon fills a missing day from today, so parsing 2026-02
+        // on the 31st lands in March.
+        $months = $purchases
+            ->groupBy(fn ($purchase) => $purchase->purchase_date->format('Y-m'))
+            ->sortKeys()
+            ->map(fn ($group) => $this->statusSplit($group) + [
+                'label'     => $group->first()->purchase_date->format('F Y'),
+                'count'     => $group->count(),
+                'suppliers' => $this->spendPerSupplier($group),
+            ]);
+
+        $summary = $this->statusSplit($purchases) + ['count' => $purchases->count()];
+
+        $pdf = Pdf::loadView('pdfs.purchases', compact('months', 'summary'));
+
         return $pdf->download('purchases-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Spend, and how much of it is still unpaid.
+     *
+     * "Paid" here is this kitchen's own Completed/Pending status on a
+     * purchase, which is what the Purchase log sets. It is NOT the balance on
+     * the supplier's bill in Bukku — that is the Supplier Bills page, and the
+     * two can legitimately disagree while a delivery is logged but not yet
+     * settled. Both screens name which one they are showing.
+     *
+     * Summed off the lines rather than total_amount, so every figure in this
+     * report comes from the same place.
+     */
+    private function statusSplit(Collection $purchases): array
+    {
+        $spent = fn (Collection $set) => (float) $set->flatMap->lines->sum('line_total');
+
+        return [
+            'total'   => $spent($purchases),
+            'paid'    => $spent($purchases->where('status', 'completed')),
+            'pending' => $spent($purchases->where('status', 'pending')),
+        ];
+    }
+
+    /** Most owed first, so a month opens on whoever is waiting for money. */
+    private function spendPerSupplier(Collection $purchases): Collection
+    {
+        return $purchases
+            ->groupBy(fn ($purchase) => $purchase->supplier->name ?? 'No supplier')
+            ->map(fn ($group) => $this->statusSplit($group) + ['count' => $group->count()])
+            ->sortByDesc(fn ($row) => [$row['pending'], $row['total']]);
     }
 }

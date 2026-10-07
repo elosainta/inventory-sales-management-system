@@ -50,10 +50,9 @@ class LogPurchase
                 $item = InventoryItem::find($line['inventory_item_id']);
                 if (! $item) continue;
 
-                $item->quantity_on_hand += $line['quantity'];
-                $item->unit_cost         = $line['unit_price'];
-                $item->last_updated      = now();
-                $item->save();
+                // Keyed the way the invoice reads - so many packs at the pack
+                // price. receive() is what turns that into shelf units.
+                $item->receive($line['quantity'], $line['unit_price']);
 
                 $updatedItemIds[] = $item->id;
             }

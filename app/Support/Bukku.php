@@ -377,7 +377,7 @@ class Bukku
      * made by hand in Bukku on 2026-09-17 with nothing but a name: legal name,
      * the supplier type, a company entity - plus `contact_code`, which Bukku's
      * screen fills in by itself but its API requires (the first live send, for
-     * BOON SENG on 2026-09-22, was a 422 without it). The code copies the shape
+     * EVERGREEN on 2026-09-22, was a 422 without it). The code copies the shape
      * Bukku generates: "C-" + the first 9 letters/digits of the name in
      * capitals + 4 hex, e.g. C-HILLSIDEAa396.
      *

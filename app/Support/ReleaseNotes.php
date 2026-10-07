@@ -30,14 +30,14 @@ namespace App\Support;
  */
 class ReleaseNotes
 {
-    public const CURRENT_VERSION = '1.38.1';
+    public const CURRENT_VERSION = '1.38.7';
 
     /** The very first commit, for the "since" line in the header. */
     public const FIRST_COMMIT      = '047cdf3';
     public const FIRST_RELEASE_DATE = '2026-04-29';
 
     /** Total commits behind the app — in the private repository it is developed in. */
-    public const TOTAL_COMMITS = 428;
+    public const TOTAL_COMMITS = 441;
 
     /**
      * @return array<int, array<string, mixed>> newest release first
@@ -45,6 +45,85 @@ class ReleaseNotes
     public static function all(): array
     {
         return [
+            [
+                'version' => '1.38.7',
+                'date'    => '2026-10-05',
+                'summary' => 'A failed cache purge now diagnoses itself, and it has found what is wrong.',
+                'improved' => [
+                    'When the deploy cannot clear the logo files from Cloudflare, it now asks Cloudflare about the token as well as reporting the refusal, and prints how long the stored token is. That turned a dead end into an answer in one run.',
+                    'Values are read out of the configuration file on the server more carefully: an unquoted one now ends where the value ends, instead of swallowing a trailing comment or a stray space to the end of the line. Nothing was relying on the old behaviour, but it would have hidden a problem exactly like this one.',
+                ],
+                'changed' => [
+                    'What it found: the Cloudflare token saved on the server is 53 characters long, where Cloudflare issues 40, and Cloudflare rejects it outright rather than as expired or under-permissioned. So it is not a token that needs new permissions or renewing — it is the wrong value, and a freshly created one with Cache Purge on the example.com zone will fix it. Until then the site is entirely up to date and only the logo and favicon can be served stale from the edge.',
+                ],
+                'commits' => 'f8f3513..HEAD',
+            ],
+            [
+                'version' => '1.38.6',
+                'date'    => '2026-10-05',
+                'summary' => 'The deploy now says why a cache purge failed instead of only that it did.',
+                'improved' => [
+                    'The last step of a deploy clears the logo and favicon files from Cloudflare. When that step fails it now prints the reason Cloudflare gave, rather than just saying it failed — which is what made the same failure a dead end twice in one day.',
+                ],
+                'changed' => [
+                    'That step is failing at the moment, with an authentication error: the Cloudflare API token needs replacing, with Cache Purge permission on the example.com zone. Nothing else is affected — the site and every page on it are up to date, and only the logo and favicon can be served stale from the edge until it is sorted.',
+                ],
+                'commits' => 'd05dae5..HEAD',
+            ],
+            [
+                'version' => '1.38.5',
+                'date'    => '2026-10-05',
+                'summary' => 'A delivery of something that comes in packs now goes on the shelf as pieces, at the price of one.',
+                'fixed'   => [
+                    'Logging a delivery of anything bought by the pack — a tray of eggs, a carton of cooking oil, a pack of cheese slices — now puts the right number of pieces on the shelf at the price of one piece. Before today it added one to the count and charged the whole pack price to a single egg or kilo, which is what put every one of yesterday\'s wrong prices there in the first place. The Pack size box on the Inventory page has been sitting unused since July; it is now what does the conversion.',
+                ],
+                'improved' => [
+                    'On the New Purchase and Market Purchase forms, picking something that comes in packs now says so next to the Quantity box — "packs of 8 slices" — and marks the price as per pack. The price it fills in for you is the pack price to match, so what you key and what the invoice says are the same thing.',
+                ],
+                'changed' => [
+                    'This assumes anything with a pack size is always bought by the pack, which is how the kitchen buys. If a supplier ever sells one of them loose, say so and the form will get a per-line choice.',
+                ],
+                'commits' => '5da4cd5..HEAD',
+            ],
+            [
+                'version' => '1.38.4',
+                'date'    => '2026-10-05',
+                'summary' => 'Five ingredients were priced by the pack but counted by the piece. Every dish is now above cost.',
+                'fixed'   => [
+                    'Sourdough was costing RM 14.00 a slice — that is the price of a whole loaf, and there are 8 slices in one. It is now RM 1.75 a slice, which on its own turned sun rise egg and egg benedict from a loss into a profit.',
+                    'Cooking oil was costing RM 123.60 a kilo. The invoice from Lotus says that RM 123.60 buys a carton of 4 x 5kg, so it is RM 6.18 a kilo. Fifteen dishes use cooking oil and all of them were being costed too high.',
+                    'Victoria slice cheese was costing RM 37.80 a slice, which is the price of the whole pack of 84. One slice is 45 sen. Rendang Sando was reading a RM 32 loss almost entirely because of this.',
+                    'Big Breakfast was built with 1 kg of sausage on a single plate. It now takes one sausage. The dish was reading a RM 36.94 loss and now makes RM 20.87.',
+                    'Shakshuka asked for ten times as much shiitake mushroom as every other dish that uses it — 0.2 of a packet instead of 0.02. It now makes RM 15.16 instead of losing RM 7.27.',
+                    'Chicken sausage was valued at RM 192 per sausage on the Inventory page, because RM 192 buys a carton of 60. With that and the cooking oil corrected, the Inventory Value figure no longer carries about RM 13,580 of stock that was never there.',
+                ],
+                'changed' => [
+                    'One dish is still shown below cost: pad kra pao cup has no selling price set, so it reads as a loss of whatever it costs to make. Set a price on the Recipes page and it will come right.',
+                    'The sausage pack is assumed to hold 10. That item has never been bought through Purchases or Invoice Scan, so there was no invoice to read the real count off — worth confirming at the next stock-take.',
+                ],
+                'commits' => 'c5f5c31..HEAD',
+            ],
+            [
+                'version' => '1.38.3',
+                'date'    => '2026-10-02',
+                'summary' => 'Correcting an ingredient price now reprices the dishes that use it.',
+                'fixed'   => [
+                    'The egg price went in at 1 sen an egg instead of 56 sen earlier today. The price had already been put right by hand on the live system, and the correction divided it a second time. Eggs read RM 0.56 each again and the 17 dishes that use one have been repriced. The count on the shelf, 1,050 eggs, was right and has not been touched.',
+                    'Changing an ingredient price on the Inventory page now updates the plate cost of every dish that uses that ingredient. Until now only a delivery did that, so a price corrected by hand left the Recipes page showing the cost worked out from the old price — which is why Big Breakfast still read a loss after the egg price had been fixed. Changing only a quantity still leaves the dishes alone.',
+                ],
+                'commits' => 'cac709e..HEAD',
+            ],
+            [
+                'version' => '1.38.2',
+                'date'    => '2026-10-02',
+                'summary' => 'Eggs are counted one by one, so the dishes that use them cost the right amount again.',
+                'fixed'   => [
+                    'Eggs were held on the Inventory page by the tray and priced at RM 16.80 each, but every recipe lists eggs one at a time. Each egg in a dish was charged as a whole tray, which pushed five dishes below zero profit: Big Breakfast read RM 114.17 to make against a RM 35.00 menu price.',
+                    'The shelf now reads 1,050 eggs at RM 0.56 each instead of 35 trays at RM 16.80. That is the same RM 588.00 of stock, and the 17 dishes that use an egg have been repriced.',
+                    'Logging production now takes the right number of eggs off the shelf. A breakfast with two eggs used to remove two whole trays.',
+                ],
+                'commits' => '1701d68..HEAD',
+            ],
             [
                 'version' => '1.38.1',
                 'date'    => '2026-10-02',

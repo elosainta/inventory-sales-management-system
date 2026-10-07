@@ -32,4 +32,19 @@ class Money
     {
         return bcadd(bcmul((string) $quantity, (string) $price, 6), '0.005', 2);
     }
+
+    /**
+     * A pack price shared out over what is in the pack, to the sen, rounded
+     * half up - the mirror of lineAmount and for the same reason. A carton of
+     * cooking oil is bought at RM 123.60 and cooked with by the kilo.
+     *
+     * bcdiv on its own truncates, and truncation here is not a rounding
+     * nicety: dividing RM 16.80 by 30 is how eggs ended up at a single sen.
+     * Both inputs are > 0 wherever this is used, which is what makes
+     * +0.005 then truncate a correct half-up.
+     */
+    public static function perUnit(int|float|string $price, int|float|string $perPack): string
+    {
+        return bcadd(bcdiv((string) $price, (string) $perPack, 6), '0.005', 2);
+    }
 }

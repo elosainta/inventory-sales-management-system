@@ -48,10 +48,8 @@ class LogMarketPurchase
                 $item = InventoryItem::find($line['inventory_item_id']);
                 if (! $item) continue;
 
-                $item->quantity_on_hand += $line['quantity'];
-                $item->unit_cost         = $line['unit_price'];
-                $item->last_updated      = now();
-                $item->save();
+                // Keyed by the pack, same as a supplier purchase; see LogPurchase.
+                $item->receive($line['quantity'], $line['unit_price']);
 
                 $updatedItemIds[] = $item->id;
             }

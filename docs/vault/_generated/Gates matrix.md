@@ -8,7 +8,7 @@ generated: true
 
 # Gates matrix
 
-All 59 gates from `AppServiceProvider::boot()`, evaluated live against a synthetic user per role.
+All 60 gates from `AppServiceProvider::boot()`, evaluated live against a synthetic user per role.
 `?` means the gate needs state a synthetic user does not have. Explained in [[Authorization gates]].
 
 | Gate | Owner | Head Chef | Junior Chef | Admin |
@@ -66,6 +66,7 @@ All 59 gates from `AppServiceProvider::boot()`, evaluated live against a synthet
 | `view-sales` | ✅ | ✅ | — | ✅ |
 | `view-staff-meal` | ✅ | ✅ | ✅ | ✅ |
 | `view-stock-take` | ✅ | ✅ | ✅ | ✅ |
+| `view-supplier-bills` | ✅ | ✅ | — | ✅ |
 | `view-suppliers` | ✅ | ✅ | — | ✅ |
 | `view-support-tickets` | ✅ | — | — | ✅ |
 | `view-tally` | ✅ | ✅ | ✅ | ✅ |

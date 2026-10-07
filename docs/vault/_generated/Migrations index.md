@@ -8,7 +8,7 @@ generated: true
 
 # Migrations index
 
-91 migrations, oldest first. The schema they build is described in [[Database overview]].
+94 migrations, oldest first. The schema they build is described in [[Database overview]].
 
 | Date | Migration | Tables touched |
 |---|---|---|
@@ -103,3 +103,6 @@ generated: true
 | 2026-09-19 | merge duplicate suppliers and link bukku | — |
 | 2026-09-19 | correct truncated invoice scan totals | — |
 | 2026-09-19 | correct float rounded purchase totals | — |
+| 2026-10-02 | price eggs per piece not per tray | — |
+| 2026-10-02 | correct the per egg price | — |
+| 2026-10-05 | price packs per piece | — |

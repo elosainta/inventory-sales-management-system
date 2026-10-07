@@ -7,6 +7,7 @@ use App\Models\InventoryItem;
 use App\Models\MarketPurchaseLine;
 use App\Models\ProductionBatchLine;
 use App\Models\PurchaseLine;
+use App\Models\Recipe;
 use App\Models\RecipeIngredient;
 use App\Models\Supplier;
 use App\Models\WastageEntry;
@@ -87,8 +88,28 @@ class InventoryItemController extends Controller
         $data['last_updated'] = now();
 
         $inventoryItem->update($data);
+        $this->repriceRecipesUsing($inventoryItem);
 
         return back()->with('success', 'Ingredient updated.')->withFragment('item-' . $inventoryItem->id);
+    }
+
+    /**
+     * A corrected price has to reach the dishes that use the ingredient.
+     * Purchases and market purchases already reprice on the way in; a hand
+     * correction here did not, so an ingredient fixed on this page left every
+     * recipe on its old plate cost and the Recipes page went on reporting a
+     * loss that had already been put right.
+     */
+    private function repriceRecipesUsing(InventoryItem $item): void
+    {
+        if (! $item->wasChanged('unit_cost')) {
+            return;
+        }
+
+        Recipe::whereHas('ingredients', fn ($query) => $query->where('inventory_item_id', $item->id))
+            ->get()
+            ->each
+            ->recalculatePlateCost();
     }
 
     public function destroy(InventoryItem $inventoryItem)

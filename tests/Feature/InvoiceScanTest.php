@@ -955,7 +955,7 @@ class InvoiceScanTest extends TestCase
         $this->assertTrue($scan->isDeliveryOrder());
 
         Http::fake([
-            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'C.Y.H FRESH SUPPLY ENTERPRISE']]]),
+            '*/contacts*' => Http::response(['contacts' => [['id' => 2, 'legal_name' => 'DELTA FRESH SUPPLY ENTERPRISE']]]),
             '*/accounts*' => Http::response(['accounts' => []]),
             '*/products*' => Http::response(['products' => []]),
         ]);

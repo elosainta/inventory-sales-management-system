@@ -59,12 +59,26 @@ ssh -o ConnectTimeout=15 "$HOST" "sh -s '$DIR'" <<'PURGE' || true
 set -eu
 cd "$1"
 
-# Trim a wrapping quote with parameter expansion rather than another layer of
-# quoting inside a heredoc inside a shell string.
+# Read one value out of .env, with parameter expansion rather than another
+# layer of quoting inside a heredoc inside a shell string.
+#
+# A quoted value is taken verbatim; an unquoted one ends at the first space,
+# which is how dotenv itself reads them and what makes a trailing comment or a
+# stray space harmless. Taking the whole rest of the line is what made the
+# Cloudflare token arrive 53 characters long against the 40 Cloudflare issues,
+# for an "Invalid API Token" that looked for all the world like a revoked one.
+# A \r from an edit on Windows is invisible in output and counts toward the
+# length, so it goes first.
+#
+# ponytail: the unquoted branch would also cut a value that legitimately
+# contains a space. None of the three read here can — quote it if that changes.
 read_env() {
-  v=$(sed -n "s/^$1=//p" .env | head -1)
-  v=${v%\"}; v=${v#\"}
-  v=${v%\'}; v=${v#\'}
+  v=$(sed -n "s/^$1=//p" .env | head -1 | tr -d '\r')
+  case $v in
+    \"*\"*) v=${v#\"}; v=${v%%\"*} ;;
+    \'*\'*) v=${v#\'}; v=${v%%\'*} ;;
+    *)      v=${v%% *} ;;
+  esac
   printf '%s' "$v"
 }
 
@@ -85,13 +99,40 @@ for f in /favicon.ico /images/app-icon.png /images/app-wordmark.png /images/app-
   files="$files\"$base$f\""
 done
 
-if curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$zone/purge_cache" \
+response=$(curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$zone/purge_cache" \
      -H "Authorization: Bearer $token" \
      -H "Content-Type: application/json" \
-     --data "{\"files\":[$files]}" | grep -q '"success":true'; then
+     --data "{\"files\":[$files]}" 2>&1 || true)
+
+if printf '%s' "$response" | grep -q '"success":true'; then
   echo "  brand files purged — the favicon and logos refetch on next request"
 else
+  # Say what went wrong, not just that something did. A bare "failed" sent
+  # someone hunting through the Cloudflare dashboard for a token problem the
+  # API had already spelled out in its reply. The reply names no secret —
+  # the token is in the request, never the response.
   echo "  purge failed — the deploy is fine, but the edge may still serve an old logo"
+  printf '  cloudflare said: %s\n' "$response"
+
+  # Which kind of failure is it? A dead token and a live token that has lost
+  # Cache Purge on this zone both answer 10000 on a purge, and they are not
+  # fixed the same way. This asks the token about itself: "active" with an
+  # expiry in the future means the token is fine and the permission is the
+  # problem, anything else means it needs replacing.
+  #
+  # Only reached when the purge has already failed, so a good deploy still
+  # makes one API call. The reply carries the token's id, status and dates —
+  # never its value, which travels only in the request header.
+  check=$(curl -sS "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+       -H "Authorization: Bearer $token" 2>&1 || true)
+  printf '  token check:     %s\n' "$check"
+
+  # "Invalid API Token" covers a revoked token AND one that merely arrived
+  # malformed — a value truncated on its way into .env, or a quote the reader
+  # above did not strip. The count tells those apart without disclosing
+  # anything: a Cloudflare token is 40 characters, and a length is not a
+  # secret. Never print the value itself.
+  printf '  token length:    %s chars (Cloudflare issues 40)\n' "${#token}"
 fi
 PURGE
 

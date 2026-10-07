@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Money;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,6 +38,39 @@ class InventoryItem extends Model
             $item->quantity_on_hand = self::round2($item->quantity_on_hand);
             $item->monetary_value   = self::round2(bcmul($item->quantity_on_hand, (string) $item->unit_cost, 4));
         });
+    }
+
+    /**
+     * Take in a delivery and leave the shelf in the units a recipe counts.
+     *
+     * A delivery is keyed the way it is bought - a tray of eggs, a 4x5kg
+     * carton of oil, a pack of 84 cheese slices - while a recipe counts one
+     * egg, one kilo, one slice. pack_size is the bridge between the two, and
+     * applying it here is the whole purpose of the column: nothing read it
+     * until 1.38.5, so a pack price landed on a piece unit and six dishes
+     * read a loss while the Inventory page carried RM 13,580 of stock that
+     * was never there.
+     *
+     * No pack size means the invoice and the shelf already agree on the unit,
+     * so both figures go in untouched.
+     *
+     * ponytail: assumes a packed item is always bought by the pack, which is
+     * how this kitchen buys - every pack size on record is a tray, carton or
+     * pack from a supplier. Add a per-line packs/pieces choice if one ever
+     * starts selling a packed item loose.
+     */
+    public function receive(string|int|float $quantity, string|int|float $unitPrice): void
+    {
+        $perPack = $this->pack_size > 1 ? (string) $this->pack_size : '1';
+
+        $this->quantity_on_hand = bcadd(
+            (string) $this->quantity_on_hand,
+            bcmul((string) $quantity, $perPack, 4),
+            4
+        );
+        $this->unit_cost    = Money::perUnit($unitPrice, $perPack);
+        $this->last_updated = now();
+        $this->save();
     }
 
     /**

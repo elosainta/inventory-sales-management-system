@@ -31,45 +31,79 @@
          <details>, so it is one line until someone wants the list. --}}
     @if($owed->isNotEmpty())
         @php
-            $bySupplier = $owed->groupBy(fn ($b) => $kitchenNames[$b['contact_id'] ?? 0] ?? ($b['contact_name'] ?? 'Unknown supplier'))
-                ->sortByDesc(fn ($group) => $group->sum('balance'));
+            // By month, oldest first: this is an aging list, so the month
+            // holding the most overdue money reads first. The month LABEL is
+            // taken off a row's own date, never by re-parsing the Y-m key —
+            // Carbon fills a missing day from today, so parsing 2026-02 on
+            // the 31st lands in March.
+            $byMonth = $owed
+                ->groupBy(fn ($b) => \Illuminate\Support\Carbon::parse($b['date'])->format('Y-m'))
+                ->sortKeys();
         @endphp
         <details id="owed" style="background:white; border:1px solid hsl(30,15%,90%); border-left:3px solid #d97706; border-radius:8px; padding:14px 18px; margin-bottom:24px;">
             <summary style="cursor:pointer; font-size:15px;">
                 <strong>Owed to suppliers: @money($owed->sum('balance'))</strong>
-                <span style="color:hsl(24,5%,45%); font-size:13px;">on {{ $owed->count() }} unpaid {{ Str::plural('bill', $owed->count()) }} in Bukku, oldest first</span>
+                <span style="color:hsl(24,5%,45%); font-size:13px;">on {{ $owed->count() }} unpaid {{ Str::plural('bill', $owed->count()) }} in Bukku, by month, oldest first</span>
             </summary>
             <p style="color:hsl(24,5%,45%); font-size:12px; margin:10px 0 4px;">
                 Read from Bukku, including bills entered there directly. Record payments in Bukku; this list updates within five minutes.
             </p>
-            @foreach($bySupplier as $supplier => $supplierBills)
-                <div style="border-top:1px solid hsl(30,15%,93%); padding:10px 0;">
-                    <div style="display:flex; justify-content:space-between; gap:12px; font-weight:600; font-size:14px;">
-                        <span>{{ $supplier }} <span style="color:hsl(24,5%,45%); font-weight:400;">· {{ $supplierBills->count() }}</span></span>
-                        <span style="font-family:'JetBrains Mono',monospace;">@money($supplierBills->sum('balance'))</span>
-                    </div>
-                    @foreach($supplierBills as $bill)
-                        @php $age = (int) \Illuminate\Support\Carbon::parse($bill['date'])->diffInDays(today()); @endphp
-                        <div style="display:flex; justify-content:space-between; gap:12px; font-size:13px; color:hsl(24,10%,30%); padding:3px 0 0 12px; flex-wrap:wrap;">
+            @foreach($byMonth as $monthBills)
+                @php
+                    $month   = \Illuminate\Support\Carbon::parse($monthBills->first()['date'])->format('F Y');
+                    $overdue = $monthBills->filter(fn ($b) => \Illuminate\Support\Carbon::parse($b['date'])->diffInDays(today()) > 30);
+                    $bySupplier = $monthBills
+                        ->groupBy(fn ($b) => $kitchenNames[$b['contact_id'] ?? 0] ?? ($b['contact_name'] ?? 'Unknown supplier'))
+                        ->sortByDesc(fn ($group) => $group->sum('balance'));
+                @endphp
+                {{-- A month is shut until someone wants it: ninety-odd bills
+                     open at once is the wall this replaced. --}}
+                <details style="border-top:1px solid hsl(30,15%,88%); padding:8px 0;">
+                    {{-- display:flex on a <summary> drops the disclosure
+                         triangle in Chrome, so the flex row is a span inside
+                         it and the marker stays, matching the panel above. --}}
+                    <summary style="cursor:pointer; font-size:14px;">
+                        <span style="display:inline-flex; justify-content:space-between; gap:12px; width:calc(100% - 1.4em); vertical-align:top;">
                             <span>
-                                @if(! empty($bill['short_link']))
-                                    <a href="{{ $bill['short_link'] }}" target="_blank" rel="noopener" style="color:hsl(20,60%,45%); text-decoration:none; font-family:'JetBrains Mono',monospace;">{{ $bill['number'] }}</a>
-                                @else
-                                    <span style="font-family:'JetBrains Mono',monospace;">{{ $bill['number'] }}</span>
-                                @endif
-                                @if(! empty($bill['number2'])) · {{ $bill['number2'] }} @endif
-                                · {{ \Illuminate\Support\Carbon::parse($bill['date'])->format('d M Y') }}
-                                <span style="color:{{ $age > 30 ? '#b91c1c' : 'hsl(24,5%,45%)' }};">· {{ $age }} {{ Str::plural('day', $age) }} old</span>
-                            </span>
-                            <span style="font-family:'JetBrains Mono',monospace;">
-                                @money($bill['balance'])
-                                @if((float) $bill['balance'] < (float) $bill['amount'])
-                                    <span style="color:hsl(24,5%,45%);">of @money($bill['amount'])</span>
+                                <strong>{{ $month }}</strong>
+                                <span style="color:hsl(24,5%,45%);">· {{ $monthBills->count() }} {{ Str::plural('bill', $monthBills->count()) }} · {{ $bySupplier->count() }} {{ Str::plural('supplier', $bySupplier->count()) }}</span>
+                                @if($overdue->isNotEmpty())
+                                    <span style="color:#b91c1c;">· {{ $overdue->count() }} over 30 days</span>
                                 @endif
                             </span>
+                            <strong style="font-family:'JetBrains Mono',monospace; white-space:nowrap;">@money($monthBills->sum('balance'))</strong>
+                        </span>
+                    </summary>
+                @foreach($bySupplier as $supplier => $supplierBills)
+                    <div style="padding:8px 0 8px 12px;">
+                        <div style="display:flex; justify-content:space-between; gap:12px; font-weight:600; font-size:14px;">
+                            <span>{{ $supplier }} <span style="color:hsl(24,5%,45%); font-weight:400;">· {{ $supplierBills->count() }}</span></span>
+                            <span style="font-family:'JetBrains Mono',monospace;">@money($supplierBills->sum('balance'))</span>
                         </div>
-                    @endforeach
-                </div>
+                        @foreach($supplierBills as $bill)
+                            @php $age = (int) \Illuminate\Support\Carbon::parse($bill['date'])->diffInDays(today()); @endphp
+                            <div style="display:flex; justify-content:space-between; gap:12px; font-size:13px; color:hsl(24,10%,30%); padding:3px 0 0 12px; flex-wrap:wrap;">
+                                <span>
+                                    @if(! empty($bill['short_link']))
+                                        <a href="{{ $bill['short_link'] }}" target="_blank" rel="noopener" style="color:hsl(20,60%,45%); text-decoration:none; font-family:'JetBrains Mono',monospace;">{{ $bill['number'] }}</a>
+                                    @else
+                                        <span style="font-family:'JetBrains Mono',monospace;">{{ $bill['number'] }}</span>
+                                    @endif
+                                    @if(! empty($bill['number2'])) · {{ $bill['number2'] }} @endif
+                                    · {{ \Illuminate\Support\Carbon::parse($bill['date'])->format('d M Y') }}
+                                    <span style="color:{{ $age > 30 ? '#b91c1c' : 'hsl(24,5%,45%)' }};">· {{ $age }} {{ Str::plural('day', $age) }} old</span>
+                                </span>
+                                <span style="font-family:'JetBrains Mono',monospace;">
+                                    @money($bill['balance'])
+                                    @if((float) $bill['balance'] < (float) $bill['amount'])
+                                        <span style="color:hsl(24,5%,45%);">of @money($bill['amount'])</span>
+                                    @endif
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endforeach
+                </details>
             @endforeach
         </details>
         {{-- Arriving from the dashboard's "Owed to suppliers" opens the list. --}}

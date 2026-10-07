@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Thu, Oct 1, 2026 7:35 PM.
+Taken Wed, Oct 7, 2026 6:01 AM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,41 +19,41 @@ Taken Thu, Oct 1, 2026 7:35 PM.
 
 | | |
 |---|---|
-| Commits | 428 |
-| HEAD | `1701d68` |
-| Branch | `claude/zealous-euler-3cf219` |
-| Released version | `1.38.1` |
+| Commits | 447 |
+| HEAD | `25111d7` |
+| Branch | `claude/invoice-scan-count-07b283` |
+| Released version | `1.38.7` |
 
 ## Size
 
 | Layer | Files |
 |---|---|
 | Models | 40 |
-| Controllers | 35 |
+| Controllers | 36 |
 | Form Requests | 37 |
 | Domain actions | 12 |
 | Middleware | 3 |
 | Console commands | 9 |
-| Migrations | 91 |
-| Blade views | 79 |
-| Tests | 49 |
+| Migrations | 94 |
+| Blade views | 82 |
+| Tests | 54 |
 
 ## Last 15 commits
 
 | Date | Hash | Subject |
 |---|---|---|
-| 2026-10-02 | `1701d68` | docs: cut release 1.38.1 |
-| 2026-10-02 | `8bb42cf` | fix(backup): never prune the newest dump |
-| 2026-10-02 | `e110829` | docs: cut release 1.38 |
-| 2026-10-02 | `3e2d7b0` | fix(about): show the Changed and Fixed notes of every release |
-| 2026-10-02 | `b3f9618` | feat(purchases): search suppliers, complete a supplier with one photo, load a picked month at once |
-| 2026-10-02 | `655207d` | fix: show the whole total on purchase and sales log headers on a phone |
-| 2026-10-02 | `f90b37d` | test: assert the prep history fallback against the kitchen date |
-| 2026-10-01 | `571fa90` | refactor: apply the readable-code rules across actions and commands |
-| 2026-09-24 | `f2f58c0` | docs: cut release 1.37 |
-| 2026-09-24 | `6b6d3ef` | feat(dashboard): give Admin the financial dashboard |
-| 2026-09-22 | `ed7dcb7` | docs: cut release 1.36.2 |
-| 2026-09-22 | `47a61a6` | revert(purchases): remove the Log a delivery sheet |
-| 2026-09-22 | `e8ad925` | docs: cut release 1.36.1 |
-| 2026-09-22 | `5bbdf50` | feat(purchases): group the purchase log by supplier, like the Sales log |
-| 2026-09-22 | `e86a006` | docs: cut release 1.36 |
+| 2026-10-07 | `25111d7` | feat(purchases): a line per supplier, not a list of ingredients |
+| 2026-10-07 | `51f5ea4` | feat(purchases): paid/unpaid and a total summary on the PDF |
+| 2026-10-07 | `e1e6009` | feat(purchases): a month to a sheet in the PDF, not a page per supplier |
+| 2026-10-07 | `c76a3a4` | feat(supplier-bills): one sheet per month in the PDF |
+| 2026-10-07 | `35181e3` | feat(supplier-bills): every bill paid and unpaid, by month, with a PDF |
+| 2026-10-07 | `5a03899` | feat(invoice-scan): group what is owed by month, then by supplier |
+| 2026-10-05 | `c35657f` | fix(deploy): make a failed cache purge name its own cause |
+| 2026-10-05 | `f8f3513` | fix(deploy): report why a cache purge failed, not just that it did |
+| 2026-10-05 | `d05dae5` | feat(purchasing): apply pack_size when a delivery goes on the shelf |
+| 2026-10-05 | `5da4cd5` | fix(inventory): price five pack-bought ingredients per piece |
+| 2026-10-02 | `c5f5c31` | fix(inventory): reprice dishes when an ingredient price is corrected |
+| 2026-10-02 | `cac709e` | fix(inventory): price eggs per piece, not per tray |
+| 2026-10-02 | `d9d2e87` | chore(mirror): keep the public repo's own portable/ folder |
+| 2026-10-02 | `cda5b6f` | Revert "feat(mirror): build an offline Windows bundle of the public copy" |
+| 2026-10-02 | `1635021` | Revert "feat(mirror): ship the offline demo as one self-contained exe" |

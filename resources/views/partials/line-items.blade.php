@@ -39,13 +39,13 @@
                 @include('partials.new-item-panel')
             </div>
             <div>
-                <label style="display:block; font-size:12px; color:hsl(24,5%,45%); margin-bottom:2px;">Quantity</label>
+                <label style="display:block; font-size:12px; color:hsl(24,5%,45%); margin-bottom:2px;">Quantity <span class="pack-note" style="color:hsl(20,60%,42%);"></span></label>
                 <input type="number" name="lines[${idx}][quantity]" step="0.01" min="0.01" required
                        oninput="recalcTotal()"
                        style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px; box-sizing:border-box;">
             </div>
             <div>
-                <label style="display:block; font-size:12px; color:hsl(24,5%,45%); margin-bottom:2px;">Unit Price (RM)</label>
+                <label style="display:block; font-size:12px; color:hsl(24,5%,45%); margin-bottom:2px;">Unit Price (RM) <span class="price-note" style="color:hsl(20,60%,42%);"></span></label>
                 <input type="number" name="lines[${idx}][unit_price]" step="0.01" min="0" required
                        oninput="recalcTotal()"
                        style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px; box-sizing:border-box;">
@@ -59,11 +59,23 @@
     // Picking an ingredient fills in its last known unit price, same as the old
     // dropdown did. Only a whole match fills it — a half-typed name leaves the
     // price alone rather than blanking what someone already keyed in.
+    //
+    // Both boxes are per PACK, because that is what the invoice says: a carton
+    // of oil, a tray of eggs. The server applies pack_size when the stock goes
+    // in, so the shelf holds a per-piece cost — which has to be multiplied back
+    // up here, or accepting this prefill would divide the price a second time.
+    // The labels say which it is, so nobody keys loose pieces into a pack box.
     document.getElementById('line-items').addEventListener('input', (e) => {
         if (!e.target.classList.contains('item-picker')) return;
         const item  = ItemPicker.resolve(e.target);
+        const row   = e.target.closest('.line-row');
         const price = document.getElementsByName(e.target.dataset.for.replace('[inventory_item_id]', '[unit_price]'))[0];
-        if (item && price) price.value = item.cost;
+        const packed = item && item.pack > 1;
+
+        if (item && price) price.value = (packed ? item.cost * item.pack : item.cost).toFixed(2);
+
+        row.querySelector('.pack-note').textContent  = packed ? '— packs of ' + item.pack + ' ' + item.unit : '';
+        row.querySelector('.price-note').textContent = packed ? 'per pack' : '';
         recalcTotal();
     });
 

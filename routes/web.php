@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SupplierBillController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\InvoiceScanController;
@@ -75,6 +76,11 @@ Route::middleware('auth')->group(function () {
 
     // Invoice scan (BETA) - upload here, bill in Bukku, result back here.
     // store is throttled because each scan is a paid API call.
+    // Declared before the {invoiceScan} wildcard would ever see it, and
+    // export before index so neither path shadows the other.
+    Route::get('/supplier-bills/export/pdf', [SupplierBillController::class, 'exportPdf'])->name('supplier-bills.export-pdf');
+    Route::get('/supplier-bills', [SupplierBillController::class, 'index'])->name('supplier-bills.index');
+
     Route::get('/invoice-scan', [InvoiceScanController::class, 'index'])->name('invoice-scan.index');
     Route::post('/invoice-scan', [InvoiceScanController::class, 'store'])->name('invoice-scan.store')->middleware('throttle:10,1');
     Route::get('/invoice-scan/{invoiceScan}', [InvoiceScanController::class, 'show'])->name('invoice-scan.show');

@@ -8,7 +8,10 @@
      and data-for="<name of the hidden field>", sitting next to a hidden input of
      that name. The typed text is only ever a lookup key; the id is what submits.
 
-     Expects $pickerItems — inventory items with id, name, unit, unit_cost. --}}
+     Expects $pickerItems — inventory items with id, name, unit, unit_cost,
+     pack_size. The pack is carried for the purchase forms, which key a pack
+     price; a sheet that records what was used (R&D, staff meals) ignores it
+     and keeps showing the per-piece cost. --}}
 @php
     // Built here rather than inline in @json: Blade splits that directive's
     // argument on commas, so an expression containing any would lose its tail.
@@ -17,6 +20,7 @@
         'name' => $i->name,
         'unit' => $i->unit,
         'cost' => (float) ($i->unit_cost ?? 0),
+        'pack' => (float) ($i->pack_size ?? 0),
     ])->values();
 @endphp
 <datalist id="inventory-options"></datalist>

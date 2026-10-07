@@ -102,7 +102,7 @@ class InvoiceScanController extends Controller
             // The searchable inventory list behind each row's match box, and
             // what this kitchen has already been taught about these suppliers'
             // wording. Resolved here, in one query for the whole invoice.
-            'pickerItems'    => InventoryItem::orderBy('name')->get(['id', 'name', 'unit', 'unit_cost']),
+            'pickerItems'    => InventoryItem::orderBy('name')->get(['id', 'name', 'unit', 'unit_cost', 'pack_size']),
             'aliasMatches'   => InvoiceItemAlias::matchAll(array_column($lines, 'description')),
         ]);
     }

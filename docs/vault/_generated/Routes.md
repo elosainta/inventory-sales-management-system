@@ -8,7 +8,7 @@ generated: true
 
 # Routes
 
-All 139 registered routes, read straight from Laravel's router.
+All 141 registered routes, read straight from Laravel's router.
 Every controller method behind these is required to open with `Gate::authorize()` — see [[Authorization gates]].
 
 | Method | URI | Name | Action | Middleware |
@@ -82,6 +82,8 @@ Every controller method behind these is required to open with `Gate::authorize()
 | `GET` | `/stock-take/{stockTake}` | `stock-take.show` | `StockTakeController@show` | auth |
 | `GET` | `/stock-take` | `stock-take.index` | `StockTakeController@index` | auth |
 | `GET` | `/storage/{path}` | `storage.local` | `Closure` | — |
+| `GET` | `/supplier-bills/export/pdf` | `supplier-bills.export-pdf` | `SupplierBillController@exportPdf` | auth |
+| `GET` | `/supplier-bills` | `supplier-bills.index` | `SupplierBillController@index` | auth |
 | `GET` | `/suppliers` | `suppliers.index` | `SupplierController@index` | auth |
 | `GET` | `/support-tickets/{ticket}/media` | `support-tickets.media` | `SupportTicketController@media` | auth |
 | `GET` | `/support-tickets` | `support-tickets.index` | `SupportTicketController@index` | auth |

@@ -35,6 +35,7 @@ class SidebarMatchesGatesTest extends TestCase
         'purchases.index'        => 'view-purchases',
         'market-purchases.index' => 'view-market-purchases',
         'invoice-scan.index'     => 'use-invoice-scan',
+        'supplier-bills.index'   => 'view-supplier-bills',
         'production.index'       => 'view-production',
         'inventory.index'        => 'view-inventory',
         'stock-take.index'       => 'view-stock-take',

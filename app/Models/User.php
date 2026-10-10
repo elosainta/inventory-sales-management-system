@@ -139,13 +139,4 @@ class User extends Authenticatable
     {
         return $this->role === self::ROLE_ADMIN;
     }
-
-    /**
-     * A hidden, owner-level testing account whose writes are blocked and whose
-     * sales visibility is suppressed. Visible only to Admins.
-     */
-    public function isDemo(): bool
-    {
-        return (bool) $this->is_demo;
-    }
 }

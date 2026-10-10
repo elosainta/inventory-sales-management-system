@@ -14,7 +14,7 @@ The models that carry real behaviour are explained in [[Code paths index]] and [
 
 | Model | Table | Audited | Relations |
 |---|---|---|---|
-| `Audit` | `audits` | — | `user` belongsTo, `auditable` morphTo |
+| `Audit` | `audits` | — | `user` belongsTo |
 | `ComplianceReport` | `compliance_reports` | ✅ | `fromUser` belongsTo, `toUser` belongsTo |
 | `DailyReport` | `daily_reports` | ✅ | `user` belongsTo |
 | `FeedbackAttachment` | `feedback_attachments` | — | `feedbackEntry` belongsTo |

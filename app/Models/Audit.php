@@ -25,9 +25,4 @@ class Audit extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    public function auditable()
-    {
-        return $this->morphTo();
-    }
 }

@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Wed, Oct 7, 2026 10:18 AM.
+Taken Sat, Oct 10, 2026 12:46 PM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,9 +19,9 @@ Taken Wed, Oct 7, 2026 10:18 AM.
 
 | | |
 |---|---|
-| Commits | 449 |
-| HEAD | `65cd84f` |
-| Branch | `claude/invoice-scan-count-07b283` |
+| Commits | 451 |
+| HEAD | `d998350` |
+| Branch | `main` |
 | Released version | `1.38.7` |
 
 ## Size
@@ -42,6 +42,8 @@ Taken Wed, Oct 7, 2026 10:18 AM.
 
 | Date | Hash | Subject |
 |---|---|---|
+| 2026-10-10 | `d998350` | chore(dev): launch both the PHP server and Vite from the preview pane |
+| 2026-10-07 | `a23e37f` | fix(sales): stop the sheet losing a service, and say why a save failed |
 | 2026-10-07 | `65cd84f` | chore(mirror): scrub the suppliers the 1.38 reports quote |
 | 2026-10-07 | `977d6b0` | feat(purchases): the whole report on one page |
 | 2026-10-07 | `25111d7` | feat(purchases): a line per supplier, not a list of ingredients |
@@ -55,5 +57,3 @@ Taken Wed, Oct 7, 2026 10:18 AM.
 | 2026-10-05 | `d05dae5` | feat(purchasing): apply pack_size when a delivery goes on the shelf |
 | 2026-10-05 | `5da4cd5` | fix(inventory): price five pack-bought ingredients per piece |
 | 2026-10-02 | `c5f5c31` | fix(inventory): reprice dishes when an ingredient price is corrected |
-| 2026-10-02 | `cac709e` | fix(inventory): price eggs per piece, not per tray |
-| 2026-10-02 | `d9d2e87` | chore(mirror): keep the public repo's own portable/ folder |

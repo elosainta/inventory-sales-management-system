@@ -61,17 +61,4 @@ class StaffMeal extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-
-    // ---------- the costing sheet. All derived, none stored. ----------
-
-    /**
-     * The point of the report.
-     *
-     * pax is unsigned with min:1 on the request, so the guard below is belt and
-     * braces for a row written straight to the database.
-     */
-    public function getCostPerHeadAttribute(): float
-    {
-        return $this->pax > 0 ? round($this->grand_total / $this->pax, 2) : 0.0;
-    }
 }

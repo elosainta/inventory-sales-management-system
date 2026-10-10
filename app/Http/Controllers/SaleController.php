@@ -66,7 +66,12 @@ class SaleController extends Controller
 
         $count = count($data['qty']);
 
-        return back()->with('success', $count === 1 ? 'Sale logged.' : "{$count} sales logged.");
+        // sheet_saved, not the success flash: anything else on this page flashes
+        // success too, and the sheet's draft must survive logging an open order
+        // or saving a discount. Only its own save clears it.
+        return back()
+            ->with('sheet_saved', true)
+            ->with('success', $count === 1 ? 'Sale logged.' : "{$count} sales logged.");
     }
 
     public function store(StoreSaleRequest $request, LogSale $action)

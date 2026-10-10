@@ -32,7 +32,7 @@ That constraint shaped most of the design decisions below.
 | **Inventory** | Every item with unit cost, quantity and derived monetary value. Flags an item when it has run out; a new unit of measure can be added from any unit picker. A delivery is keyed the way it is bought — by the pack — and converted to the unit recipes count, so a carton price can never land on a kilo. |
 | **Recipes** | Ingredient lists with computed plate cost; a recipe can produce a finished-dish stock item. |
 | **Production** | Tap a dish, say how many were made and what each ingredient actually took, with the recipe's amount beside every box. Raw stock out, finished dishes in; removing a batch puts the stock back. |
-| **Sales** | A whole service on one sheet — every dish with a quantity box, one save. Stock is deducted automatically: the finished dish where one exists, otherwise the raw ingredients. Off-menu staff orders and receipt photos go through a pop-up. |
+| **Sales** | A whole service on one sheet — every dish with a quantity box, one save. The typed quantities survive a reload, and Save cannot fire twice. Stock is deducted automatically: the finished dish where one exists, otherwise the raw ingredients. Off-menu staff orders and receipt photos go through a pop-up. |
 | **Wastage** | Log what was thrown away and what it cost. |
 | **Purchases** | Supplier orders and ad-hoc market buys, both repricing inventory. The log is one collapsible row per supplier, searchable, with one upload of a statement or payment slip marking all of that supplier's pending purchases paid. Each purchase opens its own page, with the receipt beside the lines. |
 | **Supplier bills** | Every bill on the books, paid and unpaid, grouped by month and then by supplier, filtered to unpaid / paid / all, with a PDF of the same. Balances are read from the accounting system, not stored here. |
@@ -131,7 +131,7 @@ resolves to files on disk.
 
 ## Testing
 
-434 feature and unit tests. The ones that matter are not the CRUD tests — they
+437 feature and unit tests. The ones that matter are not the CRUD tests — they
 are the invariants: the gate/sidebar agreement, the per-role access matrices
 (the *deny* half especially), the arithmetic on stock balances and plate costs,
 the conversion from a pack price to a per-piece one, the guard against billing

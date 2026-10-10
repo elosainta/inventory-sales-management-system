@@ -163,4 +163,56 @@ class SalesSheetTest extends TestCase
 
         $this->assertSame(0, $status, implode(' | ', $out));
     }
+
+    /**
+     * Reported by a head chef on 7 October: a whole service keyed in, then a
+     * discount saved, and "it closed all the progress, then i need to open and
+     * redo again". The page had no error rendering at all, so a rejected save
+     * reloaded with the modal shut and nothing said.
+     */
+    public function test_a_rejected_sale_reopens_its_modal_and_says_why(): void
+    {
+        $response = $this->actingAs($this->manager())
+            ->from(route('sales.index'))
+            ->followingRedirects()
+            ->post(route('sales.store'), [
+                'form'          => 'add',
+                'recipe_id'     => $this->pork->id,
+                'qty_sold'      => 0,                 // below the minimum
+                'selling_price' => '25.00',
+                'sale_date'     => now()->toDateString(),
+                'is_open_order' => '0',
+            ]);
+
+        $response->assertOk();
+        // The box comes back open, rather than the page looking like it ate the work.
+        $response->assertSee("getElementById('add-modal').style.display = 'flex'", false);
+    }
+
+    public function test_saving_the_sheet_flags_itself_so_the_draft_can_be_dropped(): void
+    {
+        // Anything else on this page flashes success too, so the draft is
+        // cleared on its own flag and survives logging an open order.
+        $this->save([$this->pork->id => '3'])->assertSessionHas('sheet_saved', true);
+
+        $this->actingAs($this->manager())
+            ->post(route('sales.store'), [
+                'form'          => 'add',
+                'item_name'     => 'staff curry',
+                'is_open_order' => '1',
+                'qty_sold'      => 1,
+                'selling_price' => '10.00',
+                'sale_date'     => now()->toDateString(),
+            ])
+            ->assertSessionMissing('sheet_saved');
+    }
+
+    public function test_the_save_button_is_disabled_on_submit(): void
+    {
+        // Save fired twice in the same second and logged the service again.
+        $page = $this->actingAs($this->manager())->get(route('sales.index'))->getContent();
+
+        $this->assertStringContainsString("addEventListener('submit'", $page);
+        $this->assertStringContainsString('button.disabled = true', $page);
+    }
 }

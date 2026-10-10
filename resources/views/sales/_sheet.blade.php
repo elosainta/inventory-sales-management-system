@@ -19,6 +19,10 @@
         </label>
     </div>
 
+    <div id="sheet-restored" style="display:none; background:hsl(40,60%,96%); border-bottom:1px solid hsl(40,50%,85%); padding:10px 18px; font-size:13px; color:#92400e;">
+        Your typed quantities were kept from before. Check them, then save.
+    </div>
+
     @if($sheetErrors->any())
         <div style="background:#fef2f2; border-bottom:1px solid #fecaca; padding:10px 18px; font-size:13px; color:#991b1b;">
             @foreach(array_unique($sheetErrors->all()) as $error)<div>{{ $error }}</div>@endforeach
@@ -86,7 +90,62 @@
             document.getElementById('sheet-count').textContent = dishes + (dishes === 1 ? ' dish' : ' dishes');
         }
 
-        sheet.addEventListener('input', paint);
+        // A whole service is a lot of typing, and anything else on this page
+        // — logging an open order, saving a discount — reloads it and used to
+        // take the lot with it. The draft is kept per date, restored on load,
+        // and dropped only when the sheet itself saves.
+        const KEY = 'sales-sheet-draft';
+        const dateBox = sheet.querySelector('input[name="sale_date"]');
+
+        function store() {
+            const draft = { date: dateBox.value, qty: {}, price: {} };
+            sheet.querySelectorAll('.sheet-row').forEach(function (row) {
+                const qtyBox = row.querySelector('.sheet-qty');
+                if ((parseInt(qtyBox.value, 10) || 0) <= 0) return;
+                const id = qtyBox.name.replace(/\D+/g, '');
+                draft.qty[id] = qtyBox.value;
+                draft.price[id] = row.querySelector('.sheet-price').value;
+            });
+            try { sessionStorage.setItem(KEY, JSON.stringify(draft)); } catch (e) { /* private window */ }
+        }
+
+        function restore() {
+            let draft;
+            try { draft = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { return; }
+            if (!draft || !Object.keys(draft.qty || {}).length) return;
+
+            if (draft.date) dateBox.value = draft.date;
+            Object.keys(draft.qty).forEach(function (id) {
+                const qtyBox = sheet.querySelector('[name="qty[' + id + ']"]');
+                const priceBox = sheet.querySelector('[name="price[' + id + ']"]');
+                if (qtyBox) qtyBox.value = draft.qty[id];
+                if (priceBox && draft.price[id]) priceBox.value = draft.price[id];
+            });
+            document.getElementById('sheet-restored').style.display = '';
+        }
+
+        @if(session('sheet_saved'))
+            try { sessionStorage.removeItem(KEY); } catch (e) {}
+        @else
+            restore();
+        @endif
+
+        sheet.addEventListener('input', function () { paint(); store(); });
         paint();
+
+        // Save fired twice on 7 October and logged every dish on the sheet a
+        // second time, which the head chef then had to delete by hand. The
+        // button is let go again on bfcache restore, or going Back would find
+        // a sheet that cannot be saved.
+        sheet.addEventListener('submit', function () {
+            const button = sheet.querySelector('button[type="submit"]');
+            button.disabled = true;
+            button.textContent = 'Saving…';
+        });
+        window.addEventListener('pageshow', function () {
+            const button = sheet.querySelector('button[type="submit"]');
+            button.disabled = false;
+            button.textContent = 'Save sales';
+        });
     })();
 </script>

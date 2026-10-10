@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Wed, Oct 7, 2026 6:01 AM.
+Taken Wed, Oct 7, 2026 10:18 AM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,8 +19,8 @@ Taken Wed, Oct 7, 2026 6:01 AM.
 
 | | |
 |---|---|
-| Commits | 447 |
-| HEAD | `25111d7` |
+| Commits | 449 |
+| HEAD | `65cd84f` |
 | Branch | `claude/invoice-scan-count-07b283` |
 | Released version | `1.38.7` |
 
@@ -42,6 +42,8 @@ Taken Wed, Oct 7, 2026 6:01 AM.
 
 | Date | Hash | Subject |
 |---|---|---|
+| 2026-10-07 | `65cd84f` | chore(mirror): scrub the suppliers the 1.38 reports quote |
+| 2026-10-07 | `977d6b0` | feat(purchases): the whole report on one page |
 | 2026-10-07 | `25111d7` | feat(purchases): a line per supplier, not a list of ingredients |
 | 2026-10-07 | `51f5ea4` | feat(purchases): paid/unpaid and a total summary on the PDF |
 | 2026-10-07 | `e1e6009` | feat(purchases): a month to a sheet in the PDF, not a page per supplier |
@@ -55,5 +57,3 @@ Taken Wed, Oct 7, 2026 6:01 AM.
 | 2026-10-02 | `c5f5c31` | fix(inventory): reprice dishes when an ingredient price is corrected |
 | 2026-10-02 | `cac709e` | fix(inventory): price eggs per piece, not per tray |
 | 2026-10-02 | `d9d2e87` | chore(mirror): keep the public repo's own portable/ folder |
-| 2026-10-02 | `cda5b6f` | Revert "feat(mirror): build an offline Windows bundle of the public copy" |
-| 2026-10-02 | `1635021` | Revert "feat(mirror): ship the offline demo as one self-contained exe" |

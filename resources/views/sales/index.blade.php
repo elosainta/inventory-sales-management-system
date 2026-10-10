@@ -160,6 +160,12 @@
 
             <form action="{{ route('sales.store') }}" method="POST" id="sale-form" enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" name="form" value="add">
+                @if($errors->any() && old('form') === 'add')
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:10px 12px; margin-bottom:14px; font-size:13px; color:#991b1b;">
+                        @foreach(array_unique($errors->all()) as $error)<div>{{ $error }}</div>@endforeach
+                    </div>
+                @endif
                 <div id="recipe-field" style="margin-bottom:16px;">
                     <label style="display:block; font-size:14px; font-weight:500; margin-bottom:4px;">Recipe</label>
                     <select name="recipe_id" required id="recipe-select"
@@ -257,6 +263,13 @@
             </div>
 
             <form id="edit-form" method="POST">
+                <input type="hidden" name="form" value="edit">
+                <input type="hidden" name="edit_url" id="edit-url" value="">
+                @if($errors->any() && old('form') === 'edit')
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:10px 12px; margin-bottom:14px; font-size:13px; color:#991b1b;">
+                        @foreach(array_unique($errors->all()) as $error)<div>{{ $error }}</div>@endforeach
+                    </div>
+                @endif
                 @csrf
                 @method('PATCH')
                 <div id="edit-recipe-field" style="margin-bottom:16px;">
@@ -382,9 +395,33 @@
             const disc = parseFloat(document.getElementById('edit-discount').value) || 0;
             document.getElementById('edit-revenue').textContent = 'RM ' + Math.max(0, qty * price - disc).toFixed(2);
         }
+        // A rejected save used to reload the page with the modal shut and no
+        // message, so the head chef saw the form close and his typing gone
+        // ("it closed all the progress, then i need to open and redo again").
+        // The modal comes back with the values still in it and the reason why.
+        @if($errors->any() && old('form') === 'add')
+            document.getElementById('add-modal').style.display = 'flex';
+            syncAddOpenOrder();
+            updatePreview();
+        @elseif($errors->any() && old('form') === 'edit' && old('edit_url'))
+            document.getElementById('edit-form').action = @json(old('edit_url'));
+            document.getElementById('edit-url').value = @json(old('edit_url'));
+            document.getElementById('edit-qty').value = @json(old('qty_sold'));
+            document.getElementById('edit-price').value = @json(old('selling_price'));
+            document.getElementById('edit-discount').value = @json(old('discount'));
+            document.getElementById('edit-date').value = @json(old('sale_date'));
+            document.getElementById('edit-recipe').value = @json(old('recipe_id'));
+            document.getElementById('edit-item-name').value = @json(old('item_name') ?? '');
+            document.getElementById('edit-open-order').checked = @json(old('is_open_order') === '1');
+            document.getElementById('edit-modal').style.display = 'flex';
+            syncEditOpenOrder();
+            updateEditPreview();
+        @endif
+
         function openEditModal(btn) {
             var d = btn.dataset;
             document.getElementById('edit-form').action = d.editUrl;
+            document.getElementById('edit-url').value = d.editUrl;
             document.getElementById('edit-recipe').value = d.recipeId;
             document.getElementById('edit-qty').value = d.qty;
             document.getElementById('edit-price').value = d.price;

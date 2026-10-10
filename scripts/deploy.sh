@@ -99,7 +99,10 @@ for f in /favicon.ico /images/app-icon.png /images/app-wordmark.png /images/app-
   files="$files\"$base$f\""
 done
 
-response=$(curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$zone/purge_cache" \
+# -4: the token is IP-filtered to the droplet's IPv4 address, and curl
+# prefers IPv6, which Cloudflare refuses with "Cannot use the access token
+# from location".
+response=$(curl -4 -sS -X POST "https://api.cloudflare.com/client/v4/zones/$zone/purge_cache" \
      -H "Authorization: Bearer $token" \
      -H "Content-Type: application/json" \
      --data "{\"files\":[$files]}" 2>&1 || true)
@@ -114,25 +117,12 @@ else
   echo "  purge failed — the deploy is fine, but the edge may still serve an old logo"
   printf '  cloudflare said: %s\n' "$response"
 
-  # Which kind of failure is it? A dead token and a live token that has lost
-  # Cache Purge on this zone both answer 10000 on a purge, and they are not
-  # fixed the same way. This asks the token about itself: "active" with an
-  # expiry in the future means the token is fine and the permission is the
-  # problem, anything else means it needs replacing.
-  #
-  # Only reached when the purge has already failed, so a good deploy still
-  # makes one API call. The reply carries the token's id, status and dates —
-  # never its value, which travels only in the request header.
-  check=$(curl -sS "https://api.cloudflare.com/client/v4/user/tokens/verify" \
-       -H "Authorization: Bearer $token" 2>&1 || true)
-  printf '  token check:     %s\n' "$check"
-
-  # "Invalid API Token" covers a revoked token AND one that merely arrived
-  # malformed — a value truncated on its way into .env, or a quote the reader
-  # above did not strip. The count tells those apart without disclosing
-  # anything: a Cloudflare token is 40 characters, and a length is not a
-  # secret. Never print the value itself.
-  printf '  token length:    %s chars (Cloudflare issues 40)\n' "${#token}"
+  # 10000 here is not proof of a bad token. On 2026-10-10 the token was valid
+  # and the cause was CLOUDFLARE_ZONE_ID holding the account ID — the hex
+  # string in the dashboard URL, which looks exactly like a zone ID. A
+  # /user/tokens/verify check used to follow; it cannot see account-owned
+  # (cfat_…) tokens and reported this one "Invalid", so it is gone.
+  echo "  check CLOUDFLARE_ZONE_ID is the domain's Zone ID (domain Overview → API), not the account ID"
 fi
 PURGE
 

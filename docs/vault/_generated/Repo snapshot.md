@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Sat, Oct 10, 2026 1:12 PM.
+Taken Sat, Oct 10, 2026 1:36 PM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,8 +19,8 @@ Taken Sat, Oct 10, 2026 1:12 PM.
 
 | | |
 |---|---|
-| Commits | 452 |
-| HEAD | `52532c0` |
+| Commits | 453 |
+| HEAD | `6bc62d2` |
 | Branch | `main` |
 | Released version | `1.38.7` |
 
@@ -42,6 +42,7 @@ Taken Sat, Oct 10, 2026 1:12 PM.
 
 | Date | Hash | Subject |
 |---|---|---|
+| 2026-10-10 | `6bc62d2` | fix(deploy): purge the Cloudflare cache over IPv4, and stop blaming the token |
 | 2026-10-10 | `52532c0` | chore: drop three model methods nothing calls |
 | 2026-10-10 | `d998350` | chore(dev): launch both the PHP server and Vite from the preview pane |
 | 2026-10-07 | `a23e37f` | fix(sales): stop the sheet losing a service, and say why a save failed |
@@ -56,4 +57,3 @@ Taken Sat, Oct 10, 2026 1:12 PM.
 | 2026-10-05 | `c35657f` | fix(deploy): make a failed cache purge name its own cause |
 | 2026-10-05 | `f8f3513` | fix(deploy): report why a cache purge failed, not just that it did |
 | 2026-10-05 | `d05dae5` | feat(purchasing): apply pack_size when a delivery goes on the shelf |
-| 2026-10-05 | `5da4cd5` | fix(inventory): price five pack-bought ingredients per piece |

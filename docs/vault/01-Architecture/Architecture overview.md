@@ -6,7 +6,7 @@ A single-tenant Laravel monolith, server-rendered with Blade, deployed as one Do
 
 | Layer | Reality |
 |---|---|
-| Framework | Laravel 13.26 on PHP 8.5 (the production image builds on `php:8.5-fpm-alpine`) |
+| Framework | Laravel 13.35 on PHP 8.5 (the production image builds on `php:8.5-fpm-alpine`) |
 | Database | MariaDB 12 — two databases, see [[Database overview]] |
 | Views | **Blade, server-rendered.** 55 `.blade.php` files |
 | Frontend JS | Vite + Tailwind. Inertia/React is present but vestigial — only `resources/js/pages/Auth/Login.tsx` exists |

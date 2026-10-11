@@ -59,8 +59,9 @@ Learning happens **before** the bill is sent. What a supplier's wording means is
 ### Part four — the kitchen's own copy (`RecordPurchaseFromScan`)
 
 15. Lines are built from **matched rows only** and handed to `LogPurchase`, so stock in, `unit_cost` repriced and plate costs recalculated behave exactly as they do for a hand-keyed purchase — see [[Path — Logging a purchase]].
-16. The supplier is resolved from the Bukku contact the reviewer picked, matched **by name, case-insensitively**, against this system's own `suppliers`. The two lists are separate but hold the same companies. A genuinely new one is created, because `purchases.supplier_id` is NOT NULL and refusing to record a delivery from someone new would be the worse answer.
-17. `invoice_scans.purchase_id` is written, and is the guard against one invoice becoming two purchases.
+16. The supplier is the one the reviewer picked from the Suppliers page, linked to its Bukku contact through `suppliers.bukku_contact_id` (`Supplier::forBukkuContact()`, since 2026-09-19 — name-only matching made a second supplier for every scanned company, because Bukku spells names out in full). A genuinely new one is created, because `purchases.supplier_id` is NOT NULL and refusing to record a delivery from someone new would be the worse answer.
+17. The purchase is recorded **Not paid yet** (`status = pending`, since 2026-10-11). An invoice is a bill, not a payment; the receipt uploaded from the supplier's row on the Purchase log is what marks it Paid — [[Path — Logging a purchase#Paid, Not paid yet, and the supplier Upload]]. Until then they arrived Completed, which made the Purchase log and the purchases PDF call 51 unpaid bills paid.
+18. `invoice_scans.purchase_id` is written, and is the guard against one invoice becoming two purchases.
 
 This runs **after** the bill is filed and is **deliberately not fatal**. The bill is already on the books and re-pushing is refused, so a failure here reports itself and leaves the filing alone — throwing away a successful filing because the shelf update tripped would be far worse.
 

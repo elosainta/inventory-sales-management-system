@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Sun, Oct 11, 2026 12:26 PM.
+Taken Sun, Oct 11, 2026 12:48 PM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,8 +19,8 @@ Taken Sun, Oct 11, 2026 12:26 PM.
 
 | | |
 |---|---|
-| Commits | 477 |
-| HEAD | `a6e2001` |
+| Commits | 478 |
+| HEAD | `54fee88` |
 | Branch | `main` |
 | Released version | `1.43` |
 
@@ -42,6 +42,7 @@ Taken Sun, Oct 11, 2026 12:26 PM.
 
 | Date | Hash | Subject |
 |---|---|---|
+| 2026-10-11 | `54fee88` | chore(mirror): no staff names in test data; leak check ignores case |
 | 2026-10-11 | `a6e2001` | chore(mirror): keep .git-blame-ignore-revs out of the public copy |
 | 2026-10-11 | `7b95389` | ci: keep the check summaries when a check fails |
 | 2026-10-11 | `a5ed68b` | ci: show the Larastan and test summaries in the deploy log |
@@ -56,4 +57,3 @@ Taken Sun, Oct 11, 2026 12:26 PM.
 | 2026-10-11 | `3d56d4e` | docs: cut release 1.40 |
 | 2026-10-11 | `93332f4` | feat(uptime): server heartbeat watched by the uptime workflow |
 | 2026-10-11 | `ab939ff` | ci: uptime check that opens a site-down issue |
-| 2026-10-11 | `9b29720` | docs: cut release 1.39 |

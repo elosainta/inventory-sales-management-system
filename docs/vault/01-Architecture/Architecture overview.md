@@ -8,14 +8,17 @@ A single-tenant Laravel monolith, server-rendered with Blade, deployed as one Do
 |---|---|
 | Framework | Laravel 13.35 on PHP 8.5 (the production image builds on `php:8.5-fpm-alpine`) |
 | Database | MariaDB 12 — two databases, see [[Database overview]] |
-| Views | **Blade, server-rendered.** 55 `.blade.php` files |
-| Frontend JS | Vite + Tailwind. Inertia/React is present but vestigial — only `resources/js/pages/Auth/Login.tsx` exists |
+| Views | **Blade, server-rendered.** 82 `.blade.php` files (2026-10-11) |
+| Frontend JS | **None.** Vite + Tailwind build the CSS; interactivity is plain inline `<script>` |
 | PDF | DomPDF |
-| Charts | Chart.js |
+| Charts | Chart.js, from the jsdelivr CDN |
 | Package manager | pnpm (not npm) |
+| Quality | PHPUnit (452 tests), **Larastan** level 5, **Pint** — [[Local development#Tests]] |
+| Delivery | GitHub Actions: a pushed release is checked and deployed — [[Deployment]] |
+| Alerts | notified GitHub issues for errors, tickets, outages — [[Monitoring and alerts]] |
 
-> [!warning] Inertia/React is vestigial — exactly one page
-> 2 `.tsx` files, 55 Blade templates. Only `/login` is a React component, so when you go looking for a page, look in `resources/views/`, not `resources/js/pages/`. `resources/js/app.tsx` nonetheless loads on **every** page — it imports `resources/css/app.css`, so removing it strips all styling.
+> [!note] There is no React any more
+> Inertia/React once covered exactly one screen, the login page, and was removed in 1.10.37: it cost 7 npm packages, shipped a 317 KB bundle on every page and threw a `TypeError` on every other page. Look for any page in `resources/views/`. `resources/js/app.js` still loads on **every** page, but only because it imports `resources/css/app.css` — removing it strips all styling.
 
 ## The five layers
 

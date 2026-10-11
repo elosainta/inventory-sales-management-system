@@ -59,7 +59,8 @@ Every number the system shows, derived and explained.
 ## Infrastructure
 
 - [[VPS and hosting]] — the droplet, Docker, Cloudflare, TLS
-- [[Deployment]] — how a commit becomes production
+- [[Deployment]] — pushing a release deploys it: checks on GitHub, then a locked-down key
+- [[Monitoring and alerts]] — errors, support tickets, site down and failed deploys become notified GitHub issues
 - [[Backups]] — the 5-minute pull-down loop
 - [[Environment variables]] — every setting that matters
 - [[Local development]] — running it on your own machine

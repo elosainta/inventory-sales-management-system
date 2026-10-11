@@ -134,7 +134,7 @@ if ($item->isOutOfStock()) {
 
 Checked **after** the deduction, and it now reads the right way round: a batch that empties the shelf raises the alert. Under the old code the check ran after an *addition*, so it meant "you made some and it is still not enough." Since 1.28 the predicate is `q <= 0` rather than half the limit column — see [[Low stock threshold]].
 
-Threshold logic and why it is half: [[Low stock threshold]].
+Why the rule is "empty", not a fraction of a threshold: [[Low stock threshold]].
 
 ### 7 · `LogProduction.php:91-115` — notify, scoped to the actor's world
 

@@ -20,10 +20,20 @@ git config core.hooksPath        # → .githooks
 
 ```sh
 command -v php >/dev/null 2>&1 || exit 0
+
+# Format the PHP being committed with Pint (since 2026-10-11)
+if [ -f vendor/bin/pint ]; then
+  partial=$(git diff --name-only -- '*.php')
+  files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.php' ':!*.blade.php' | grep -vxF "${partial:-//none//}")
+  [ -n "$files" ] && php vendor/bin/pint --quiet $files && git add $files
+fi
+
 php artisan vault:sync >/dev/null 2>&1 || exit 0
 git add docs/vault/_generated 2>/dev/null
 exit 0
 ```
+
+The hook does two jobs now. **Pint first**: it formats only the PHP files being committed, and of those only the ones **staged in full** — re-adding a file staged with `git add -p` would commit the half deliberately left out — and never Blade, which Pint would mangle. The style is `pint.json` ([[Local development#Before committing]]). **Then the vault**, as below. Neither may block a commit: a missing `vendor` skips the formatting, and a broken boot costs a stale vault, never a lost commit.
 
 ### Why `pre-commit` and not `post-commit`
 

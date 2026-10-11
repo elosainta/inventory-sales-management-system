@@ -22,14 +22,14 @@ unset($data['lines']);
 
 `$data` is about to be mass-assigned to `Purchase::create()`. The line items are not columns on that table, so they must come out first.
 
-### 2 · `LogPurchase.php:21-23` — receipt to the public disk
+### 2 · `LogPurchase` — receipt to the private disk
 
 ```php
-$data['receipt_path'] = $receipt->store('receipts', 'public');
+$data['receipt_path'] = $receipt->store('receipts');
 ```
 
-> [!note] Public, unlike sale photos
-> Purchase receipts go to the **public** disk; sale photos go to the **private** one. The `public` disk needs `php artisan storage:link` to have been run, or the images 404.
+> [!note] Private, served through a gate
+> Receipts go to the default (**private**) disk, like sale photos, and are served by `PurchaseController@receipt` behind `view-purchases` — never by a public URL. (This note used to say the public disk; that stopped being true when uploads were made private, and `PrivateUploadsTest` pins it.)
 
 ### 3 · `LogPurchase.php:25-30` — total the invoice
 
@@ -82,9 +82,29 @@ Each `recalculatePlateCost()` call is a `save()`, so each also writes an [[Audit
 - [[Inventory monetary value]] — recomputed per item
 - [[Plate cost]] — recalculated for every affected recipe
 
+## Paid, Not paid yet, and the supplier Upload
+
+A purchase's `status` is stored `completed` or `pending` and **reads "Paid" and "Not paid yet" on every screen** (2026-10-11, the Owner — only the labels changed). The purchases PDF reads the same column as paid/unpaid. It is the kitchen's own record, not Bukku's balance; the two can differ while a delivery is logged but not yet settled.
+
+The Purchase log is one collapsible row per supplier. Inside each, **Upload receipt** (`PurchaseController@complete`, `manage-purchases`) takes one photo — a statement or a payment slip — and marks paid every purchase shown there that is **Not paid yet or has no receipt**:
+
+```php
+$open = Purchase::whereIn('id', $request->validated('purchase_ids'))
+    ->where(fn ($q) => $q->where('status', 'pending')->orWhereNull('receipt_path'))
+    ->get();
+// each: status => completed, receipt_path => its own ?? the one shared photo
+```
+
+- It posts the ids on screen, so it completes exactly what the reader saw.
+- The photo is stored **once** and shared by every purchase that had none (a supplier with daily deliveries would otherwise store the same photo 25 times a month); one that already had a receipt keeps it. So `destroy()` deletes a receipt file **only when no other purchase still points at it**.
+- A refused photo is an error toast (`CompletePurchasesRequest::failedValidation`), because the dropdown is collapsed again after the reload and a field error would be invisible.
+- The per-row status buttons stay, to undo a wrong Upload.
+
+The "or has no receipt" half was added because scanned invoices used to arrive Completed with no receipt — the button never appeared for them. They are now recorded **Not paid yet** ([[Path — Scanning an invoice]]), and the 51 already on live, every one still owing in Bukku (RM 10,716.87), were set back by migration `2026_10_11_000002`. `PurchaseLogTest` pins the button.
+
 ## Market purchases
 
-`LogMarketPurchase` (`app/Domain/Purchasing/Actions/LogMarketPurchase.php`) is the ad-hoc variant: market and one-off buys rather than supplier orders. Same inventory and recosting effects. Differences: status is always Completed, and `signed_by` is free text instead of a supplier relation. Gates `view-market-purchases` / `manage-market-purchases`, both `isManager()`.
+`LogMarketPurchase` (`app/Domain/Purchasing/Actions/LogMarketPurchase.php`) is the ad-hoc variant: market and one-off buys rather than supplier orders. Same inventory and recosting effects. Differences: status is always Completed (reads "Paid"), and `signed_by` is free text instead of a supplier relation. Gates `view-market-purchases` / `manage-market-purchases`, both `isManager()`.
 
 ## What it touches
 
@@ -100,7 +120,7 @@ Each `recalculatePlateCost()` call is a `save()`, so each also writes an [[Audit
 
 - **A typo in `unit_price` reprices the ingredient permanently** and silently recosts every recipe using it. There is no history of previous unit costs — the old value survives only in the `audits` before/after payload.
 - **Fixed in `4bbaeb0`:** `user_id` was not being set on purchase creation, producing a 500.
-- **Missing `storage:link`** makes every receipt image 404 with no error anywhere in the logs.
+- **A receipt shared by an Upload** belongs to several purchases. Delete files through `destroy()`, never by hand, or the others lose theirs.
 
 ## See also
 

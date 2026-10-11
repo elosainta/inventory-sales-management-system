@@ -1,6 +1,6 @@
 # Rounding and money
 
-Every money value in this system is MYR, stored `DECIMAL(12,2)`, rounded with PHP's `round()`, and displayed through exactly one function.
+Every money value in this system is MYR, stored `DECIMAL(12,2)`, and displayed through exactly one function. Rounding is done two ways: **in decimal, half up, with bcmath** wherever a supplier's or the books' figure has to be matched to the sen (purchase lines, pack prices, stock value — see [[#Decimal arithmetic (bcmath)]]), and with PHP's `round()` in the older paths that have not needed it (sales, production, wastage).
 
 ## The three rules
 
@@ -77,15 +77,48 @@ The half-away-from-zero bias means repeated rounding drifts upward very slightly
 
 ## Where money is rounded
 
-| Value | Site |
-|---|---|
-| `sales.total_revenue` | `Sale.php:33` |
-| `recipes.plate_cost` | `Recipe.php:47` |
-| `recipes.profit` (accessor) | `Recipe.php:17` |
-| `purchases.total_amount`, `purchase_lines.line_total` | `LogPurchase.php:29, 33` |
-| `production_batches.total_value`, lines | `LogProduction.php:26, 33` |
-| `wastage_entries.cost_lost` | `LogWastage.php:15-18` |
-| `inventory_items.monetary_value` | five sites — [[Inventory monetary value]] |
+| Value | Site | How |
+|---|---|---|
+| `sales.total_revenue` | `Sale::revenue()` | `round()` |
+| `recipes.plate_cost` | `Recipe::recalculatePlateCost()` | `round()` |
+| `recipes.profit` (accessor) | `Recipe::getProfitAttribute()` | `round()` |
+| `purchases.total_amount`, `purchase_lines.line_total` | `LogPurchase` (and `LogMarketPurchase`) | `Money::lineAmount()`, bcmath half up |
+| `production_batches.total_value`, lines | `LogProduction` | `round()` |
+| `wastage_entries.cost_lost` | `LogWastage`, `WastageEntryController` | `round()` |
+| `inventory_items.unit_cost` on a delivery | `InventoryItem::receive()` | `Money::perUnit()`, bcmath half up |
+| `inventory_items.monetary_value` | every save — [[Inventory monetary value]] | `InventoryItem::round2()`, bcmath half up |
+
+Line numbers were dropped from this table on 2026-10-11: the one-off Pint reformat moved most of them.
+
+## Decimal arithmetic (bcmath)
+
+`round()` works on binary floats, and some products land a hair under the half: $2.65 \times 11.70 = 31.005$ exactly, but the float is $31.00499\ldots$, so `round()` gives **31.00** where the `DECIMAL` columns, Bukku and the supplier's invoice say **31.01**. The same happened with $3.05 \times 14.50$ (44.22 vs 44.23). So the figures that must tally with someone else's books are worked out in decimal strings:
+
+| Function | Does | Used by |
+|---|---|---|
+| `Money::lineAmount($q, $p)` | $q \times p$ to the sen, half up | purchase and market-purchase lines and totals |
+| `Money::perUnit($price, $pack)` | a pack price shared over the pack, half up | `InventoryItem::receive()` — a carton bought, cooked by the kilo |
+| `InventoryItem::round2()` | half up to 2 places | `quantity_on_hand` and `monetary_value` on every save — [[Inventory monetary value]] |
+
+Half up is `bcadd($x, '0.005', 2)` — bcmath truncates, so adding half a sen first rounds up. That is only correct for **non-negative** values, which money and stock both are here; each function says so.
+
+### One way into bcmath
+
+bcmath takes **decimal strings only**, and `(string)` on a PHP float can produce an exponent. Stock arithmetic is still done in float in the older paths, and on 2026-10-11 Larastan found the consequence:
+
+$$0.90 - 0.3 \times 3 = 1.1102230246251565 \times 10^{-16} \;\longrightarrow\; \texttt{"1.1102230246252E-16"}$$
+
+A shelf of 0.90 kg, a dish using 0.3 kg, three sold: `LogSale` left that speck as the new quantity, `round2()` handed `"1.1…E-16"` to `bcadd()`, and bcmath threw `ValueError: not well-formed`. **Logging the sale returned an error page.** Any sale, production run or edit that used a shelf up exactly could do it.
+
+```php
+// app/Support/Money.php
+public static function decimal(int|float|string $value): string
+{
+    return is_float($value) ? sprintf('%.6F', $value) : (string) $value;
+}
+```
+
+`%.6F` never writes an exponent and six places is past anything stored (money 2, quantities 4). `lineAmount`, `perUnit`, `round2` and `receive` all feed their inputs through it, so the fix is in the shared functions rather than in each caller. **Never `(string)` a number on its way into a `bc*()` call.** `tests/Unit/DecimalStringTest.php` replays the 0.90 case and fails without the fix.
 
 ## Where money is *not* rounded
 

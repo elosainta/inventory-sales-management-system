@@ -17,9 +17,9 @@ Laravel 13 has no `Kernel.php`. The whole application configuration is one fluen
 
 ### 3. Middleware
 
-The web group, then four custom ones appended in `bootstrap/app.php:15-20`:
+The web group, then three custom ones appended in `bootstrap/app.php`:
 
-`HandleInertiaRequests` → `MaintenanceMode` → `SetLocale` → `UseDemoDatabase`
+`MaintenanceMode` → `SetLocale` → `UseDemoDatabase`
 
 That order is load-bearing. [[Middleware stack]] explains why `UseDemoDatabase` must be last.
 

@@ -9,6 +9,7 @@ Kitchen words and code words, and where they meet.
 | **COGS** | Cost of goods sold: what the food you actually sold cost to make. Not what you spent buying stock. | [[Cost of goods sold]] |
 | **Float** | Petty cash handed to a chef for market runs. Issued, spent, returned. | `float_issuances` — [[Petty cash balance]] |
 | **Gate** | A named yes/no authorization rule. The only permission mechanism in the system. | `AppServiceProvider::boot()` — [[Authorization gates]] |
+| **Heartbeat** | The server saying "still up": every 10 minutes it opens its own login page and, if that works, updates the closed `uptime-heartbeat` issue. Silence for 25 minutes is how an outage is noticed. | `uptime:beat` — [[Monitoring and alerts]] |
 | **Bukku** | The external Malaysian accounting system the kitchen's books live in. This system posts purchase bills into it; it is the only outbound write in the codebase. | [[Path — Scanning an invoice]] |
 | **Invoice alias** | What a supplier calls something, mapped to what this kitchen calls it. Taught by matching a line on the invoice-scan screen once; every later invoice using that wording arrives already matched. | `invoice_item_aliases` — [[Path — Scanning an invoice]] |
 | **Bukku product link** | `inventory_items.bukku_product_id` — which product in the accounts a shelf item is, where Bukku tracks it at all. Sparse: Bukku covers a fraction of what the kitchen stocks. It is what lets a scanned invoice line find its own account. | [[Path — Scanning an invoice]] |
@@ -18,10 +19,11 @@ Kitchen words and code words, and where they meet.
 | **Misc percent** | Overhead added on top of ingredient cost — gas, condiments, small consumables. Defaults to 30%. | [[Plate cost]] |
 | **Monetary value** | The money sitting on the shelf for one item: quantity × unit cost. | [[Inventory monetary value]] |
 | **Open order** | Food a staff member ordered from the kitchen, usually discounted. An *option on a sale*, not a separate module. Recorded anonymously. | [[Path — Logging a sale]] |
+| **Paid / Not paid yet** | What a purchase's `status` reads on screen; stored as `completed` / `pending`. Uploading a receipt from the supplier's row marks it Paid. The kitchen's own record, not Bukku's balance. | [[Path — Logging a purchase#Paid, Not paid yet, and the supplier Upload]] |
 | **Finished dish** | The stock a recipe produces (`recipes.output_inventory_item_id`). Set = that recipe runs Inventory → Production → Sales; null = a sale deducts its raw ingredients, as before. | [[Path — Logging production]] |
 | **Plate cost** | What one serving of a dish costs to make. | [[Plate cost]] |
 | **Production batch** | A dish the kitchen cooked: one recipe and how many were made. Consumes the recipe's ingredients and adds the finished dish to stock. | [[Path — Logging production]] |
-| **Reorder threshold** | The comfortable target stock level. **Not** the alert trigger — the trigger is half of it. | [[Low stock threshold]] |
+| **Reorder threshold** | The kitchen's **limit** — the most of a thing they hold (the Owner, 2026-09-12). Shown as *Threshold/Limit*; nothing compares against it any more. The alert fires only when a shelf hits **zero**. | [[Low stock threshold]] |
 | **Section** | A physical station in the kitchen with its own task checklist. Owned by nobody — anyone in the kitchen works any section. | `sections`, `section_tasks` |
 | **Stock-take** | What came in and what went out, counted off the Pantry catalog. **In adds to live stock, Out takes off it.** Current stock and balance are read from inventory, never typed. Feature 4. | [[Path — Recording a stock-take]] |
 | **Tally** | Manual count against the *live* inventory (254 items as at 2026-09-03) that **reconciles stock to the count**. Feature 5. | [[Path — Recording a tally]] |

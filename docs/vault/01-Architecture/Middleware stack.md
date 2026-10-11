@@ -1,23 +1,26 @@
 # Middleware stack
 
-Four custom middleware, appended to the `web` group in `bootstrap/app.php:14-21`:
+Three custom middleware, appended to the `web` group in `bootstrap/app.php`:
 
 ```php
+$middleware->trustProxies(at: '*');                    // Cloudflare is the only way in
+$middleware->encryptCookies(except: ['app_locale']); // readable before sign-in
+
 $middleware->web(append: [
-    \App\Http\Middleware\HandleInertiaRequests::class,
-    \App\Http\Middleware\MaintenanceMode::class,
-    \App\Http\Middleware\SetLocale::class,
-    \App\Http\Middleware\UseDemoDatabase::class,
+    MaintenanceMode::class,
+    SetLocale::class,
+    UseDemoDatabase::class,
 ]);
 ```
 
-Appended, so they run **after** the framework's session and authentication middleware. That ordering is what makes the last two possible at all — both need `auth()->user()`.
+Appended, so they run **after** the framework's session and authentication middleware. That ordering is what makes all three possible at all — each needs `auth()->user()`.
+
+`trustProxies(at: '*')` is safe only because the DO Cloud Firewall lets nothing but Cloudflare reach the origin ([[VPS and hosting#Origin lockdown]]); without it `$request->ip()` is a Cloudflare edge node, so login history records the wrong address and rate limiters lump strangers together.
+
+> [!note] `HandleInertiaRequests` is gone
+> It was the first of four until React and Inertia were removed in 1.10.37 ([[Architecture overview]]). If an older note or commit mentions it, that is why.
 
 ---
-
-## `HandleInertiaRequests`
-
-Vestigial. Inertia is installed and shares props, but only the login page is a React component. See the warning in [[Architecture overview]]. Harmless; not worth removing while the login page still uses it.
 
 ## `MaintenanceMode`
 
@@ -63,10 +66,9 @@ if ($user->is_demo) {
 
 | Position | Middleware | Needs |
 |---|---|---|
-| 1 | `HandleInertiaRequests` | nothing |
-| 2 | `MaintenanceMode` | live cache, `auth()->user()` for the owner bypass |
-| 3 | `SetLocale` | `auth()->user()->preferred_language` |
-| 4 | `UseDemoDatabase` | `auth()->user()->is_demo`, resolved on the **live** connection |
+| 1 | `MaintenanceMode` | live cache, `auth()->user()` for the owner bypass |
+| 2 | `SetLocale` | `auth()->user()->preferred_language`, else the `app_locale` cookie |
+| 3 | `UseDemoDatabase` | `auth()->user()->is_demo`, resolved on the **live** connection |
 
 ## See also
 

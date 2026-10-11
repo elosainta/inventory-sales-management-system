@@ -81,6 +81,9 @@ where $q_i$ is the recipe quantity of ingredient $i$, $n$ the number of plates s
 
 The `max(0, …)` clamp means overselling silently floors stock at zero rather than going negative. That is a deliberate choice: negative stock would poison [[Inventory monetary value]] and every dashboard figure downstream. The cost is that oversells become invisible — the discrepancy only surfaces at the next [[Path — Recording a tally]].
 
+> [!bug] Fixed 2026-10-11 — a sale that emptied a shelf exactly could crash
+> The subtraction is done in float. With 0.90 kg on the shelf, 0.3 kg per dish and three sold, $h_i - \text{deduct}_i = 1.1 \times 10^{-16}$, not 0 — the clamp lets a positive speck through. On `save()`, `InventoryItem::round2()` passed it to `bcadd()` as `"1.1102230246252E-16"`, bcmath refused the exponent, and **logging the sale returned an error page**. Found by Larastan, not by a cook. Fixed in the shared rounding rather than here: every bcmath input now goes through `Money::decimal()`, so the speck rounds to `0.00`. [[Rounding and money#One way into bcmath]].
+
 `unit_cost` is **not** touched, so no recipe needs recosting. Contrast with [[Path — Logging a purchase]], which does change it.
 
 ### 7 · Photos

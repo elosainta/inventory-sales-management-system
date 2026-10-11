@@ -61,7 +61,11 @@ class RecordPurchaseFromScan
             'supplier_id'    => Supplier::forBukkuContact((int) ($data['contact_id'] ?? 0) ?: null, $supplierName)->id,
             'user_id'        => auth()->id(),
             'invoice_number' => $data['invoice_number'] ?? null,
-            'status'         => 'completed',
+            // Pending: an invoice is a bill, not a payment. The receipt
+            // uploaded on the Purchase log is what completes it (the Owner,
+            // 2026-10-11) — until then 51 scanned purchases read as paid
+            // with no receipt, and the Upload button never showed for them.
+            'status'         => 'pending',
             'purchase_date'  => $data['invoice_date'],
             'lines'          => $lines,
         ]);

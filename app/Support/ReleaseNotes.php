@@ -30,14 +30,14 @@ namespace App\Support;
  */
 class ReleaseNotes
 {
-    public const CURRENT_VERSION = '1.38.7';
+    public const CURRENT_VERSION = '1.38.10';
 
     /** The very first commit, for the "since" line in the header. */
     public const FIRST_COMMIT      = '047cdf3';
     public const FIRST_RELEASE_DATE = '2026-04-29';
 
     /** Total commits behind the app — in the private repository it is developed in. */
-    public const TOTAL_COMMITS = 441;
+    public const TOTAL_COMMITS = 461;
 
     /**
      * @return array<int, array<string, mixed>> newest release first
@@ -45,6 +45,45 @@ class ReleaseNotes
     public static function all(): array
     {
         return [
+            [
+                'version' => '1.38.10',
+                'date'    => '2026-10-11',
+                'summary' => 'Fifty-one purchases that said Paid now say Not paid yet, because they are not paid.',
+                'fixed' => [
+                    'Every invoice scan sent before today had put its purchase down as paid the moment it was filed. All 51 were checked against Bukku and every one still has its full amount owing — RM 10,716.87 between them — so they now read Not paid yet. Uploading the receipt from the supplier\'s dropdown marks them paid.',
+                ],
+                'commits' => '5f77fc1..HEAD',
+            ],
+            [
+                'version' => '1.38.9',
+                'date'    => '2026-10-11',
+                'summary' => 'A purchase now says Paid or Not paid yet.',
+                'changed' => [
+                    'Purchase statuses read "Paid" and "Not paid yet" instead of "Completed" and "Pending" — on the Purchase log, a purchase\'s own page, the add and edit forms, and the receipt upload. Market purchases, which are paid on the spot, read "Paid". Nothing about how a purchase is recorded has changed, only what it is called.',
+                ],
+                'commits' => 'e04827b..HEAD',
+            ],
+            [
+                'version' => '1.38.8',
+                'date'    => '2026-10-11',
+                'summary' => 'Every purchase without a receipt can now be given one, a scanned invoice waits for its receipt before it counts as paid, and the supplier reports fit on a page.',
+                'added' => [
+                    'Supplier Bills: every bill from Bukku, paid and unpaid, a month to a row with what was billed, paid and still owed, the suppliers inside each month, and the same report as a PDF with a sheet per month. For the Owner and the head chefs.',
+                ],
+                'improved' => [
+                    'Purchases: each supplier\'s dropdown now has an Upload receipt button for every purchase that is pending or has no receipt, not just the pending ones. Uploading one photo marks them all completed; a purchase that already has a receipt keeps its own.',
+                    'The Purchases PDF is now one page: a line per supplier with what was spent, paid and still owed, the months as header rows, and a paid/unpaid summary at the top. It used to run to fourteen pages, one per supplier, listing every ingredient.',
+                    'Invoice Scan / DO: what is owed to suppliers is grouped by month, oldest first, then by supplier, so the panel opens as a few lines instead of every unpaid bill at once.',
+                    'Laravel and the build tools are up to date, which closes two security advisories in the framework.',
+                ],
+                'changed' => [
+                    'A sent invoice scan now records its purchase as Pending instead of Completed. An invoice is a bill, not a payment, and the Purchases PDF counts Completed as paid — so every scanned invoice was being reported as paid the moment it was filed. Uploading its receipt completes it. Purchases already on the books are left as they were.',
+                ],
+                'fixed' => [
+                    'The sales sheet no longer saves twice when Save is pressed once — on 7 October that logged sixteen sales where eight were meant. It also keeps what has been typed when an open order or a discount is saved on the same page, and a save that is refused now says why instead of closing.',
+                ],
+                'commits' => 'c35657f..HEAD',
+            ],
             [
                 'version' => '1.38.7',
                 'date'    => '2026-10-05',

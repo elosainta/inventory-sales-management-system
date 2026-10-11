@@ -8,7 +8,7 @@ generated: true
 
 # Migrations index
 
-94 migrations, oldest first. The schema they build is described in [[Database overview]].
+96 migrations, oldest first. The schema they build is described in [[Database overview]].
 
 | Date | Migration | Tables touched |
 |---|---|---|
@@ -106,3 +106,5 @@ generated: true
 | 2026-10-02 | price eggs per piece not per tray | — |
 | 2026-10-02 | correct the per egg price | — |
 | 2026-10-05 | price packs per piece | — |
+| 2026-10-11 | enter staff meals 5 to 11 september | — |
+| 2026-10-11 | unpay scanned purchases still owed in bukku | — |

@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Sat, Oct 10, 2026 1:36 PM.
+Taken Sun, Oct 11, 2026 8:34 AM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,10 +19,10 @@ Taken Sat, Oct 10, 2026 1:36 PM.
 
 | | |
 |---|---|
-| Commits | 453 |
-| HEAD | `6bc62d2` |
+| Commits | 460 |
+| HEAD | `9e8854a` |
 | Branch | `main` |
-| Released version | `1.38.7` |
+| Released version | `1.38.10` |
 
 ## Size
 
@@ -34,7 +34,7 @@ Taken Sat, Oct 10, 2026 1:36 PM.
 | Domain actions | 12 |
 | Middleware | 3 |
 | Console commands | 9 |
-| Migrations | 94 |
+| Migrations | 96 |
 | Blade views | 82 |
 | Tests | 54 |
 
@@ -42,6 +42,13 @@ Taken Sat, Oct 10, 2026 1:36 PM.
 
 | Date | Hash | Subject |
 |---|---|---|
+| 2026-10-11 | `9e8854a` | fix(purchases): set 51 scanned purchases back to Not paid yet |
+| 2026-10-11 | `5f77fc1` | docs: cut release 1.38.9 |
+| 2026-10-11 | `0f6b751` | feat(purchases): call the statuses Paid and Not paid yet |
+| 2026-10-11 | `e04827b` | docs: cut release 1.38.8 |
+| 2026-10-11 | `84d27a5` | feat(purchases): upload a receipt for any purchase without one |
+| 2026-10-11 | `9cb8c4b` | data(staff-meals): enter the 5–11 September sheets without moving stock |
+| 2026-10-10 | `968acee` | chore(deps): update Laravel to 13.35 and the build tools within range |
 | 2026-10-10 | `6bc62d2` | fix(deploy): purge the Cloudflare cache over IPv4, and stop blaming the token |
 | 2026-10-10 | `52532c0` | chore: drop three model methods nothing calls |
 | 2026-10-10 | `d998350` | chore(dev): launch both the PHP server and Vite from the preview pane |
@@ -50,10 +57,3 @@ Taken Sat, Oct 10, 2026 1:36 PM.
 | 2026-10-07 | `977d6b0` | feat(purchases): the whole report on one page |
 | 2026-10-07 | `25111d7` | feat(purchases): a line per supplier, not a list of ingredients |
 | 2026-10-07 | `51f5ea4` | feat(purchases): paid/unpaid and a total summary on the PDF |
-| 2026-10-07 | `e1e6009` | feat(purchases): a month to a sheet in the PDF, not a page per supplier |
-| 2026-10-07 | `c76a3a4` | feat(supplier-bills): one sheet per month in the PDF |
-| 2026-10-07 | `35181e3` | feat(supplier-bills): every bill paid and unpaid, by month, with a PDF |
-| 2026-10-07 | `5a03899` | feat(invoice-scan): group what is owed by month, then by supplier |
-| 2026-10-05 | `c35657f` | fix(deploy): make a failed cache purge name its own cause |
-| 2026-10-05 | `f8f3513` | fix(deploy): report why a cache purge failed, not just that it did |
-| 2026-10-05 | `d05dae5` | feat(purchasing): apply pack_size when a delivery goes on the shelf |

@@ -108,6 +108,8 @@ class ScannedInvoiceBecomesPurchaseTest extends TestCase
 
         $this->assertSame($purchase->id, $scan->fresh()->purchase_id);
         $this->assertSame('37.50', number_format((float) $purchase->total_amount, 2, '.', ''));
+        // A bill, not a payment: the receipt uploaded on the Purchase log completes it.
+        $this->assertSame('pending', $purchase->status);
 
         // Stock in, and repriced at what was actually paid.
         $chicken->refresh();

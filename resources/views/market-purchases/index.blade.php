@@ -55,7 +55,7 @@
                                 {{ $purchase->lines->count() }} item{{ $purchase->lines->count() === 1 ? '' : 's' }}
                             </td>
                             <td style="padding:12px 16px;">
-                                <span style="background:#dcfce7; color:#166534; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px;">Completed</span>
+                                <span style="background:#dcfce7; color:#166534; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px;">Paid</span>
                             </td>
                             <td style="padding:12px 16px;">
                                 @if($purchase->receipt_path)

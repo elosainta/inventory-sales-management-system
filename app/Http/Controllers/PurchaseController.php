@@ -128,26 +128,27 @@ public function destroy(Purchase $purchase)
     {
         Gate::authorize('manage-purchases');
 
-        $pending = Purchase::whereIn('id', $request->validated('purchase_ids'))
-            ->where('status', 'pending')
+        // Pending, or completed with no receipt — the same rule the button uses.
+        $open = Purchase::whereIn('id', $request->validated('purchase_ids'))
+            ->where(fn ($q) => $q->where('status', 'pending')->orWhereNull('receipt_path'))
             ->get();
 
-        if ($pending->isEmpty()) {
-            return back()->with('error', 'Nothing here is pending any more.');
+        if ($open->isEmpty()) {
+            return back()->with('error', 'Nothing here is waiting for a receipt any more.');
         }
 
         // Stored only when some purchase will show it, so no file is orphaned.
-        $photo = $pending->contains(fn ($p) => ! $p->receipt_path) ? $request->file('photo')->store('receipts') : null;
+        $photo = $open->contains(fn ($p) => ! $p->receipt_path) ? $request->file('photo')->store('receipts') : null;
 
-        DB::transaction(function () use ($pending, $photo) {
-            foreach ($pending as $purchase) {
+        DB::transaction(function () use ($open, $photo) {
+            foreach ($open as $purchase) {
                 $purchase->update(['status' => 'completed', 'receipt_path' => $purchase->receipt_path ?? $photo]);
             }
         });
 
-        $count = $pending->count();
+        $count = $open->count();
 
-        return back()->with('success', "{$count} " . Str::plural('purchase', $count) . ' marked completed.');
+        return back()->with('success', "{$count} " . Str::plural('purchase', $count) . ' marked paid.');
     }
 
     public function exportPdf()

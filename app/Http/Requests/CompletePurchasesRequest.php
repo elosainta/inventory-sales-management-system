@@ -8,8 +8,9 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * The Upload button on a supplier's dropdown in the Purchase log: one photo
- * completes every pending purchase it was shown beside.
+ * The Upload receipt button on a supplier's dropdown in the Purchase log: one
+ * photo completes every purchase it was shown beside that was pending or had
+ * no receipt.
  */
 class CompletePurchasesRequest extends FormRequest
 {

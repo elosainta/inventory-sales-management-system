@@ -87,8 +87,13 @@ class PurchaseLogTest extends TestCase
         $kangkung = $this->item('Kangkung');
         $first    = $this->bought($lotus, $kangkung, 12.40, '2026-09-10', 'pending');
         $second   = $this->bought($lotus, $kangkung, 8.00, '2026-09-11', 'pending');
-        $done     = $this->bought($lotus, $kangkung, 3.00, '2026-09-12');
-        $ids      = ['purchase_ids' => [$first->id, $second->id]];
+        // Completed but never given a receipt — how every scanned invoice
+        // arrived until 2026-10-11. The button covers it too.
+        $bare     = $this->bought($lotus, $kangkung, 3.00, '2026-09-12');
+        // Completed with its own receipt: nothing to do, so not on the button.
+        $done     = $this->bought($lotus, $kangkung, 5.00, '2026-09-13');
+        $done->update(['receipt_path' => 'receipts/own.jpg']);
+        $ids      = ['purchase_ids' => [$first->id, $second->id, $bare->id, $done->id]];
 
         $this->actingAs(User::factory()->create(['role' => User::ROLE_JUNIOR_CHEF]))
             ->post(route('purchases.complete'), $ids + ['photo' => UploadedFile::fake()->image('statement.jpg')])
@@ -96,21 +101,26 @@ class PurchaseLogTest extends TestCase
 
         $this->actingAs($this->owner())
             ->get(route('purchases.index'))
-            ->assertSeeText('2 pending');
+            ->assertSeeText('Upload receipt')
+            ->assertSeeText('3 purchases not paid yet or without a receipt');
 
         // Refused as a toast: the button sits in a dropdown that is collapsed after the reload.
         $this->post(route('purchases.complete'), $ids + ['photo' => UploadedFile::fake()->create('statement.pdf', 10, 'application/pdf')])
             ->assertSessionHas('error', 'That file is not a photo. Use JPG, PNG or WebP.');
 
         $this->post(route('purchases.complete'), $ids + ['photo' => UploadedFile::fake()->image('statement.jpg')])
-            ->assertSessionHas('success', '2 purchases marked completed.');
+            ->assertSessionHas('success', '3 purchases marked paid.');
 
-        [$first, $second, $done] = [$first->fresh(), $second->fresh(), $done->fresh()];
-        $this->assertSame(['completed', 'completed'], [$first->status, $second->status]);
+        [$first, $second, $bare, $done] = [$first->fresh(), $second->fresh(), $bare->fresh(), $done->fresh()];
+        $this->assertSame(['completed', 'completed', 'completed'], [$first->status, $second->status, $bare->status]);
         // One shared file, not a copy per purchase.
         $this->assertSame($first->receipt_path, $second->receipt_path);
+        $this->assertSame($first->receipt_path, $bare->receipt_path);
         $this->assertCount(1, Storage::allFiles('receipts'));
-        $this->assertNull($done->receipt_path);
+        $this->assertSame('receipts/own.jpg', $done->receipt_path);
+
+        // Once every purchase has its receipt there is nothing left to upload.
+        $this->get(route('purchases.index'))->assertDontSeeText('Upload receipt');
     }
 
     public function test_a_shared_photo_stays_until_its_last_purchase_goes(): void

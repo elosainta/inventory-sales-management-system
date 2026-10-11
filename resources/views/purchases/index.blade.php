@@ -51,7 +51,7 @@
                     <span style="font-family:'JetBrains Mono',monospace; font-weight:600; color:hsl(20,60%,38%); min-width:100px; text-align:right;">@money($group->sum('total_amount'))</span>
                 </button>
                 <div id="supplier-{{ $supplierId }}" style="display:none;">
-                @include('purchases._upload', ['pending' => $group->where('status', 'pending')])
+                @include('purchases._upload', ['open' => $group->filter(fn ($p) => $p->status === 'pending' || ! $p->receipt_path)])
             <table class="app-table" style="width:100%; border-collapse:collapse; font-size:14px; border-top:1px solid hsl(30,15%,90%);">
                 <thead>
                     <tr style="border-bottom:1px solid hsl(30,15%,90%);">
@@ -85,20 +85,20 @@
                                         @if($purchase->status === 'completed')
                                             <button type="submit"
                                                     style="background:#dcfce7; color:#166534; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px; border:none; cursor:pointer;">
-                                                Completed
+                                                Paid
                                             </button>
                                         @else
                                             <button type="submit"
                                                     style="background:#fef9c3; color:#854d0e; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px; border:none; cursor:pointer;">
-                                                Pending
+                                                Not paid yet
                                             </button>
                                         @endif
                                     </form>
                                 @else
                                     @if($purchase->status === 'completed')
-                                        <span style="background:#dcfce7; color:#166534; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px;">Completed</span>
+                                        <span style="background:#dcfce7; color:#166534; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px;">Paid</span>
                                     @else
-                                        <span style="background:#fef9c3; color:#854d0e; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px;">Pending</span>
+                                        <span style="background:#fef9c3; color:#854d0e; font-size:12px; font-weight:600; padding:2px 10px; border-radius:999px;">Not paid yet</span>
                                     @endif
                                 @endcan
                             </td>
@@ -228,8 +228,8 @@
                         <label style="display:block; font-size:14px; font-weight:500; margin-bottom:4px;">Status</label>
                         <select id="edit-status" name="status" required
                                 style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;">
-                            <option value="completed">Completed</option>
-                            <option value="pending">Pending</option>
+                            <option value="completed">Paid</option>
+                            <option value="pending">Not paid yet</option>
                         </select>
                     </div>
                     <div>
@@ -308,8 +308,8 @@
                         <label style="display:block; font-size:14px; font-weight:500; margin-bottom:4px;">Status</label>
                         <select name="status" required
                                 style="width:100%; padding:8px 12px; border:1px solid hsl(30,15%,85%); border-radius:6px; font-size:14px;">
-                            <option value="completed">Completed</option>
-                            <option value="pending">Pending</option>
+                            <option value="completed">Paid</option>
+                            <option value="pending">Not paid yet</option>
                         </select>
                     </div>
                     <div>

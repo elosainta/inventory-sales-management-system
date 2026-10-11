@@ -89,6 +89,6 @@
     </table>
 
     <p class="subtitle" style="margin-top:10px;">
-        Paid and owed here are this kitchen's own Completed and Pending status on a purchase, set from the Purchase log. For what the supplier's bill still has owing on it in Bukku, see the Supplier Bills report.
+        Paid and owed here are this kitchen's own Paid and Not paid yet status on a purchase, set from the Purchase log. For what the supplier's bill still has owing on it in Bukku, see the Supplier Bills report.
     </p>
 </x-pdf-base>

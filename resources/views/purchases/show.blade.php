@@ -23,9 +23,9 @@
 
         <div style="background:white; border:1px solid hsl(30,15%,90%); border-radius:8px; padding:24px;">
             @if($purchase->status === 'completed')
-                <span style="background:#dcfce7; color:#166534; font-size:12px; font-weight:600; padding:3px 12px; border-radius:999px;">Completed</span>
+                <span style="background:#dcfce7; color:#166534; font-size:12px; font-weight:600; padding:3px 12px; border-radius:999px;">Paid</span>
             @else
-                <span style="background:#fef9c3; color:#854d0e; font-size:12px; font-weight:600; padding:3px 12px; border-radius:999px;">Pending</span>
+                <span style="background:#fef9c3; color:#854d0e; font-size:12px; font-weight:600; padding:3px 12px; border-radius:999px;">Not paid yet</span>
             @endif
 
             <h2 style="font-family:'DM Sans',sans-serif; font-size:22px; font-weight:400; margin:16px 0 4px;">

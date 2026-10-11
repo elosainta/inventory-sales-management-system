@@ -4,7 +4,8 @@
 #
 #   bash portable/build.sh
 #
-# Needs, on a Windows machine (Git Bash): `composer install` and a built
+# Needs, on a Windows machine (Git Bash): `composer install`, composer itself
+# (on the PATH, or COMPOSER_PHAR=/path/to/composer.phar), and a built
 # public/build (`pnpm run build`) in this checkout; PHP 8.5 NTS x64 at C:\php
 # (or set PHPDIR); and the Visual C++ runtime in System32, which is there on
 # any machine that runs that PHP.
@@ -32,6 +33,16 @@ mkdir -p "$APP"
 git -C "$REPO" archive HEAD -- . ":!portable" | tar -x -C "$APP"
 cp -r "$REPO/vendor" "$APP/vendor"
 cp -r "$REPO/public/build" "$APP/public/build"
+
+# The dev tools stay out of the exe — PHPStan alone is 80 MB, and Larastan
+# took the file from 59 MB to 89. Composer drops them from the copy and
+# rebuilds the autoloader without them; deleting the folders by hand would
+# leave the autoloader loading files that are gone. Nothing is downloaded:
+# every package that stays is already in the copy.
+if [ -n "${COMPOSER_PHAR:-}" ]; then composer=(php -d memory_limit=-1 "$COMPOSER_PHAR")
+elif command -v composer >/dev/null; then composer=(composer)
+else echo "need composer on the PATH, or COMPOSER_PHAR=/path/to/composer.phar"; exit 1; fi
+( cd "$APP" && "${composer[@]}" install --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader --quiet )
 rm -rf "$APP/tests" "$APP/docs" "$APP/scripts" "$APP/.github" \
        "$APP/docker-compose.yml" "$APP/Dockerfile" "$APP/docker"
 cp "$HERE/SampleDataSeeder.php" "$APP/database/seeders/"

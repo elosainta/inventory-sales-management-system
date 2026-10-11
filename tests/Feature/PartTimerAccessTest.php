@@ -52,7 +52,7 @@ class PartTimerAccessTest extends TestCase
         return [
             'prep checklist'  => ['view-checklist'],
             'stock-take list' => ['view-stock-take'],
-            'stock-take entry'=> ['record-stock-take'],
+            'stock-take entry' => ['record-stock-take'],
             'wastage list'    => ['view-wastage'],
             'wastage entry'   => ['manage-wastage'],
             'inventory list'  => ['view-inventory'],

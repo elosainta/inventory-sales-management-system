@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Costing\Actions\CostingSheetLines;
 use App\Http\Requests\StoreStaffMealRequest;
 use App\Models\InventoryItem;
 use App\Models\StaffMeal;
@@ -9,7 +10,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use App\Domain\Costing\Actions\CostingSheetLines;
 
 /**
  * Staff meals — what the kitchen cooked for its own people, and what it cost.

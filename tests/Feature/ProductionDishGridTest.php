@@ -8,6 +8,8 @@ use App\Models\Recipe;
 use App\Models\RecipeIngredient;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -52,7 +54,7 @@ class ProductionDishGridTest extends TestCase
         return User::factory()->create(['role' => User::ROLE_JUNIOR_CHEF]);
     }
 
-    private function logDish(Recipe $recipe, array $used, array $extra = []): \Illuminate\Testing\TestResponse
+    private function logDish(Recipe $recipe, array $used, array $extra = []): TestResponse
     {
         return $this->actingAs($this->chef())
             ->from(route('production.dish', $recipe))
@@ -271,7 +273,7 @@ class ProductionDishGridTest extends TestCase
             ->assertDontSee('+ Log Production')
             ->assertDontSee('id="add-modal"', false);
 
-        $this->assertFalse(\Illuminate\Support\Facades\Route::has('production.store'));
+        $this->assertFalse(Route::has('production.store'));
     }
 
     public function test_the_dish_page_script_parses(): void

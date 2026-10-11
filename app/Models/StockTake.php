@@ -22,16 +22,19 @@ class StockTake extends Model
         'taken_on' => 'date',
     ];
 
+    /** @return BelongsTo<User, $this> */
     public function counter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'counted_by');
     }
 
+    /** @return HasMany<StockTakeEntry, $this> */
     public function entries(): HasMany
     {
         return $this->hasMany(StockTakeEntry::class);
     }
 
+    /** @return HasMany<StockTakeOpenOrder, $this> */
     public function openOrders(): HasMany
     {
         return $this->hasMany(StockTakeOpenOrder::class);

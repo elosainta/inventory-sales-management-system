@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\LogsActivity;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,16 +35,25 @@ class FeedbackEntry extends Model
         'comment',
     ];
 
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
     public function fromUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'from_user_id');
     }
 
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
     public function toUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'to_user_id');
     }
 
+    /** @return HasMany<FeedbackAttachment, $this> */
+
+    /** @return HasMany<FeedbackAttachment, $this> */
     public function attachments(): HasMany
     {
         return $this->hasMany(FeedbackAttachment::class);
@@ -74,7 +84,7 @@ class FeedbackEntry extends Model
             ->orderByDesc('created_at')
             ->get();
 
-        $monthLabel = \Carbon\Carbon::createFromDate((int) $year, (int) $mon, 1)->format('F Y');
+        $monthLabel = Carbon::createFromDate((int) $year, (int) $mon, 1)->format('F Y');
 
         $questionAverages = collect(self::QUESTIONS)
             ->map(fn ($label, $key) => $entries->isEmpty() ? null : round($entries->avg(fn ($entry) => $entry->rating($key)), 1));

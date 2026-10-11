@@ -8,6 +8,7 @@ use App\Models\RecipeIngredient;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -43,7 +44,7 @@ class SalesSheetTest extends TestCase
         return User::factory()->create(['role' => User::ROLE_HEAD_CHEF]);
     }
 
-    private function save(array $qty, array $price = []): \Illuminate\Testing\TestResponse
+    private function save(array $qty, array $price = []): TestResponse
     {
         return $this->actingAs($this->manager())
             ->from(route('sales.index'))

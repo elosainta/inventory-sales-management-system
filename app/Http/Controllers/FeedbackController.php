@@ -137,5 +137,4 @@ class FeedbackController extends Controller
             ],
         ]);
     }
-
 }

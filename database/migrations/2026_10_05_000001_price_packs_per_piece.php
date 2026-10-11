@@ -157,6 +157,6 @@ return new class extends Migration
         $losing = $recipes->filter(fn ($r) => $r->selling_price - $r->plate_cost < 0);
 
         echo "  {$recipes->count()} recipes repriced; {$losing->count()} still below cost"
-            . ($losing->isEmpty() ? ".\n" : ": " . $losing->pluck('name')->implode(', ') . ".\n");
+            . ($losing->isEmpty() ? ".\n" : ': ' . $losing->pluck('name')->implode(', ') . ".\n");
     }
 };

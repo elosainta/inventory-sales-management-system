@@ -9,16 +9,15 @@ class FloatIssuance extends Model
 {
     use LogsActivity;
 
-   protected $fillable = [
-    'amount_given',
-    'amount_spent',
-    'amount_returned',
-    'status',
-    'issued_date',
-];
+    protected $fillable = [
+        'amount_given',
+        'amount_spent',
+        'amount_returned',
+        'status',
+        'issued_date',
+    ];
 
     protected $casts = [
         'issued_date' => 'datetime',
     ];
-
 }

@@ -8,6 +8,7 @@ use App\Models\SectionTask;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -47,7 +48,7 @@ class SharedPrepChecklistTest extends TestCase
     public function test_prep_ticks_use_kitchen_time_not_utc(): void
     {
         [, $task] = $this->sectionWithTask();
-        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-09-18 23:41:00', 'UTC'));
+        $this->travelTo(Carbon::parse('2026-09-18 23:41:00', 'UTC'));
         $chef = User::factory()->create(['role' => User::ROLE_JUNIOR_CHEF]);
 
         $this->actingAs($chef)

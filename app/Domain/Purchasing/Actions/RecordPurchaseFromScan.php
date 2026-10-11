@@ -26,9 +26,7 @@ use App\Models\Supplier;
  */
 class RecordPurchaseFromScan
 {
-    public function __construct(private LogPurchase $logPurchase)
-    {
-    }
+    public function __construct(private LogPurchase $logPurchase) {}
 
     /**
      * @param  array<string,mixed>  $data  the reviewed bill, already validated

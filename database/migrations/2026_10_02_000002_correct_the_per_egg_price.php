@@ -25,8 +25,11 @@ use Illuminate\Database\Migrations\Migration;
 return new class extends Migration
 {
     private const ITEM_ID = 32;
+
     private const ITEM_NAME = 'EGG';
+
     private const BROKEN_COST = '0.01';
+
     private const PER_EGG = '0.56';
 
     public function up(): void
@@ -51,7 +54,7 @@ return new class extends Migration
 
         $recipes->each->recalculatePlateCost();
 
-        echo "  eggs: RM " . self::BROKEN_COST . " -> RM " . self::PER_EGG
+        echo '  eggs: RM ' . self::BROKEN_COST . ' -> RM ' . self::PER_EGG
             . " each, stock worth RM {$egg->monetary_value}; {$recipes->count()} recipes repriced.\n";
     }
 

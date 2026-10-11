@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Costing\Actions\CostingSheetLines;
 use App\Domain\Recipes\Actions\SaveRecipe;
 use App\Http\Requests\StoreRndEntryRequest;
 use App\Http\Requests\StoreRndRecipeRequest;
 use App\Models\InventoryItem;
 use App\Models\RndEntry;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Domain\Costing\Actions\CostingSheetLines;
 
 class RndEntryController extends Controller
 {
@@ -206,7 +207,7 @@ class RndEntryController extends Controller
      * shelf, so a figure that quietly dropped rejected trials would understate
      * what the dish actually cost to arrive at.
      */
-    private function spendPerMenu(\Illuminate\Support\Collection $entries): \Illuminate\Support\Collection
+    private function spendPerMenu(Collection $entries): Collection
     {
         return $entries
             ->groupBy(fn (RndEntry $entry) => $entry->menu_name ?: '—')

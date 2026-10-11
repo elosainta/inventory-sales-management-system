@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSupplierRequest;
 use App\Models\Supplier;
+use App\Support\Bukku;
 use Illuminate\Support\Facades\Gate;
 
 class SupplierController extends Controller
@@ -16,7 +17,7 @@ class SupplierController extends Controller
 
         // id => name, for the link picker and the "In Bukku" line on each card.
         $bukkuContacts = Gate::allows('manage-suppliers')
-            ? collect(\App\Support\Bukku::contacts())->mapWithKeys(fn ($c) => [(int) $c['id'] => \App\Support\Bukku::contactName($c)])->sort()->all()
+            ? collect(Bukku::contacts())->mapWithKeys(fn ($c) => [(int) $c['id'] => Bukku::contactName($c)])->sort()->all()
             : [];
 
         return view('suppliers.index', compact('suppliers', 'bukkuContacts'));
@@ -27,6 +28,7 @@ class SupplierController extends Controller
         Gate::authorize('manage-suppliers');
 
         Supplier::create($request->validated());
+
         return redirect()->route('suppliers.index')->with('success', 'Supplier added.');
     }
 
@@ -44,6 +46,7 @@ class SupplierController extends Controller
         Gate::authorize('manage-suppliers');
 
         $supplier->delete();
+
         return redirect()->route('suppliers.index')->with('success', 'Supplier removed.');
     }
 }

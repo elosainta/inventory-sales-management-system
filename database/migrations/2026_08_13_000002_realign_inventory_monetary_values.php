@@ -3,7 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * One-off realignment of the values that had already drifted before
      * InventoryItem::booted() started deriving monetary_value on every save.

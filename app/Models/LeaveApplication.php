@@ -12,7 +12,9 @@ class LeaveApplication extends Model
     use LogsActivity;
 
     public const STATUS_PENDING  = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
@@ -34,16 +36,25 @@ class LeaveApplication extends Model
         ];
     }
 
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
     public function decider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by');
     }
 
+    /** @return HasMany<LeaveAttachment, $this> */
+
+    /** @return HasMany<LeaveAttachment, $this> */
     public function attachments(): HasMany
     {
         return $this->hasMany(LeaveAttachment::class);

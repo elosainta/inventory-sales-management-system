@@ -3,7 +3,8 @@
 namespace App\Domain\Costing\Actions;
 
 use App\Models\InventoryItem;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\RndEntry;
+use App\Models\StaffMeal;
 
 /**
  * The ingredient lines of a costing sheet - an R&D trial or a staff meal.
@@ -19,7 +20,7 @@ final class CostingSheetLines
      * rename or deletion leaves the old sheet still readable, and a line cannot
      * read as one ingredient while having been costed as another.
      */
-    public static function write(Model $sheet, array $lines): void
+    public static function write(RndEntry|StaffMeal $sheet, array $lines): void
     {
         $items = InventoryItem::findMany(array_column($lines, 'inventory_item_id'))->keyBy('id');
 

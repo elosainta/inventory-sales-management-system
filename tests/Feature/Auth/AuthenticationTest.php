@@ -63,7 +63,7 @@ class AuthenticationTest extends TestCase
         // email+IP counter never reaches five on any of them, so only the
         // per-email counter can stop this — which is the whole point of it.
         foreach (range(1, 20) as $i) {
-            $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.'.$i])
+            $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.' . $i])
                 ->post('/login', ['email' => $user->email, 'password' => 'wrong-password']);
         }
 

@@ -24,6 +24,9 @@ class InvoiceItemAlias extends Model
 
     protected $fillable = ['normalised', 'supplier_text', 'inventory_item_id'];
 
+    /** @return BelongsTo<InventoryItem, $this> */
+
+    /** @return BelongsTo<InventoryItem, $this> */
     public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);

@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Purchasing\Actions\PushInvoiceToBukku;
+use App\Models\InventoryItem;
 use App\Models\InvoiceScan;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -99,7 +102,7 @@ class InvoiceScanTest extends TestCase
     /** A kitchen supplier already linked to Bukku contact $contactId. */
     private function supplierId(int $contactId): int
     {
-        return \App\Models\Supplier::firstOrCreate(
+        return Supplier::firstOrCreate(
             ['bukku_contact_id' => $contactId],
             ['name' => 'Supplier ' . $contactId, 'contact' => '', 'email' => '', 'address' => ''],
         )->id;
@@ -137,7 +140,7 @@ class InvoiceScanTest extends TestCase
     {
         $scan = $this->scannedRow();
         foreach (range(1, 12) as $n) {
-            \App\Models\Supplier::create(['name' => "Supplier $n", 'contact' => '', 'email' => '', 'address' => '']);
+            Supplier::create(['name' => "Supplier $n", 'contact' => '', 'email' => '', 'address' => '']);
         }
 
         Http::fake([
@@ -155,7 +158,7 @@ class InvoiceScanTest extends TestCase
             ->assertSee('Your inventory item')       // the match column
             ->assertSee('Send to Bukku')
             // Every kitchen supplier is offered, not the first ten.
-            ->assertSee('data-select-max="' . \App\Models\Supplier::count() . '"', false)
+            ->assertSee('data-select-max="' . Supplier::count() . '"', false)
             // The account and Bukku-product pickers were removed on 2026-09-03
             // at the Owner's request; every line now takes the fallback
             // account server-side.
@@ -254,7 +257,7 @@ class InvoiceScanTest extends TestCase
         $this->actingAs($this->manager())
             ->postJson(route('inventory.store'), [
                 'name'              => 'Italian Sweet Basil',
-                'category'          => \App\Models\InventoryItem::CATEGORIES[0],
+                'category'          => InventoryItem::CATEGORIES[0],
                 'unit'              => 'pcs',
                 'quantity_on_hand'  => 0,
                 'reorder_threshold' => 0,
@@ -529,7 +532,6 @@ class InvoiceScanTest extends TestCase
         $this->assertModelMissing($scan);
         Http::assertNotSent(fn ($request) => str_contains($request->url(), 'bukku'));
     }
-
 
     /**
      * The list is readable by everyone, but only the roles that hold
@@ -831,7 +833,7 @@ class InvoiceScanTest extends TestCase
     {
         $scan = $this->scannedRow();
 
-        $basil = \App\Models\InventoryItem::create([
+        $basil = InventoryItem::create([
             'name' => 'Italian Sweet Basil', 'category' => 'Vegetable', 'unit' => 'kg',
             'quantity_on_hand' => 0, 'unit_cost' => 4, 'bukku_product_id' => 77,
         ]);
@@ -875,7 +877,7 @@ class InvoiceScanTest extends TestCase
     {
         $scan = $this->scannedRow();
 
-        $item = \App\Models\InventoryItem::create([
+        $item = InventoryItem::create([
             'name' => 'Something Bukku does not track', 'category' => 'Vegetable', 'unit' => 'kg',
             'quantity_on_hand' => 0, 'unit_cost' => 1,
         ]);
@@ -1018,7 +1020,7 @@ class InvoiceScanTest extends TestCase
             '*/purchases/bills' => Http::response(['transaction' => ['id' => 49, 'number' => 'BL-00041']]),
         ]);
         // The kitchen's own stand-in for delivery orders, as on the live site.
-        \App\Models\Supplier::create(['name' => 'D/O', 'contact' => '', 'email' => '', 'address' => '', 'bukku_contact_id' => 15]);
+        Supplier::create(['name' => 'D/O', 'contact' => '', 'email' => '', 'address' => '', 'bukku_contact_id' => 15]);
 
         $this->actingAs($this->manager())
             ->post(route('invoice-scan.push', $scan), [
@@ -1053,7 +1055,7 @@ class InvoiceScanTest extends TestCase
             'file_path' => 'y.jpg', 'original_filename' => 'y.jpg', 'status' => InvoiceScan::STATUS_POSTED,
             'supplier_name' => 'HILLSIDE', 'bukku_transaction_id' => 50, 'bukku_number' => 'BL-00042',
         ]);
-        \App\Models\Supplier::create(['name' => 'RIVERSIDE', 'contact' => '', 'email' => '', 'address' => '', 'bukku_contact_id' => 9]);
+        Supplier::create(['name' => 'RIVERSIDE', 'contact' => '', 'email' => '', 'address' => '', 'bukku_contact_id' => 9]);
 
         Http::fake(['*/purchases/bills*' => Http::response(['transactions' => [
             ['id' => 48, 'number' => 'BL-00040', 'number2' => 'INV26090033', 'contact_id' => 9, 'contact_name' => 'RIVERSIDE FOOD INDUSTRY SDN BHD', 'date' => '2026-09-03', 'amount' => 242.56, 'balance' => 242.56, 'status' => 'ready'],
@@ -1150,7 +1152,7 @@ class InvoiceScanTest extends TestCase
             $last  = end($items);
 
             return count($request['form_items']) === 4
-                && $last['description'] === \App\Domain\Purchasing\Actions\PushInvoiceToBukku::ADJUSTMENT
+                && $last['description'] === PushInvoiceToBukku::ADJUSTMENT
                 && abs($last['unit_price'] - 24.30) < 0.001 && $last['account_id'] === 33
                 && abs($request['term_items'][0]['amount'] - 466.80) < 0.001;
         });

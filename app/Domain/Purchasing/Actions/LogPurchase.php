@@ -6,6 +6,7 @@ use App\Models\InventoryItem;
 use App\Models\Purchase;
 use App\Models\PurchaseLine;
 use App\Models\Recipe;
+use App\Support\Money;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -28,7 +29,7 @@ class LogPurchase
             // rounding a float sum once drifted a sen from the lines beneath it.
             $total = '0.00';
             foreach ($lines as $line) {
-                $total = bcadd($total, \App\Support\Money::lineAmount($line['quantity'], $line['unit_price']), 2);
+                $total = bcadd($total, Money::lineAmount($line['quantity'], $line['unit_price']), 2);
             }
 
             $data['total_amount'] = $total;
@@ -37,7 +38,7 @@ class LogPurchase
             $updatedItemIds = [];
 
             foreach ($lines as $line) {
-                $lineTotal = \App\Support\Money::lineAmount($line['quantity'], $line['unit_price']);
+                $lineTotal = Money::lineAmount($line['quantity'], $line['unit_price']);
 
                 PurchaseLine::create([
                     'purchase_id'       => $purchase->id,
@@ -48,7 +49,9 @@ class LogPurchase
                 ]);
 
                 $item = InventoryItem::find($line['inventory_item_id']);
-                if (! $item) continue;
+                if (! $item) {
+                    continue;
+                }
 
                 // Keyed the way the invoice reads - so many packs at the pack
                 // price. receive() is what turns that into shelf units.

@@ -13,6 +13,18 @@
 
 command -v php >/dev/null 2>&1 || exit 0
 
+# Format the PHP being committed with Pint (pint.json is the house style).
+# Only files staged in full: re-adding one staged in part (git add -p) would
+# commit the half deliberately left out. Blade views are not Pint's to touch.
+if [ -f vendor/bin/pint ]; then
+  partial=$(git diff --name-only -- '*.php')
+  files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.php' ':!*.blade.php' | grep -vxF "${partial:-//none//}")
+  if [ -n "$files" ]; then
+    # shellcheck disable=SC2086 — one path per line, none with spaces
+    php vendor/bin/pint --quiet $files && git add $files
+  fi
+fi
+
 php artisan vault:sync >/dev/null 2>&1 || exit 0
 
 git add docs/vault/_generated 2>/dev/null

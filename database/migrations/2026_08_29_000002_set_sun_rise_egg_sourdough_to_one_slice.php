@@ -37,6 +37,7 @@ return new class extends Migration
                     rtrim(rtrim(number_format((float) $line->quantity, 4), '0'), '.'),
                     self::WAS,
                 );
+
                 continue;
             }
 

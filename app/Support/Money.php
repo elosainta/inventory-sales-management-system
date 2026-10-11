@@ -30,7 +30,18 @@ class Money
      */
     public static function lineAmount(int|float|string $quantity, int|float|string $price): string
     {
-        return bcadd(bcmul((string) $quantity, (string) $price, 6), '0.005', 2);
+        return bcadd(bcmul(self::decimal($quantity), self::decimal($price), 6), '0.005', 2);
+    }
+
+    /**
+     * A number as bcmath will take it. `(string)` on a float can write an
+     * exponent — a stock sum that should be 0 lands at 1.1E-16 — and every
+     * bc function throws on that, which took a sale down (found 2026-10-11).
+     * Six places is past anything stored here (money 2, quantities 4).
+     */
+    public static function decimal(int|float|string $value): string
+    {
+        return is_float($value) ? sprintf('%.6F', $value) : (string) $value;
     }
 
     /**
@@ -45,6 +56,6 @@ class Money
      */
     public static function perUnit(int|float|string $price, int|float|string $perPack): string
     {
-        return bcadd(bcdiv((string) $price, (string) $perPack, 6), '0.005', 2);
+        return bcadd(bcdiv(self::decimal($price), self::decimal($perPack), 6), '0.005', 2);
     }
 }

@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FloatIssuance;
 use App\Models\InventoryItem;
 use App\Models\Purchase;
-use App\Models\WastageEntry;
-use App\Models\Sale;
-use App\Models\FloatIssuance;
-use App\Models\SpecialEvent;
 use App\Models\Recipe;
+use App\Models\Sale;
+use App\Models\SpecialEvent;
 use App\Models\Supplier;
+use App\Models\WastageEntry;
+use App\Support\Bukku;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -95,11 +97,11 @@ class DashboardController extends Controller
         // Owed to suppliers, off Bukku (every unpaid bill, not just scanned
         // ones). null when Bukku cannot be read, so the line is hidden rather
         // than claiming nothing is owed.
-        $unpaid = rescue(fn () => \App\Support\Bukku::configured() ? \App\Support\Bukku::unpaidBills() : null, null);
+        $unpaid = rescue(fn () => Bukku::configured() ? Bukku::unpaidBills() : null, null);
         $owed = $unpaid === null ? null : [
             'total'  => array_sum(array_column($unpaid, 'balance')),
             'count'  => count($unpaid),
-            'oldest' => $unpaid ? (int) \Illuminate\Support\Carbon::parse($unpaid[0]['date'])->diffInDays(today()) : 0,
+            'oldest' => $unpaid ? (int) Carbon::parse($unpaid[0]['date'])->diffInDays(today()) : 0,
         ];
 
         $ownerData = null;

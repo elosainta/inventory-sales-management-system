@@ -141,7 +141,7 @@ class LoginRequest extends FormRequest
      */
     protected function attemptsKey(): string
     {
-        return 'login_attempts:'.$this->throttleKey();
+        return 'login_attempts:' . $this->throttleKey();
     }
 
     /**
@@ -149,19 +149,19 @@ class LoginRequest extends FormRequest
      */
     protected function lockoutKey(): string
     {
-        return 'login_lockout:'.$this->throttleKey();
+        return 'login_lockout:' . $this->throttleKey();
     }
 
     /** As attemptsKey(), but for the account regardless of where it is tried from. */
     protected function emailAttemptsKey(): string
     {
-        return 'login_attempts_email:'.$this->emailKey();
+        return 'login_attempts_email:' . $this->emailKey();
     }
 
     /** As lockoutKey(), but for the account regardless of where it is tried from. */
     protected function emailLockoutKey(): string
     {
-        return 'login_lockout_email:'.$this->emailKey();
+        return 'login_lockout_email:' . $this->emailKey();
     }
 
     /** The submitted email, normalised so one account is one bucket. */
@@ -175,6 +175,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return $this->emailKey().'|'.$this->ip();
+        return $this->emailKey() . '|' . $this->ip();
     }
 }

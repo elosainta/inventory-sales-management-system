@@ -15,6 +15,9 @@ class LeaveAttachment extends Model
         'size',
     ];
 
+    /** @return BelongsTo<LeaveApplication, $this> */
+
+    /** @return BelongsTo<LeaveApplication, $this> */
     public function leaveApplication(): BelongsTo
     {
         return $this->belongsTo(LeaveApplication::class);

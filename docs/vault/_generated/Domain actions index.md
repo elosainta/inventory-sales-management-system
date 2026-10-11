@@ -8,7 +8,7 @@ generated: true
 
 # Domain actions index
 
-12 actions under `app/Domain/<Context>/Actions/`. Controllers stay thin and delegate here — see [[Layering rules]].
+13 actions under `app/Domain/<Context>/Actions/`. Controllers stay thin and delegate here — see [[Layering rules]].
 "Transactional" means the whole write is wrapped in `DB::transaction()`.
 
 > [!note] Two features write stock from a controller instead
@@ -27,4 +27,5 @@ generated: true
 | `ScanInvoice` | Purchasing | `app/Domain/Purchasing/Actions/ScanInvoice.php` | — | — | Reads an uploaded invoice photo and writes down what it says. |
 | `SaveRecipe` | Recipes | `app/Domain/Recipes/Actions/SaveRecipe.php` | ✅ | [[Path — Saving a recipe]] | Create a recipe with its ingredients, then compute plate cost. |
 | `LogSale` | Sales | `app/Domain/Sales/Actions/LogSale.php` | ✅ | [[Path — Logging a sale]] | — |
+| `OpenSupportIssue` | Support | `app/Domain/Support/Actions/OpenSupportIssue.php` | — | — | A support ticket also opened as a GitHub issue on the private repo, |
 | `LogWastage` | Wastage | `app/Domain/Wastage/Actions/LogWastage.php` | ✅ | [[Path — Logging wastage]] | — |

@@ -13,7 +13,7 @@ class OutOfStockTest extends TestCase
 {
     private function item(float $onHand, float $limit): InventoryItem
     {
-        $item = new InventoryItem();
+        $item = new InventoryItem;
         $item->quantity_on_hand  = $onHand;
         $item->reorder_threshold = $limit;
 

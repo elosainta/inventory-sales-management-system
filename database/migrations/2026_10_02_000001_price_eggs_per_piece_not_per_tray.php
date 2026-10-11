@@ -27,7 +27,9 @@ use Illuminate\Database\Migrations\Migration;
 return new class extends Migration
 {
     private const ITEM_ID = 32;
+
     private const ITEM_NAME = 'EGG';
+
     private const PER_TRAY = 30;
 
     /** The unit names that mean "one tray" on this row. */

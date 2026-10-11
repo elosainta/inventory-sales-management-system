@@ -8,7 +8,7 @@ generated: true
 
 # Repo snapshot
 
-Taken Sun, Oct 11, 2026 8:34 AM.
+Taken Sun, Oct 11, 2026 12:26 PM.
 
 > [!note] Git position is one commit behind after a hooked run
 > The pre-commit hook generates this **before** the commit exists, so during a commit the
@@ -19,10 +19,10 @@ Taken Sun, Oct 11, 2026 8:34 AM.
 
 | | |
 |---|---|
-| Commits | 460 |
-| HEAD | `9e8854a` |
+| Commits | 477 |
+| HEAD | `a6e2001` |
 | Branch | `main` |
-| Released version | `1.38.10` |
+| Released version | `1.43` |
 
 ## Size
 
@@ -31,29 +31,29 @@ Taken Sun, Oct 11, 2026 8:34 AM.
 | Models | 40 |
 | Controllers | 36 |
 | Form Requests | 37 |
-| Domain actions | 12 |
+| Domain actions | 13 |
 | Middleware | 3 |
-| Console commands | 9 |
+| Console commands | 10 |
 | Migrations | 96 |
 | Blade views | 82 |
-| Tests | 54 |
+| Tests | 58 |
 
 ## Last 15 commits
 
 | Date | Hash | Subject |
 |---|---|---|
-| 2026-10-11 | `9e8854a` | fix(purchases): set 51 scanned purchases back to Not paid yet |
-| 2026-10-11 | `5f77fc1` | docs: cut release 1.38.9 |
-| 2026-10-11 | `0f6b751` | feat(purchases): call the statuses Paid and Not paid yet |
-| 2026-10-11 | `e04827b` | docs: cut release 1.38.8 |
-| 2026-10-11 | `84d27a5` | feat(purchases): upload a receipt for any purchase without one |
-| 2026-10-11 | `9cb8c4b` | data(staff-meals): enter the 5–11 September sheets without moving stock |
-| 2026-10-10 | `968acee` | chore(deps): update Laravel to 13.35 and the build tools within range |
-| 2026-10-10 | `6bc62d2` | fix(deploy): purge the Cloudflare cache over IPv4, and stop blaming the token |
-| 2026-10-10 | `52532c0` | chore: drop three model methods nothing calls |
-| 2026-10-10 | `d998350` | chore(dev): launch both the PHP server and Vite from the preview pane |
-| 2026-10-07 | `a23e37f` | fix(sales): stop the sheet losing a service, and say why a save failed |
-| 2026-10-07 | `65cd84f` | chore(mirror): scrub the suppliers the 1.38 reports quote |
-| 2026-10-07 | `977d6b0` | feat(purchases): the whole report on one page |
-| 2026-10-07 | `25111d7` | feat(purchases): a line per supplier, not a list of ingredients |
-| 2026-10-07 | `51f5ea4` | feat(purchases): paid/unpaid and a total summary on the PDF |
+| 2026-10-11 | `a6e2001` | chore(mirror): keep .git-blame-ignore-revs out of the public copy |
+| 2026-10-11 | `7b95389` | ci: keep the check summaries when a check fails |
+| 2026-10-11 | `a5ed68b` | ci: show the Larastan and test summaries in the deploy log |
+| 2026-10-11 | `23c1ee0` | docs: cut release 1.43 |
+| 2026-10-11 | `7a762b8` | feat(alerts): notified issues, and checks before every deploy |
+| 2026-10-11 | `86d43c9` | fix(stock): a float leftover no longer crashes a sale; add Larastan |
+| 2026-10-11 | `3a5c5d9` | docs: cut release 1.42 |
+| 2026-10-11 | `8afe5e7` | ci: deploy a release from GitHub Actions |
+| 2026-10-11 | `e44d35b` | style: format the codebase with Pint |
+| 2026-10-11 | `946dedc` | docs: cut release 1.41 |
+| 2026-10-11 | `09c065a` | feat(support): open each support ticket as a GitHub issue |
+| 2026-10-11 | `3d56d4e` | docs: cut release 1.40 |
+| 2026-10-11 | `93332f4` | feat(uptime): server heartbeat watched by the uptime workflow |
+| 2026-10-11 | `ab939ff` | ci: uptime check that opens a site-down issue |
+| 2026-10-11 | `9b29720` | docs: cut release 1.39 |

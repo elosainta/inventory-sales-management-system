@@ -5,6 +5,7 @@ namespace App\Domain\Purchasing\Actions;
 use App\Models\InventoryItem;
 use App\Models\InvoiceScan;
 use App\Support\Bukku;
+use App\Support\Money;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
@@ -77,7 +78,7 @@ class PushInvoiceToBukku
             // Rounded half up per line, as Bukku does (see Money::lineAmount):
             // bcmul at scale 2 truncated, so 8.35 x 17.50 = 146.125 was stored
             // as 146.12 while Bukku's bill said 146.13.
-            $amount = \App\Support\Money::lineAmount($quantity, $unitPrice);
+            $amount = Money::lineAmount($quantity, $unitPrice);
             $total  = bcadd($total, $amount, 2);
 
             $item = [

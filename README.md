@@ -44,6 +44,7 @@ That constraint shaped most of the design decisions below.
 | **Prep checklist** | Per-section daily tasks with photo evidence, and a history of past days. |
 | **Staff** | Roles, leave requests, anonymous peer feedback, daily reports, audit log. |
 | **Dashboard** | Inventory value, sales, gross margin, wastage rate, petty cash. |
+| **Alerts** | Every error the live site logs, and every support ticket, opens an assigned GitHub issue — one per error, not one per occurrence. The server also checks its own login page every ten minutes and reports in; going quiet is how an outage is noticed, since nothing outside the firewall can ask. |
 
 ---
 
@@ -131,7 +132,7 @@ resolves to files on disk.
 
 ## Testing
 
-437 feature and unit tests. The ones that matter are not the CRUD tests — they
+450 feature and unit tests. The ones that matter are not the CRUD tests — they
 are the invariants: the gate/sidebar agreement, the per-role access matrices
 (the *deny* half especially), the arithmetic on stock balances and plate costs,
 the conversion from a pack price to a per-piece one, the guard against billing
@@ -147,6 +148,19 @@ rendered from instead.
 ```bash
 pnpm run build   # the suite renders real views, so Vite must have built once
 php artisan test
+```
+
+**Larastan** (PHPStan for Laravel) runs at level 5 and is clean; **Pint** holds
+the code to one style, configured to keep the aligned columns the codebase
+already used. Larastan earned its place on its first run: it flagged a float
+reaching `bcadd()`, and a sale that emptied a shelf exactly — 0.90 kg less
+0.3 kg × 3 — left `1.1E-16`, which PHP writes in exponent form and bcmath
+refuses outright. Logging that sale returned an error page. Every value bound
+for a bc function now goes through one `Money::decimal()`.
+
+```bash
+php vendor/bin/phpstan analyse
+php vendor/bin/pint --test
 ```
 
 ---

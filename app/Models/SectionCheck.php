@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 class SectionCheck extends Model
 {
@@ -21,9 +23,9 @@ class SectionCheck extends Model
 
     // The kitchen's date, as a midnight in the app's timezone — the same kind
     // of value today() gives, so queries and date comparisons are unchanged.
-    public static function kitchenToday(): \Illuminate\Support\Carbon
+    public static function kitchenToday(): Carbon
     {
-        return \Illuminate\Support\Carbon::parse(now(self::TIMEZONE)->toDateString());
+        return Carbon::parse(now(self::TIMEZONE)->toDateString());
     }
 
     // When it was ticked, on the kitchen clock.
@@ -32,12 +34,14 @@ class SectionCheck extends Model
         return $this->updated_at->copy()->tz(self::TIMEZONE)->format('H:i');
     }
 
-    public function task()
+    /** @return BelongsTo<SectionTask, $this> */
+    public function task(): BelongsTo
     {
         return $this->belongsTo(SectionTask::class, 'section_task_id');
     }
 
-    public function user()
+    /** @return BelongsTo<User, $this> */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

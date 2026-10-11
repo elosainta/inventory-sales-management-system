@@ -53,11 +53,9 @@ class SetLocale
 
     private function rememberOn(Response $response, string $locale): Response
     {
-        if ($request = request()) {
-            // Nothing to do if it already says the right thing.
-            if ($request->cookie(self::COOKIE) === $locale) {
-                return $response;
-            }
+        // Nothing to do if it already says the right thing.
+        if (request()->cookie(self::COOKIE) === $locale) {
+            return $response;
         }
 
         Cookie::queue(Cookie::make(self::COOKIE, $locale, self::REMEMBER_MINUTES));

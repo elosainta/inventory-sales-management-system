@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 class SendChecklistReminder extends Command
 {
     protected $signature   = 'checklist:remind {type=morning : morning or closing}';
+
     protected $description = 'Send prep checklist reminder to the Head Chef';
 
     public function handle(): int

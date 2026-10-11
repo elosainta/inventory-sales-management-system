@@ -25,17 +25,25 @@ class ProductionBatch extends Model
         'production_date' => 'date',
     ];
 
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /** The dish that was cooked. Null on batches logged before the pipeline. */
+    /** @return BelongsTo<Recipe, $this> */
+    /** @return BelongsTo<Recipe, $this> */
     public function recipe(): BelongsTo
     {
         return $this->belongsTo(Recipe::class);
     }
 
+    /** @return HasMany<ProductionBatchLine, $this> */
+
+    /** @return HasMany<ProductionBatchLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(ProductionBatchLine::class);

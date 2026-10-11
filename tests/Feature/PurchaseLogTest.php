@@ -9,6 +9,7 @@ use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -45,7 +46,7 @@ class PurchaseLogTest extends TestCase
 
     public function test_the_log_groups_purchases_by_supplier(): void
     {
-        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-09-22 12:00'));
+        $this->travelTo(Carbon::parse('2026-09-22 12:00'));
         $hillside  = $this->supplier('HILLSIDE');
         $riverside = $this->supplier('RIVERSIDE');
         $kangkung = $this->item('Kangkung');
@@ -65,7 +66,7 @@ class PurchaseLogTest extends TestCase
 
     public function test_the_month_can_be_searched_by_supplier(): void
     {
-        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-09-22 12:00'));
+        $this->travelTo(Carbon::parse('2026-09-22 12:00'));
         $this->bought($this->supplier('HILLSIDE'), $this->item('Kangkung'), 4.50, '2026-09-10');
 
         $this->actingAs($this->owner())
@@ -82,7 +83,7 @@ class PurchaseLogTest extends TestCase
     public function test_one_photo_completes_a_suppliers_pending_purchases(): void
     {
         Storage::fake();
-        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-09-22 12:00'));
+        $this->travelTo(Carbon::parse('2026-09-22 12:00'));
         $lotus   = $this->supplier('LOTUS TRADING');
         $kangkung = $this->item('Kangkung');
         $first    = $this->bought($lotus, $kangkung, 12.40, '2026-09-10', 'pending');
@@ -143,5 +144,4 @@ class PurchaseLogTest extends TestCase
         $this->delete(route('purchases.destroy', $second));
         Storage::assertMissing($photo);
     }
-
 }

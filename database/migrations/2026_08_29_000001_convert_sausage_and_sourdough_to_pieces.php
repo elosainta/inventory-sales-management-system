@@ -66,11 +66,13 @@ return new class extends Migration
 
             if (! $item) {
                 echo "  inventory item #{$id} not found — skipped\n";
+
                 continue;
             }
 
             if ($item->unit === 'pcs') {
                 echo "  {$item->name} is already in pcs — skipped\n";
+
                 continue;
             }
 

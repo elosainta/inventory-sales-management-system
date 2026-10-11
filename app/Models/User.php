@@ -9,11 +9,14 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, LogsActivity;
+    use HasFactory, LogsActivity, Notifiable;
 
     public const ROLE_OWNER        = 'owner';
+
     public const ROLE_HEAD_CHEF    = 'head_chef';
+
     public const ROLE_JUNIOR_CHEF  = 'junior_chef';
+
     public const ROLE_ADMIN        = 'admin';
 
     /**

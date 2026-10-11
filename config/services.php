@@ -32,6 +32,14 @@ return [
         'email' => env('SUPPORT_EMAIL', ''),
     ],
 
+    // Issues on the private repo: live errors, the uptime heartbeat and
+    // support tickets. See App\Support\Github. Off while the token is blank.
+    'github' => [
+        'token'    => env('GITHUB_ISSUES_TOKEN'),
+        'repo'     => env('GITHUB_ISSUES_REPO', 'elosainta/inventory-sales-management-system'),
+        'assignee' => env('GITHUB_ISSUES_ASSIGNEE', 'elosainta'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

@@ -6,6 +6,14 @@ use App\Support\Money;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * The DECIMAL columns arrive from the database as strings and leave stock
+ * arithmetic as floats; booted() writes them back as decimal strings.
+ *
+ * @property string|float $quantity_on_hand
+ * @property string|float $unit_cost
+ * @property string|float $monetary_value
+ */
 class InventoryItem extends Model
 {
     use LogsActivity;
@@ -35,8 +43,9 @@ class InventoryItem extends Model
     protected static function booted(): void
     {
         static::saving(function (self $item) {
-            $item->quantity_on_hand = self::round2($item->quantity_on_hand);
-            $item->monetary_value   = self::round2(bcmul($item->quantity_on_hand, (string) $item->unit_cost, 4));
+            $quantity               = self::round2($item->quantity_on_hand);
+            $item->quantity_on_hand = $quantity;
+            $item->monetary_value   = self::round2(bcmul($quantity, Money::decimal($item->unit_cost), 4));
         });
     }
 
@@ -64,8 +73,8 @@ class InventoryItem extends Model
         $perPack = $this->pack_size > 1 ? (string) $this->pack_size : '1';
 
         $this->quantity_on_hand = bcadd(
-            (string) $this->quantity_on_hand,
-            bcmul((string) $quantity, $perPack, 4),
+            Money::decimal($this->quantity_on_hand),
+            bcmul(Money::decimal($quantity), $perPack, 4),
             4
         );
         $this->unit_cost    = Money::perUnit($unitPrice, $perPack);
@@ -81,7 +90,7 @@ class InventoryItem extends Model
      */
     private static function round2(string|int|float $value): string
     {
-        return bcadd((string) $value, '0.005', 2);
+        return bcadd(Money::decimal($value), '0.005', 2);
     }
 
     /**

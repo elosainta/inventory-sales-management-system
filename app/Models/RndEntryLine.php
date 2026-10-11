@@ -13,6 +13,7 @@ class RndEntryLine extends Model
 
     protected $fillable = ['rnd_entry_id'];
 
+    /** @return BelongsTo<RndEntry, $this> */
     public function rndEntry(): BelongsTo
     {
         return $this->belongsTo(RndEntry::class);

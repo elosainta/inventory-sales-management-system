@@ -28,7 +28,7 @@ class SaveRecipe
             unset($data['ingredients']);
 
             // Default the miscellaneous overhead to 30% when left blank.
-            if (! isset($data['misc_percent']) || $data['misc_percent'] === '' || $data['misc_percent'] === null) {
+            if (! isset($data['misc_percent']) || $data['misc_percent'] === '') {
                 $data['misc_percent'] = 30;
             }
 

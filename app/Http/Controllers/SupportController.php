@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Support\Actions\OpenSupportIssue;
 use App\Http\Requests\StoreSupportRequest;
 use App\Mail\SupportReport;
 use App\Models\SupportTicket;
@@ -18,7 +19,7 @@ class SupportController extends Controller
         return view('support.index');
     }
 
-    public function store(StoreSupportRequest $request)
+    public function store(StoreSupportRequest $request, OpenSupportIssue $openIssue)
     {
         Gate::authorize('submit-support');
 
@@ -56,15 +57,17 @@ class SupportController extends Controller
             'ticket_number' => 'FK-' . str_pad((string) $ticket->id, 5, '0', STR_PAD_LEFT),
         ]);
 
+        $openIssue->execute($ticket);
+
         try {
             Mail::to(config('services.support.email'))->send(new SupportReport(
-                senderName:    $user->name,
-                senderEmail:   $user->email,
-                senderRole:    str_replace('_', ' ', $user->role),
-                description:   $request->input('description'),
-                mediaContent:  $mediaContent,
+                senderName: $user->name,
+                senderEmail: $user->email,
+                senderRole: str_replace('_', ' ', $user->role),
+                description: $request->input('description'),
+                mediaContent: $mediaContent,
                 mediaFilename: $mediaFilename,
-                mediaMime:     $mediaMime,
+                mediaMime: $mediaMime,
             ));
         } catch (\Throwable $e) {
             Log::error('Support report email failed', [

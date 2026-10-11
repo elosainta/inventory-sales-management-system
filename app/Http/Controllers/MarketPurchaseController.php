@@ -30,7 +30,7 @@ class MarketPurchaseController extends Controller
 
         // Unfiltered count, so an empty month can say "nothing in this period"
         // instead of claiming there is no data at all.
-        $totalOnRecord = \App\Models\MarketPurchase::count();
+        $totalOnRecord = MarketPurchase::count();
 
         return view('market-purchases.index', compact('purchases', 'totalSpend', 'items', 'range', 'month', 'totalOnRecord'));
     }

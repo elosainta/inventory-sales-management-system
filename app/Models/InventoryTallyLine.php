@@ -23,11 +23,17 @@ class InventoryTallyLine extends Model
         'counted_quantity' => 'decimal:2',
     ];
 
+    /** @return BelongsTo<InventoryTally, $this> */
+
+    /** @return BelongsTo<InventoryTally, $this> */
     public function tally(): BelongsTo
     {
         return $this->belongsTo(InventoryTally::class, 'inventory_tally_id');
     }
 
+    /** @return BelongsTo<InventoryItem, $this> */
+
+    /** @return BelongsTo<InventoryItem, $this> */
     public function item(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class, 'inventory_item_id');

@@ -7,7 +7,10 @@ use Illuminate\Validation\Rule;
 
 class StoreSectionRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {

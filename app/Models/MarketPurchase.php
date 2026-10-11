@@ -24,11 +24,17 @@ class MarketPurchase extends Model
         'purchase_date' => 'date',
     ];
 
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return HasMany<MarketPurchaseLine, $this> */
+
+    /** @return HasMany<MarketPurchaseLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(MarketPurchaseLine::class);

@@ -27,7 +27,6 @@ class BukkuPing extends Command
 
     public function handle(): int
     {
-        $ok = true;
 
         $this->line('');
         $this->line('  <options=bold>Invoice scan (BETA) — configuration check</>');
@@ -40,7 +39,7 @@ class BukkuPing extends Command
             $anthropic ? '<fg=green>OK  </>' : '<fg=red>MISS</>',
             $anthropic ? 'set (model: ' . config('services.anthropic.model') . ')' : 'not set — scanning will fail',
         ));
-        $ok = $ok && $anthropic;
+        $ok = $anthropic;
 
         if (! Bukku::configured()) {
             $this->line('  <fg=red>MISS</>  BUKKU_API_TOKEN     not set — pushing to Bukku will fail');

@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\InventoryItem;
 use App\Models\MarketPurchase;
 use App\Models\Purchase;
-use App\Models\InventoryItem;
 use App\Models\Section;
 use App\Models\SectionCheck;
 use App\Models\SectionTask;

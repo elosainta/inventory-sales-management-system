@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Traits\CostingSheet;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\CostingSheet;
 
 /**
  * A research-and-development trial, recorded as a costing sheet: the dish being
@@ -28,10 +28,12 @@ use App\Traits\CostingSheet;
  */
 class RndEntry extends Model
 {
-    use LogsActivity, CostingSheet;
+    use CostingSheet, LogsActivity;
 
     public const STATUS_PENDING  = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
@@ -58,6 +60,7 @@ class RndEntry extends Model
         'decided_at'    => 'datetime',
     ];
 
+    /** @return HasMany<RndEntryLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(RndEntryLine::class);
@@ -68,16 +71,19 @@ class RndEntry extends Model
      * wrote it up — see RndEntryController::createRecipe. Null until then, and
      * set is what stops the same trial becoming two recipes.
      */
+    /** @return BelongsTo<Recipe, $this> */
     public function recipe(): BelongsTo
     {
         return $this->belongsTo(Recipe::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function decider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by');

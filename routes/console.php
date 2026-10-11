@@ -20,3 +20,8 @@ Schedule::command('feedback:monthly-report')->lastDayOfMonth('23:30')->timezone(
 // low-stakes login history. Pruning the audit trail is a deliberate, manual
 // call the Owner makes with `php artisan records:prune --audit-days=N`.
 Schedule::command('records:prune')->weeklyOn(0, '03:00')->timezone('Asia/Kuala_Lumpur')->appendOutputTo($log);
+
+// The heartbeat the GitHub uptime workflow watches; see UptimeBeat. Not logged
+// here: it says nothing when all is well, and a failure is logged as an error,
+// which opens an issue of its own.
+Schedule::command('uptime:beat')->everyTenMinutes();

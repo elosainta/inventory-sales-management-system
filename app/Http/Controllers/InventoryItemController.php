@@ -11,6 +11,7 @@ use App\Models\Recipe;
 use App\Models\RecipeIngredient;
 use App\Models\Supplier;
 use App\Models\WastageEntry;
+use App\Support\Bukku;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -39,7 +40,7 @@ class InventoryItemController extends Controller
         // Only for managers, and only to fill one dropdown in the edit modal.
         // Cached an hour by the client, and empty when Bukku is not configured
         // — the field then simply does not render.
-        $bukkuProducts = Gate::allows('manage-inventory') ? \App\Support\Bukku::products() : [];
+        $bukkuProducts = Gate::allows('manage-inventory') ? Bukku::products() : [];
 
         return view('inventory.index', compact('items', 'totalValue', 'categories', 'bukkuProducts'));
     }

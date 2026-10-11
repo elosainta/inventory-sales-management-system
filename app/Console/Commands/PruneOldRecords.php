@@ -28,6 +28,7 @@ class PruneOldRecords extends Command
         $auditDays = $this->option('audit-days');
         if ($auditDays === null) {
             $this->info('audits left untouched (pass --audit-days=N to prune it too).');
+
             return self::SUCCESS;
         }
 

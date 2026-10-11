@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\User;
+use App\Support\ReleaseNotes;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -61,7 +62,7 @@ class VaultSync extends Command
     {
         $rows = [];
 
-        foreach (Route::getRoutes() as $route) {
+        foreach (Route::getRoutes()->getRoutes() as $route) {
             $action = $route->getActionName();
             $action = str_replace('App\\Http\\Controllers\\', '', $action);
 
@@ -251,7 +252,7 @@ class VaultSync extends Command
     /** Size and git position of the codebase at generation time. */
     private function snapshot(): string
     {
-        $git = fn (string $cmd) => trim((string) @shell_exec("git -C " . escapeshellarg(base_path()) . " {$cmd} 2>&1"));
+        $git = fn (string $cmd) => trim((string) @shell_exec('git -C ' . escapeshellarg(base_path()) . " {$cmd} 2>&1"));
 
         $count = fn (string $pattern) => count(glob(base_path($pattern), GLOB_BRACE));
 
@@ -293,7 +294,7 @@ class VaultSync extends Command
             . '| Commits | ' . ($git('rev-list --count HEAD') ?: '—') . " |\n"
             . '| HEAD | `' . ($git('rev-parse --short HEAD') ?: '—') . "` |\n"
             . '| Branch | `' . ($git('rev-parse --abbrev-ref HEAD') ?: '—') . "` |\n"
-            . '| Released version | `' . \App\Support\ReleaseNotes::CURRENT_VERSION . "` |\n"
+            . '| Released version | `' . ReleaseNotes::CURRENT_VERSION . "` |\n"
             . "\n## Size\n\n"
             . "| Layer | Files |\n|---|---|\n"
             . '| Models | ' . $count('app/Models/*.php') . " |\n"

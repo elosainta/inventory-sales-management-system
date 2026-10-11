@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\InventoryItem;
+use App\Models\InventoryTallyLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -73,7 +74,7 @@ class TallySheetSearchTest extends TestCase
 
         $this->assertEquals(1.25, $item->fresh()->quantity_on_hand);
 
-        $line = \App\Models\InventoryTallyLine::firstOrFail();
+        $line = InventoryTallyLine::firstOrFail();
         $this->assertSame('Spring onion', $line->item_name);
         $this->assertEquals(3, $line->system_quantity);   // snapshot taken before the reconcile
     }

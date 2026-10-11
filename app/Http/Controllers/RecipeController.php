@@ -28,6 +28,7 @@ class RecipeController extends Controller
 
         $recipe->load('ingredients.inventoryItem');
         $items = InventoryItem::orderBy('name')->get();
+
         return view('recipes.show', compact('recipe', 'items'));
     }
 
@@ -54,6 +55,7 @@ class RecipeController extends Controller
         Gate::authorize('manage-recipes');
 
         $recipe->delete();
+
         return redirect()->route('recipes.index')->with('success', 'Recipe removed. You can restore it from the deleted list.');
     }
 
@@ -74,6 +76,7 @@ class RecipeController extends Controller
         $recipes = Recipe::with('ingredients.inventoryItem')->orderBy('name')->get();
 
         $pdf = Pdf::loadView('pdfs.recipes', compact('recipes'));
+
         return $pdf->download('recipes-' . now()->format('Y-m-d') . '.pdf');
     }
 }

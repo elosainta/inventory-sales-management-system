@@ -11,11 +11,14 @@ class SupportTicket extends Model
     use HasFactory;
 
     public const STATUS_OPEN     = 'open';
+
     public const STATUS_RESOLVED = 'resolved';
 
     // Developer-only triage tags (set on the admin tickets page, not the user form).
     public const TYPE_FEATURE = 'feature';
+
     public const TYPE_BUG     = 'bug';
+
     public const TYPE_OTHER   = 'other';
 
     public const TYPE_LABELS = [
@@ -52,11 +55,13 @@ class SupportTicket extends Model
         return $this->status === self::STATUS_RESOLVED;
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function resolver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'resolved_by');

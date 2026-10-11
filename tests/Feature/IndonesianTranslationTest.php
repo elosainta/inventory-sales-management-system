@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\InventoryItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -62,7 +63,7 @@ class IndonesianTranslationTest extends TestCase
     {
         // The count table only renders when there is something to count, and
         // the column headers live inside it.
-        \App\Models\InventoryItem::create([
+        InventoryItem::create([
             'name'             => 'Bawang merah',
             'category'         => 'Sayuran',
             'unit'             => 'kg',

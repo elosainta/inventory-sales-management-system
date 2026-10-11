@@ -53,12 +53,12 @@ class LoginPageLocaleTest extends TestCase
 
     public function test_signing_in_remembers_the_language_for_next_time(): void
     {
-        $dani = User::factory()->create([
+        $juniorChef = User::factory()->create([
             'role'               => User::ROLE_JUNIOR_CHEF,
             'preferred_language' => 'id',
         ]);
 
-        $this->actingAs($dani)
+        $this->actingAs($juniorChef)
             ->get(route('prep.index'))
             ->assertOk()
             ->assertPlainCookie('app_locale', 'id');
@@ -68,13 +68,13 @@ class LoginPageLocaleTest extends TestCase
     {
         // The cookie belongs to the device, not the person. A second account
         // signing in on the same phone must overwrite it, not inherit it.
-        $paul = User::factory()->create([
+        $headChef = User::factory()->create([
             'role'               => User::ROLE_HEAD_CHEF,
             'preferred_language' => 'en',
         ]);
 
         $this->withUnencryptedCookie('app_locale', 'id')
-            ->actingAs($paul)
+            ->actingAs($headChef)
             ->get(route('prep.index'))
             ->assertOk()
             ->assertPlainCookie('app_locale', 'en');

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
@@ -43,14 +45,15 @@ class Sale extends Model
         return $this->recipe?->name ?? $this->item_name ?? 'Deleted recipe';
     }
 
-    public function recipe()
+    /** @return BelongsTo<Recipe, $this> */
+    public function recipe(): BelongsTo
     {
         return $this->belongsTo(Recipe::class);
     }
 
-    public function attachments()
+    /** @return HasMany<SaleAttachment, $this> */
+    public function attachments(): HasMany
     {
         return $this->hasMany(SaleAttachment::class);
     }
-
 }

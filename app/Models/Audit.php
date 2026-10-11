@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Audit extends Model
 {
@@ -21,7 +22,10 @@ class Audit extends Model
         'after'  => 'array',
     ];
 
-    public function user()
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

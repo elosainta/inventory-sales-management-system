@@ -12,7 +12,7 @@ class UpdateLastLoginAt
         $event->user->update(['last_login_at' => now()]);
 
         LoginHistory::create([
-            'user_id'      => $event->user->id,
+            'user_id'      => $event->user->getAuthIdentifier(),
             'ip_address'   => request()->ip(),
             'logged_in_at' => now(),
         ]);

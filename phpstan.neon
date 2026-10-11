@@ -1,0 +1,33 @@
+# Larastan (PHPStan for Laravel). Run: php vendor/bin/phpstan analyse
+# Runs before every deploy; a finding opens a `larastan` GitHub issue.
+#
+# Level 5 found one real crash on its first run (a float like 1.1E-16
+# reaching bcadd() on a sale — see Money::decimal) once the model
+# relationships were given return types. Every exception below is deliberate,
+# and says why, so a "fix" never removes a safety check.
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - routes
+        - config
+    level: 5
+
+    ignoreErrors:
+        # `$row->user?->name` is the house rule, not noise: users, items and
+        # recipes are deleted while the rows that point at them live on
+        # (nullOnDelete), so the relation can be null even where its type
+        # says it cannot. CLAUDE.md, Rules: "Any view showing an owning user
+        # must use user?->name".
+        -
+            identifier: nullsafe.neverNull
+
+        # The id guard looks redundant to PHPStan, but on an UNSAVED User the
+        # id is null — which is how the vault's gates matrix once showed every
+        # junior chef holding manage-recipes. The comment above it tells the
+        # story.
+        -
+            identifier: notIdentical.alwaysTrue
+            path: app/Models/User.php

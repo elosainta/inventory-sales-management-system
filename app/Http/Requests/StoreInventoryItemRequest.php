@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use App\Models\InventoryItem;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class StoreInventoryItemRequest extends FormRequest
 {
@@ -36,13 +38,13 @@ class StoreInventoryItemRequest extends FormRequest
         // nothing else arrives and the required rules below would reject a
         // legitimate submission. Creating a new item still needs the full set —
         // an item has to start somewhere.
-        if ($this->route('inventoryItem') && ! \Illuminate\Support\Facades\Gate::allows('manage-inventory')) {
+        if ($this->route('inventoryItem') && ! Gate::allows('manage-inventory')) {
             return ['quantity_on_hand' => ['required', 'numeric', 'min:0']];
         }
 
         return [
             'name'               => ['required', 'string', 'max:255'],
-            'category'           => ['required', 'string', \Illuminate\Validation\Rule::in(InventoryItem::CATEGORIES)],
+            'category'           => ['required', 'string', Rule::in(InventoryItem::CATEGORIES)],
             // Open vocabulary since units can be added from the form, so the
             // boundary is the shape: short, starts with a letter or digit, no
             // markup — and no underscore, which keeps the "__new" option out.

@@ -3,6 +3,7 @@
 use App\Models\InventoryItem;
 use App\Models\Recipe;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Collection;
 
 /**
  * Data correction (requested 2026-07-19):
@@ -18,9 +19,11 @@ return new class extends Migration
 {
     /** Name patterns (case-insensitive LIKE) identifying the records to correct. */
     private const CHEESE_PATTERNS = ['%cheese%', '%keju%'];               // inventory_items
+
     private const SALAD_PATTERNS  = ['%scallion%chicken%salad%', '%scallion%salad%']; // recipes
 
     private const SALAD_NEW_PRICE = 25.00;
+
     private const SALAD_OLD_PRICE = 28.00; // used by down()
 
     public function up(): void
@@ -40,7 +43,7 @@ return new class extends Migration
     }
 
     /** Print which records a step matched, so a no-op (bad pattern) is visible on deploy. */
-    private function report(string $label, \Illuminate\Support\Collection $names): void
+    private function report(string $label, Collection $names): void
     {
         echo $names->isEmpty()
             ? "  [!] {$label}: matched NOTHING — check the name pattern.\n"
@@ -67,14 +70,14 @@ return new class extends Migration
         });
     }
 
-    /** @return \Illuminate\Database\Eloquent\Collection<int, InventoryItem> */
-    private function cheeseItems(): \Illuminate\Database\Eloquent\Collection
+    /** @return Illuminate\Database\Eloquent\Collection<int, InventoryItem> */
+    private function cheeseItems(): Illuminate\Database\Eloquent\Collection
     {
         return InventoryItem::where(fn ($q) => $this->applyPatterns($q, self::CHEESE_PATTERNS))->get();
     }
 
-    /** @return \Illuminate\Database\Eloquent\Collection<int, Recipe> */
-    private function saladRecipes(): \Illuminate\Database\Eloquent\Collection
+    /** @return Illuminate\Database\Eloquent\Collection<int, Recipe> */
+    private function saladRecipes(): Illuminate\Database\Eloquent\Collection
     {
         return Recipe::where(fn ($q) => $this->applyPatterns($q, self::SALAD_PATTERNS))->get();
     }

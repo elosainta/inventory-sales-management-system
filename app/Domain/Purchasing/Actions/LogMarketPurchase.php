@@ -6,6 +6,7 @@ use App\Models\InventoryItem;
 use App\Models\MarketPurchase;
 use App\Models\MarketPurchaseLine;
 use App\Models\Recipe;
+use App\Support\Money;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +27,7 @@ class LogMarketPurchase
             // rounding a float sum once drifted a sen from the lines beneath it.
             $total = '0.00';
             foreach ($lines as $line) {
-                $total = bcadd($total, \App\Support\Money::lineAmount($line['quantity'], $line['unit_price']), 2);
+                $total = bcadd($total, Money::lineAmount($line['quantity'], $line['unit_price']), 2);
             }
 
             $data['total_amount'] = $total;
@@ -35,7 +36,7 @@ class LogMarketPurchase
             $updatedItemIds = [];
 
             foreach ($lines as $line) {
-                $lineTotal = \App\Support\Money::lineAmount($line['quantity'], $line['unit_price']);
+                $lineTotal = Money::lineAmount($line['quantity'], $line['unit_price']);
 
                 MarketPurchaseLine::create([
                     'market_purchase_id' => $purchase->id,
@@ -46,7 +47,9 @@ class LogMarketPurchase
                 ]);
 
                 $item = InventoryItem::find($line['inventory_item_id']);
-                if (! $item) continue;
+                if (! $item) {
+                    continue;
+                }
 
                 // Keyed by the pack, same as a supplier purchase; see LogPurchase.
                 $item->receive($line['quantity'], $line['unit_price']);

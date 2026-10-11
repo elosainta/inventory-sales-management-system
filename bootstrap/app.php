@@ -1,13 +1,16 @@
 <?php
 
+use App\Http\Middleware\MaintenanceMode;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\UseDemoDatabase;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -26,9 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['app_locale']);
 
         $middleware->web(append: [
-            \App\Http\Middleware\MaintenanceMode::class,
-            \App\Http\Middleware\SetLocale::class,
-            \App\Http\Middleware\UseDemoDatabase::class,
+            MaintenanceMode::class,
+            SetLocale::class,
+            UseDemoDatabase::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

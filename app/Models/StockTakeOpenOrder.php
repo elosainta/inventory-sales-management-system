@@ -16,6 +16,7 @@ class StockTakeOpenOrder extends Model
         'note',
     ];
 
+    /** @return BelongsTo<StockTake, $this> */
     public function stockTake(): BelongsTo
     {
         return $this->belongsTo(StockTake::class);

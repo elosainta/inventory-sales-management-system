@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Domain\Wastage\Actions\LogWastage;
 use App\Http\Requests\StoreWastageEntryRequest;
-use App\Models\WastageEntry;
 use App\Models\InventoryItem;
+use App\Models\WastageEntry;
 use App\Support\Period;
-use Illuminate\Support\Facades\Gate;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Gate;
 
 class WastageEntryController extends Controller
 {
@@ -29,10 +29,11 @@ class WastageEntryController extends Controller
 
         // Unfiltered count, so an empty month can say "nothing in this period"
         // instead of claiming there is no data at all.
-        $totalOnRecord = \App\Models\WastageEntry::count();
+        $totalOnRecord = WastageEntry::count();
 
         return view('wastage.index', compact('entries', 'items', 'month', 'totalLost', 'range', 'totalOnRecord'));
     }
+
     public function store(StoreWastageEntryRequest $request, LogWastage $action)
     {
         Gate::authorize('manage-wastage');
@@ -60,6 +61,7 @@ class WastageEntryController extends Controller
         Gate::authorize('manage-wastage');
 
         $wastageEntry->delete();
+
         return back()->with('success', 'Entry removed.');
     }
 
@@ -72,6 +74,7 @@ class WastageEntryController extends Controller
             ->get();
 
         $pdf = Pdf::loadView('pdfs.wastage', compact('entries'));
+
         return $pdf->download('wastage-' . now()->format('Y-m-d') . '.pdf');
     }
 }

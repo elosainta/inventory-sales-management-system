@@ -6,6 +6,7 @@ use App\Models\FeedbackEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mime\Email;
 use Tests\TestCase;
 
 /**
@@ -29,7 +30,7 @@ class MonthlyFeedbackReportTest extends TestCase
      * array transport (already the default in phpunit.xml) records the real
      * thing, and exercises the retry wrapper on the way through.
      *
-     * @return array<int, \Symfony\Component\Mime\Email>
+     * @return array<int, Email>
      */
     private function sent(): array
     {

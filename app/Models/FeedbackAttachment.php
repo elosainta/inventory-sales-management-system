@@ -15,6 +15,9 @@ class FeedbackAttachment extends Model
         'size',
     ];
 
+    /** @return BelongsTo<FeedbackEntry, $this> */
+
+    /** @return BelongsTo<FeedbackEntry, $this> */
     public function feedbackEntry(): BelongsTo
     {
         return $this->belongsTo(FeedbackEntry::class);

@@ -15,11 +15,17 @@ class ProductionBatchLine extends Model
         'line_total',
     ];
 
+    /** @return BelongsTo<ProductionBatch, $this> */
+
+    /** @return BelongsTo<ProductionBatch, $this> */
     public function productionBatch(): BelongsTo
     {
         return $this->belongsTo(ProductionBatch::class);
     }
 
+    /** @return BelongsTo<InventoryItem, $this> */
+
+    /** @return BelongsTo<InventoryItem, $this> */
     public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);

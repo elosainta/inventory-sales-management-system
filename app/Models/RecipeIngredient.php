@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RecipeIngredient extends Model
 {
@@ -15,12 +16,14 @@ class RecipeIngredient extends Model
         'quantity',
     ];
 
-    public function recipe()
+    /** @return BelongsTo<Recipe, $this> */
+    public function recipe(): BelongsTo
     {
         return $this->belongsTo(Recipe::class);
     }
 
-    public function inventoryItem()
+    /** @return BelongsTo<InventoryItem, $this> */
+    public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);
     }

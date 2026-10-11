@@ -2,8 +2,8 @@
 
 namespace App\Domain\Sales\Actions;
 
-use App\Models\Sale;
 use App\Models\Recipe;
+use App\Models\Sale;
 use Illuminate\Support\Facades\DB;
 
 class LogSale
@@ -54,7 +54,9 @@ class LogSale
         // Recipes page.
         foreach ($recipe->ingredients as $ingredient) {
             $item = $ingredient->inventoryItem;
-            if (!$item) continue;
+            if (! $item) {
+                continue;
+            }
 
             $deduct = $ingredient->quantity * $qtySold;
             $item->quantity_on_hand = max(0, $item->quantity_on_hand - $deduct);

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -53,7 +54,7 @@ class ProfileController extends Controller
 
         // Block self-delete if this is the last Owner
         if ($user->isOwner()) {
-            $ownerCount = \App\Models\User::where('role', 'owner')->count();
+            $ownerCount = User::where('role', 'owner')->count();
 
             if ($ownerCount <= 1) {
                 return back()->withErrors([

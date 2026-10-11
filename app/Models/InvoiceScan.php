@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Bukku;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -54,7 +55,7 @@ class InvoiceScan extends Model
      */
     public static function deliveryOrderSupplierId(): ?int
     {
-        $contactId = rescue(fn () => \App\Support\Bukku::contactIdNamed(self::DELIVERY_ORDER_SUPPLIER), null, false);
+        $contactId = rescue(fn () => Bukku::contactIdNamed(self::DELIVERY_ORDER_SUPPLIER), null, false);
 
         return ($contactId ? Supplier::where('bukku_contact_id', $contactId)->value('id') : null)
             ?? Supplier::whereRaw('LOWER(name) = ?', [mb_strtolower(self::DELIVERY_ORDER_SUPPLIER)])->value('id');
@@ -86,11 +87,16 @@ class InvoiceScan extends Model
     ];
 
     /** The purchase this invoice created in this system, once it was filed. */
-    public function purchase()
+    /** @return BelongsTo<Purchase, $this> */
+    /** @return BelongsTo<Purchase, $this> */
+    public function purchase(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Purchase::class);
+        return $this->belongsTo(Purchase::class);
     }
 
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -133,7 +139,7 @@ class InvoiceScan extends Model
      *   - same invoice number, ignoring case, spaces and punctuation
      *   - same supplier, same date, same total
      *
-     * @return Collection<int, array{scan: self, reason: string}>
+     * @return Collection<int, array{scan: self, reason: 'same invoice number'|'same supplier, date and total'}>
      */
     public function possibleDuplicates(): Collection
     {
@@ -148,10 +154,8 @@ class InvoiceScan extends Model
         // 2026-09-11); store both keys as indexed columns if it reaches thousands.
         return self::with('user')->whereKeyNot($this->getKey())->latest()->get()
             ->map(fn (self $other) => match (true) {
-                $number !== null && self::numberKey($other->invoice_number) === $number
-                    => ['scan' => $other, 'reason' => 'same invoice number'],
-                $content !== null && self::contentKey($other) === $content
-                    => ['scan' => $other, 'reason' => 'same supplier, date and total'],
+                $number !== null && self::numberKey($other->invoice_number) === $number => ['scan' => $other, 'reason' => 'same invoice number'],
+                $content !== null && self::contentKey($other) === $content => ['scan' => $other, 'reason' => 'same supplier, date and total'],
                 default => null,
             })
             ->filter()

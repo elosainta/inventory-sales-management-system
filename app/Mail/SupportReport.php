@@ -14,10 +14,10 @@ class SupportReport extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly string  $senderName,
-        public readonly string  $senderEmail,
-        public readonly string  $senderRole,
-        public readonly string  $description,
+        public readonly string $senderName,
+        public readonly string $senderEmail,
+        public readonly string $senderRole,
+        public readonly string $description,
         public readonly ?string $mediaContent  = null,
         public readonly ?string $mediaFilename = null,
         public readonly ?string $mediaMime     = null,

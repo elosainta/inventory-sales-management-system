@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WastageEntry extends Model
 {
@@ -21,9 +22,9 @@ class WastageEntry extends Model
         'recorded_date' => 'datetime',
     ];
 
-    public function inventoryItem()
+    /** @return BelongsTo<InventoryItem, $this> */
+    public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);
     }
-
 }

@@ -15,6 +15,7 @@ class SaleAttachment extends Model
         'size',
     ];
 
+    /** @return BelongsTo<Sale, $this> */
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);

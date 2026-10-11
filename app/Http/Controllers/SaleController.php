@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use App\Domain\Sales\Actions\LogSale;
 use App\Http\Requests\StoreSaleRequest;
 use App\Http\Requests\StoreSalesSheetRequest;
+use App\Models\Recipe;
 use App\Models\Sale;
 use App\Models\SaleAttachment;
-use App\Models\Recipe;
 use App\Support\Period;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller
 {
@@ -33,7 +33,7 @@ class SaleController extends Controller
 
         // Unfiltered count, so an empty month can say "nothing in this period"
         // instead of claiming there is no data at all.
-        $totalOnRecord = \App\Models\Sale::count();
+        $totalOnRecord = Sale::count();
 
         return view('sales.index', compact('sales', 'recipes', 'month', 'totalRevenue', 'range', 'totalOnRecord'));
     }
@@ -122,6 +122,7 @@ class SaleController extends Controller
         Gate::authorize('delete-entries');
 
         $sale->delete();
+
         return back()->with('success', 'Sale removed.');
     }
 
@@ -134,7 +135,9 @@ class SaleController extends Controller
 
             foreach ($recipe?->ingredients ?? [] as $ingredient) {
                 $item = $ingredient->inventoryItem;
-                if (!$item) continue;
+                if (! $item) {
+                    continue;
+                }
 
                 $item->quantity_on_hand += $ingredient->quantity * $sale->qty_sold;
                 $item->save();
@@ -155,6 +158,7 @@ class SaleController extends Controller
             ->get();
 
         $pdf = Pdf::loadView('pdfs.sales', compact('sales'));
+
         return $pdf->download('sales-' . now()->format('Y-m-d') . '.pdf');
     }
 }

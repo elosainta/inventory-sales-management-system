@@ -16,10 +16,10 @@ class RecipeConsumptionTest extends TestCase
 {
     private function recipe(array $ingredients): Recipe
     {
-        $recipe = new Recipe();
+        $recipe = new Recipe;
 
         $recipe->setRelation('ingredients', new Collection(array_map(function ($row) {
-            $ingredient = new RecipeIngredient();
+            $ingredient = new RecipeIngredient;
             $ingredient->inventory_item_id = $row[0];
             $ingredient->quantity          = $row[1];
 

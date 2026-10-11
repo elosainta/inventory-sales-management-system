@@ -14,6 +14,9 @@ class DailyReport extends Model
 
     protected $casts = ['report_date' => 'date'];
 
+    /** @return BelongsTo<User, $this> */
+
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

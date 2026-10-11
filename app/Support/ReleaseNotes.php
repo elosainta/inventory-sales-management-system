@@ -30,14 +30,15 @@ namespace App\Support;
  */
 class ReleaseNotes
 {
-    public const CURRENT_VERSION = '1.38.10';
+    public const CURRENT_VERSION = '1.43';
 
     /** The very first commit, for the "since" line in the header. */
     public const FIRST_COMMIT      = '047cdf3';
+
     public const FIRST_RELEASE_DATE = '2026-04-29';
 
     /** Total commits behind the app — in the private repository it is developed in. */
-    public const TOTAL_COMMITS = 461;
+    public const TOTAL_COMMITS = 474;
 
     /**
      * @return array<int, array<string, mixed>> newest release first
@@ -45,6 +46,56 @@ class ReleaseNotes
     public static function all(): array
     {
         return [
+            [
+                'version' => '1.43',
+                'date'    => '2026-10-11',
+                'summary' => 'Logging a sale that empties a shelf exactly no longer fails, and every new version is checked before it goes live.',
+                'fixed' => [
+                    'Logging a sale could fail with an error page when it used up an ingredient exactly — 0.9 kg on the shelf, a dish using 0.3 kg, three sold. The computer\'s arithmetic left a speck of a remainder it could not write down. It now rounds that away, so the shelf simply reads empty.',
+                ],
+                'improved' => [
+                    'Before a new version goes live, every automatic check now runs first; if any fails, the old version stays up and the developer is told. A code-checking tool also reads the whole system for mistakes on each release — it is how the sale problem above was found.',
+                    'Alerts about errors on the site and new support tickets now reach the developer as GitHub notifications, instead of arriving silently.',
+                ],
+                'commits' => '3a5c5d9..HEAD',
+            ],
+            [
+                'version' => '1.42',
+                'date'    => '2026-10-11',
+                'summary' => 'Behind the scenes: new releases go live by themselves, and the code is tidied to one style.',
+                'improved' => [
+                    'A new version of the site now goes live on its own a few minutes after it is published, instead of waiting for someone to put it there by hand. If that ever fails, the developer gets a GitHub issue about it, and the site carries on running the version before.',
+                    'The code behind the site has been tidied to one consistent style, and is kept that way automatically from now on. Nothing about how the site works has changed.',
+                ],
+                'commits' => '946dedc..HEAD',
+            ],
+            [
+                'version' => '1.41',
+                'date'    => '2026-10-11',
+                'summary' => 'A support ticket now reaches the developer on GitHub as well as by email.',
+                'added' => [
+                    'Sending a report from the Support page now also opens it as an issue on the project\'s GitHub, assigned to the developer, with the ticket number, who sent it and a link to any attachment. Nothing changes for whoever sends it — the ticket is saved and emailed as before, even if GitHub is not answering.',
+                ],
+                'commits' => '3d56d4e..HEAD',
+            ],
+            [
+                'version' => '1.40',
+                'date'    => '2026-10-11',
+                'summary' => 'If the whole site goes down, a GitHub issue opens for that too.',
+                'added' => [
+                    'Every ten minutes the server checks that its own sign-in page opens and reports in to GitHub. If it goes quiet for more than 25 minutes — the server, the database or the background jobs having stopped — an issue opens for the developer saying the site is down, and closes itself once the server reports in again.',
+                ],
+                'commits' => '9b29720..HEAD',
+            ],
+            [
+                'version' => '1.39',
+                'date'    => '2026-10-11',
+                'summary' => 'When something breaks on the live site, a GitHub issue opens for it.',
+                'added' => [
+                    'Every error the live site runs into now opens an issue on the project\'s GitHub, assigned to the developer, saying what went wrong, where, and on which page. The same error opens one issue, not one per time it happens; once it is fixed and the issue closed, it opening again means it is back.',
+                ],
+                'commits' => 'b742919..HEAD',
+            ],
             [
                 'version' => '1.38.10',
                 'date'    => '2026-10-11',
@@ -415,7 +466,7 @@ class ReleaseNotes
                 'date'    => '2026-09-16',
                 'summary' => 'The browser tab now shows the isms f instead of a grey globe.',
                 'changed' => [
-                    "Every tab, bookmark and phone home-screen shortcut now carries the isms f on its copper tile, taken from the logo itself. The icon file that should have done this was empty, which is why browsers fell back to their own grey globe.",
+                    'Every tab, bookmark and phone home-screen shortcut now carries the isms f on its copper tile, taken from the logo itself. The icon file that should have done this was empty, which is why browsers fell back to their own grey globe.',
                 ],
                 'commits' => 'e5d8edd..HEAD',
             ],
@@ -424,7 +475,7 @@ class ReleaseNotes
                 'date'    => '2026-09-16',
                 'summary' => 'The real isms logo, on the sidebar and the sign-in page.',
                 'changed' => [
-                    "The \"isms\" name in the sidebar, on the mobile bar at the top and on the sign-in page is now the actual hand-drawn logo instead of a lookalike font. It is cut out with a see-through background, so it sits on the dark sidebar and the pale sign-in page equally well.",
+                    'The "isms" name in the sidebar, on the mobile bar at the top and on the sign-in page is now the actual hand-drawn logo instead of a lookalike font. It is cut out with a see-through background, so it sits on the dark sidebar and the pale sign-in page equally well.',
                 ],
                 'commits' => '3cf618f..HEAD',
             ],
@@ -434,7 +485,7 @@ class ReleaseNotes
                 'summary' => 'Prep now has a History tab anyone can read, and picking a supplier is a search box.',
                 'added'   => [
                     "Prep Checklist has a History tab: pick a day and see every section, which tasks were ticked, who ticked them and at what time, with the photos. Anyone signed in can read it — a chef can check whether Sunday's fryer got turned off without asking a manager. Today's live progress view is still the manager's Prep Overview.",
-                    "The day is chosen with a date box, and the days that actually have work on them are listed as buttons, so there is nothing to guess.",
+                    'The day is chosen with a date box, and the days that actually have work on them are listed as buttons, so there is nothing to guess.',
                 ],
                 'changed' => [
                     "Choosing the supplier on an invoice scan used to open the phone's own list — a full-screen grey thing that looked nothing like the app. It is now a search box with the matches underneath, the same way items are added to a stock-take sheet: type a few letters, tap the one you want.",
@@ -446,8 +497,8 @@ class ReleaseNotes
                 'date'    => '2026-09-16',
                 'summary' => 'A scan you photographed twice can now be removed, and the stock warning reads "Low stock".',
                 'changed' => [
-                    "Invoice Scan: the Owner, a Head Chef or the Admin can now remove a scan from the list — the duplicate you photographed twice, or the one the reader could not make out. Removing it here never touches a bill already sent to Bukku; that is still voided in Bukku, never deleted. Anyone signed in can still open and check a scan, as before.",
-                    "The stock warning now reads \"Low stock\" instead of \"No stock\" — on the Inventory page, the dashboard, the inventory PDF and the red banner. Only the wording changed: it still appears when an item has nothing left.",
+                    'Invoice Scan: the Owner, a Head Chef or the Admin can now remove a scan from the list — the duplicate you photographed twice, or the one the reader could not make out. Removing it here never touches a bill already sent to Bukku; that is still voided in Bukku, never deleted. Anyone signed in can still open and check a scan, as before.',
+                    'The stock warning now reads "Low stock" instead of "No stock" — on the Inventory page, the dashboard, the inventory PDF and the red banner. Only the wording changed: it still appears when an item has nothing left.',
                 ],
                 'commits' => 'be759b5..HEAD',
             ],
@@ -456,8 +507,8 @@ class ReleaseNotes
                 'date'    => '2026-09-13',
                 'summary' => 'Saving no longer fails when two people change stock at the same moment.',
                 'changed' => [
-                    "If two people save something that moves the same stock at the same instant, the second save used to fail with an error page and nothing was recorded. That happened to a production batch on 12 September. The app now simply tries again, up to three times, so the save goes through.",
-                    "This covers logging and undoing production, sales, wastage, purchases, stock-takes, R&D trials and staff meals. Stock is still only taken off once.",
+                    'If two people save something that moves the same stock at the same instant, the second save used to fail with an error page and nothing was recorded. That happened to a production batch on 12 September. The app now simply tries again, up to three times, so the save goes through.',
+                    'This covers logging and undoing production, sales, wastage, purchases, stock-takes, R&D trials and staff meals. Stock is still only taken off once.',
                 ],
                 'commits' => '19c8dfb..HEAD',
             ],
@@ -466,8 +517,8 @@ class ReleaseNotes
                 'date'    => '2026-09-13',
                 'summary' => 'Tidying behind the scenes. Nothing changes on screen.',
                 'removed' => [
-                    "A one-time tool that moved old receipt and checklist photos to private storage. It did its job months ago and was never going to run again.",
-                    "Some leftover setup code from when the project was first created, and two small files the page layouts no longer need.",
+                    'A one-time tool that moved old receipt and checklist photos to private storage. It did its job months ago and was never going to run again.',
+                    'Some leftover setup code from when the project was first created, and two small files the page layouts no longer need.',
                 ],
                 'commits' => '87fa827..HEAD',
             ],
@@ -476,9 +527,9 @@ class ReleaseNotes
                 'date'    => '2026-09-13',
                 'summary' => 'Prep checklist photos upload again.',
                 'changed' => [
-                    "A photo taken on a phone for a prep task can be uploaded. Anything over 5 MB was refused, which is most phone photos, and the page showed nothing, so the button looked broken. The limit is now 25 MB, the same as sale photos.",
-                    "If a photo is refused, the reason now appears in red under that task.",
-                    "The camera button on a photo task opens the camera again. It had been opening the gallery.",
+                    'A photo taken on a phone for a prep task can be uploaded. Anything over 5 MB was refused, which is most phone photos, and the page showed nothing, so the button looked broken. The limit is now 25 MB, the same as sale photos.',
+                    'If a photo is refused, the reason now appears in red under that task.',
+                    'The camera button on a photo task opens the camera again. It had been opening the gallery.',
                 ],
                 'commits' => 'b4bada8..HEAD',
             ],
@@ -487,11 +538,11 @@ class ReleaseNotes
                 'date'    => '2026-09-13',
                 'summary' => 'Add your own units.',
                 'added'   => [
-                    "Every unit dropdown now ends in + New unit. Pick it, type the unit (a bunch, a can, a sack) and it is added and selected. It works when adding or editing an item on the Inventory page, from the dashboard, and in the Not in inventory yet box on Purchases, Market purchases and Invoice scan.",
-                    "A new unit is kept with the item it was saved on, and from then on every dropdown offers it. Typing KG when kg already exists uses kg, so the list does not fill up with the same unit spelled differently.",
+                    'Every unit dropdown now ends in + New unit. Pick it, type the unit (a bunch, a can, a sack) and it is added and selected. It works when adding or editing an item on the Inventory page, from the dashboard, and in the Not in inventory yet box on Purchases, Market purchases and Invoice scan.',
+                    'A new unit is kept with the item it was saved on, and from then on every dropdown offers it. Typing KG when kg already exists uses kg, so the list does not fill up with the same unit spelled differently.',
                 ],
                 'improved' => [
-                    "The Add Ingredient form on the dashboard offered only four units and six categories. It now offers the same lists as everywhere else.",
+                    'The Add Ingredient form on the dashboard offered only four units and six categories. It now offers the same lists as everywhere else.',
                 ],
                 'commits' => '26bcf4e..HEAD',
             ],
@@ -500,7 +551,7 @@ class ReleaseNotes
                 'date'    => '2026-09-12',
                 'summary' => 'Plainer wording on the dish page.',
                 'changed' => [
-                    "On a dish you are logging production for, the ingredient section is simply headed Production. The heading and the line of explanation under it said in two sentences what the boxes and the Recipe says column beside them already show.",
+                    'On a dish you are logging production for, the ingredient section is simply headed Production. The heading and the line of explanation under it said in two sentences what the boxes and the Recipe says column beside them already show.',
                 ],
                 'commits' => '9d37f06..HEAD',
             ],
@@ -510,8 +561,8 @@ class ReleaseNotes
                 'summary' => 'An item is flagged when it has run out, not when it runs low.',
                 'changed' => [
                     "Inventory now says No stock, and only when there is genuinely none left. The old Low warning fired at half of an item's Threshold/Limit figure — but that figure is the most of a thing the kitchen holds, not a level to stay above, so it was never the right thing to measure against. Nothing compares against it now.",
-                    "The dashboard tile, the list beneath it, the Inventory page, the inventory PDF and the red banner at the top of the page all say No stock and all count the same thing.",
-                    "Worth knowing: there is no early warning any more. An item stays quiet until it is gone.",
+                    'The dashboard tile, the list beneath it, the Inventory page, the inventory PDF and the red banner at the top of the page all say No stock and all count the same thing.',
+                    'Worth knowing: there is no early warning any more. An item stays quiet until it is gone.',
                 ],
                 'commits' => 'b8f604d..HEAD',
             ],
@@ -520,8 +571,8 @@ class ReleaseNotes
                 'date'    => '2026-09-12',
                 'summary' => 'Tap a purchase to see what was actually in it.',
                 'added'   => [
-                    "Tapping any row on Purchases or Market now opens that order on its own page, laid out like a scanned bill: the receipt photo beside the supplier, invoice number, date and total, then every item with its quantity, unit price and line total.",
-                    "A purchase that came in from a photographed invoice links back to the scan it was read from.",
+                    'Tapping any row on Purchases or Market now opens that order on its own page, laid out like a scanned bill: the receipt photo beside the supplier, invoice number, date and total, then every item with its quantity, unit price and line total.',
+                    'A purchase that came in from a photographed invoice links back to the scan it was read from.',
                 ],
                 'commits' => 'b080151..HEAD',
             ],
@@ -530,7 +581,7 @@ class ReleaseNotes
                 'date'    => '2026-09-11',
                 'summary' => 'The dishes on Production look like something you can tap.',
                 'changed' => [
-                    "Each dish card on the Production page now lifts when you point at it, presses in when you tap it, and ends with Log production and an arrow, so it is clear the card opens the dish.",
+                    'Each dish card on the Production page now lifts when you point at it, presses in when you tap it, and ends with Log production and an arrow, so it is clear the card opens the dish.',
                 ],
                 'commits' => 'e06f6f3..HEAD',
             ],
@@ -539,9 +590,9 @@ class ReleaseNotes
                 'date'    => '2026-09-11',
                 'summary' => 'Log a whole service of sales on one sheet.',
                 'changed' => [
-                    "The Sales page now opens on a Log sales sheet: every dish on the menu with a quantity box starting at 0 and its price. Type how many of each were sold, check the date, and press Save sales once - every dish with a number is logged together. Anything left at 0 is skipped.",
+                    'The Sales page now opens on a Log sales sheet: every dish on the menu with a quantity box starting at 0 and its price. Type how many of each were sold, check the date, and press Save sales once - every dish with a number is logged together. Anything left at 0 is skipped.',
                     "This replaces yesterday's dish cards, so there is no more tapping into each dish one at a time. The revenue for each dish and the total add up as you type.",
-                    "Off-menu food for the team still goes through + Open order.",
+                    'Off-menu food for the team still goes through + Open order.',
                 ],
                 'commits' => '1d83b0b..HEAD',
             ],
@@ -550,11 +601,11 @@ class ReleaseNotes
                 'date'    => '2026-09-11',
                 'summary' => 'Sales opens on your menu - tap a dish and type how many were sold.',
                 'added' => [
-                    "The Sales page now starts with a card for every dish, like Production. Tap one, type how many were sold, check the price (it is filled in from the menu), and press Log sale. You land back on the cards, ready for the next dish.",
-                    "The dish page shows the revenue as you type, and still takes an optional discount and photos.",
+                    'The Sales page now starts with a card for every dish, like Production. Tap one, type how many were sold, check the price (it is filled in from the menu), and press Log sale. You land back on the cards, ready for the next dish.',
+                    'The dish page shows the revenue as you type, and still takes an optional discount and photos.',
                 ],
                 'changed' => [
-                    "The + Log Sale button is now + Open order. Use it for food a team member ordered off the menu - it opens with the open-order box already ticked. Every dish on the menu is logged from its card.",
+                    'The + Log Sale button is now + Open order. Use it for food a team member ordered off the menu - it opens with the open-order box already ticked. Every dish on the menu is logged from its card.',
                 ],
                 'commits' => 'e66c117..HEAD',
             ],
@@ -563,7 +614,7 @@ class ReleaseNotes
                 'date'    => '2026-09-11',
                 'summary' => 'Behind-the-scenes tidy-up. Nothing to learn.',
                 'improved' => [
-                    "The date filter on Purchases, Sales, Wastage, Market purchases and Production is now one shared piece instead of five copies, and R&D and Staff Meals now share the code that saves their ingredient lines and takes them off stock. Everything works exactly as before - the only difference you might spot is a little more space under the date buttons on Production.",
+                    'The date filter on Purchases, Sales, Wastage, Market purchases and Production is now one shared piece instead of five copies, and R&D and Staff Meals now share the code that saves their ingredient lines and takes them off stock. Everything works exactly as before - the only difference you might spot is a little more space under the date buttons on Production.',
                 ],
                 'commits' => '81e59dc..HEAD',
             ],
@@ -572,11 +623,11 @@ class ReleaseNotes
                 'date'    => '2026-09-11',
                 'summary' => 'Removing a production entry puts the stock back, and ingredient boxes start at zero.',
                 'changed' => [
-                    "Removing a production entry now puts back everything it took off the shelf - exactly the amounts that were typed in - and takes the dishes it made back off. Before, removing one left the stock as it was.",
+                    'Removing a production entry now puts back everything it took off the shelf - exactly the amounts that were typed in - and takes the dishes it made back off. Before, removing one left the stock as it was.',
                     "On a dish's page, every ingredient box now starts at 0. Type only what you used; tapping a box selects the 0 so you can type straight over it. A box left at 0 takes nothing off the shelf, so check the Recipe says column before you save.",
                 ],
                 'removed' => [
-                    "The + Log Production button for logging several dishes at once. Tap a dish card instead. Entries already logged with it stay in the list.",
+                    'The + Log Production button for logging several dishes at once. Tap a dish card instead. Entries already logged with it stay in the list.',
                 ],
                 'commits' => 'af895f8..HEAD',
             ],
@@ -585,13 +636,13 @@ class ReleaseNotes
                 'date'    => '2026-09-11',
                 'summary' => 'Production opens on your menu, and you log what each dish actually used.',
                 'added' => [
-                    "Production now starts with a card for every dish on the menu, the same cards as the Recipes page. Chefs see the dish and what goes in it; the Owner and Head Chefs also see its cost, price and profit.",
-                    "Tap a dish to open its own page, laid out like the recipe. Every ingredient has a box filled in from the recipe - change any of them to what was really used, say how many you made, and press Log Production. What is in the boxes is what comes off the shelf.",
+                    'Production now starts with a card for every dish on the menu, the same cards as the Recipes page. Chefs see the dish and what goes in it; the Owner and Head Chefs also see its cost, price and profit.',
+                    'Tap a dish to open its own page, laid out like the recipe. Every ingredient has a box filled in from the recipe - change any of them to what was really used, say how many you made, and press Log Production. What is in the boxes is what comes off the shelf.',
                     "Change how many you made and every amount changes with it. An amount that no longer matches the recipe turns amber, with the recipe's own figure beside it, so a slip is easy to spot.",
                 ],
                 'changed' => [
                     "Only that dish's own ingredients can be taken off the shelf from its page, and every one needs an amount - type 0 if it was not used. What was used is kept on the batch next to what the recipe says, so the difference can be checked later.",
-                    "The value of a batch is still worked out from the recipe, not from what was actually used. The + Log Production button for several dishes at once still works as before.",
+                    'The value of a batch is still worked out from the recipe, not from what was actually used. The + Log Production button for several dishes at once still works as before.',
                 ],
                 'commits' => '4ebb331..HEAD',
             ],

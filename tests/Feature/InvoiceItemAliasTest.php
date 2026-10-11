@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\InventoryItem;
 use App\Models\InvoiceItemAlias;
 use App\Models\InvoiceScan;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -97,7 +98,7 @@ class InvoiceItemAliasTest extends TestCase
     /** A kitchen supplier already linked to Bukku contact $contactId. */
     private function supplierId(int $contactId): int
     {
-        return \App\Models\Supplier::firstOrCreate(
+        return Supplier::firstOrCreate(
             ['bukku_contact_id' => $contactId],
             ['name' => 'Supplier ' . $contactId, 'contact' => '', 'email' => '', 'address' => ''],
         )->id;

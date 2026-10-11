@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 class GenerateMonthlyFeedbackReport extends Command
 {
     protected $signature   = 'feedback:monthly-report {--month= : Y-m to generate for (defaults to current month)}';
+
     protected $description = 'Email the monthly peer-feedback report to the owner. A month with no entries still sends a short note.';
 
     public function handle(): int
@@ -19,6 +20,7 @@ class GenerateMonthlyFeedbackReport extends Command
 
         if (! preg_match('/^\d{4}-\d{2}$/', $monthStr)) {
             $this->error("Invalid --month '{$monthStr}'. Expected format Y-m (e.g. 2026-07).");
+
             return self::FAILURE;
         }
 
@@ -29,6 +31,7 @@ class GenerateMonthlyFeedbackReport extends Command
 
         if (! $owner) {
             $this->error('No owner account found.');
+
             return self::FAILURE;
         }
 
@@ -47,12 +50,12 @@ class GenerateMonthlyFeedbackReport extends Command
         $body = $isEmpty
             ? "<p>Hi {$owner->name},</p>"
                 . "<p>No peer feedback was submitted in <strong>{$monthLabel}</strong>, so there is no report to attach.</p>"
-                . "<p>This note goes out even on an empty month, so that no email always means something is wrong rather than simply that nobody rated anyone.</p>"
-                . "<p>— Inventory, Sales and Management System</p>"
+                . '<p>This note goes out even on an empty month, so that no email always means something is wrong rather than simply that nobody rated anyone.</p>'
+                . '<p>— Inventory, Sales and Management System</p>'
             : "<p>Hi {$owner->name},</p>"
                 . "<p>Attached is the peer feedback report for <strong>{$monthLabel}</strong> — {$entries->count()} rating(s) exchanged this month.</p>"
-                . "<p>Sender identities are included; they are visible only to you.</p>"
-                . "<p>— Inventory, Sales and Management System</p>";
+                . '<p>Sender identities are included; they are visible only to you.</p>'
+                . '<p>— Inventory, Sales and Management System</p>';
 
         $pdfContent = $isEmpty
             ? null

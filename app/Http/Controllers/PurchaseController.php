@@ -6,14 +6,14 @@ use App\Domain\Purchasing\Actions\LogPurchase;
 use App\Http\Requests\CompletePurchasesRequest;
 use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Requests\UpdatePurchaseRequest;
+use App\Models\InventoryItem;
 use App\Models\Purchase;
 use App\Models\Supplier;
-use App\Models\InventoryItem;
 use App\Support\Period;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -37,22 +37,22 @@ class PurchaseController extends Controller
 
         // Unfiltered count, so an empty month can say "nothing in this period"
         // instead of claiming there is no data at all.
-        $totalOnRecord = \App\Models\Purchase::count();
+        $totalOnRecord = Purchase::count();
 
         return view('purchases.index', compact('purchases', 'suppliers', 'items', 'month', 'totalSpend', 'range', 'totalOnRecord'));
     }
 
     public function store(StorePurchaseRequest $request, LogPurchase $action)
-{
-    Gate::authorize('manage-purchases');
+    {
+        Gate::authorize('manage-purchases');
 
-    $data            = $request->validated();
-    $data['user_id'] = auth()->id();
+        $data            = $request->validated();
+        $data['user_id'] = auth()->id();
 
-    $action->execute($data, $request->file('receipt'));
+        $action->execute($data, $request->file('receipt'));
 
-    return back()->with('success', 'Purchase logged.');
-}
+        return back()->with('success', 'Purchase logged.');
+    }
 
     public function update(UpdatePurchaseRequest $request, Purchase $purchase)
     {
@@ -81,31 +81,34 @@ class PurchaseController extends Controller
         return Storage::response($purchase->receipt_path);
     }
 
-public function destroy(Purchase $purchase)
-{
-    Gate::authorize('delete-entries');
+    public function destroy(Purchase $purchase)
+    {
+        Gate::authorize('delete-entries');
 
-    DB::transaction(function () use ($purchase) {
-        foreach ($purchase->lines()->with('inventoryItem')->get() as $line) {
-            $item = $line->inventoryItem;
-            if (!$item) continue;
+        DB::transaction(function () use ($purchase) {
+            foreach ($purchase->lines()->with('inventoryItem')->get() as $line) {
+                $item = $line->inventoryItem;
+                if (! $item) {
+                    continue;
+                }
 
-            $newQty = max(0, $item->quantity_on_hand - $line->quantity);
-            $item->quantity_on_hand = $newQty;
-            $item->save();
-        }
+                $newQty = max(0, $item->quantity_on_hand - $line->quantity);
+                $item->quantity_on_hand = $newQty;
+                $item->save();
+            }
 
-        // One supplier Upload is the receipt of every purchase it completed,
-        // so the photo goes only with the last purchase still showing it.
-        if ($purchase->receipt_path && ! Purchase::where('receipt_path', $purchase->receipt_path)->whereKeyNot($purchase->id)->exists()) {
-            Storage::delete($purchase->receipt_path);
-        }
+            // One supplier Upload is the receipt of every purchase it completed,
+            // so the photo goes only with the last purchase still showing it.
+            if ($purchase->receipt_path && ! Purchase::where('receipt_path', $purchase->receipt_path)->whereKeyNot($purchase->id)->exists()) {
+                Storage::delete($purchase->receipt_path);
+            }
 
-        $purchase->delete();
-    }, 3); // retried on a write clash; see LogProduction
+            $purchase->delete();
+        }, 3); // retried on a write clash; see LogProduction
 
-    return back()->with('success', 'Purchase removed and stock reversed.');
-}
+        return back()->with('success', 'Purchase removed and stock reversed.');
+    }
+
     public function toggleStatus(Purchase $purchase)
     {
         Gate::authorize('manage-purchases');

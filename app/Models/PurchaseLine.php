@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseLine extends Model
 {
@@ -17,12 +18,18 @@ class PurchaseLine extends Model
         'line_total',
     ];
 
-    public function purchase()
+    /** @return BelongsTo<Purchase, $this> */
+
+    /** @return BelongsTo<Purchase, $this> */
+    public function purchase(): BelongsTo
     {
         return $this->belongsTo(Purchase::class);
     }
 
-    public function inventoryItem()
+    /** @return BelongsTo<InventoryItem, $this> */
+
+    /** @return BelongsTo<InventoryItem, $this> */
+    public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);
     }

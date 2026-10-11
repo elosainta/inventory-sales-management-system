@@ -82,7 +82,7 @@ class DemoReset extends Command
             $this->newLine();
             $this->warn('Provision it once as a DB admin/root, then re-run this command:');
             $this->line("  CREATE DATABASE `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-            $this->line("  GRANT ALL PRIVILEGES ON `{$name}`.* TO '".config('database.connections.mariadb.username')."'@'%';");
+            $this->line("  GRANT ALL PRIVILEGES ON `{$name}`.* TO '" . config('database.connections.mariadb.username') . "'@'%';");
             $this->line('  FLUSH PRIVILEGES;');
 
             return self::FAILURE;

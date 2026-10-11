@@ -35,7 +35,7 @@ class ProductionController extends Controller
 
         // Unfiltered count, so an empty month can say "nothing in this period"
         // instead of claiming there is no data at all.
-        $totalOnRecord = \App\Models\ProductionBatch::count();
+        $totalOnRecord = ProductionBatch::count();
 
         return view('production.index', compact('batches', 'totalValue', 'recipes', 'range', 'month', 'totalOnRecord'));
     }

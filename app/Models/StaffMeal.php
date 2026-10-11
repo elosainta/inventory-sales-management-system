@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Traits\CostingSheet;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\CostingSheet;
 
 /**
  * One staff meal, recorded as a costing sheet: the day, the dish, and
@@ -35,7 +35,7 @@ use App\Traits\CostingSheet;
  */
 class StaffMeal extends Model
 {
-    use LogsActivity, CostingSheet;
+    use CostingSheet, LogsActivity;
 
     protected $fillable = [
         'meal_date',
@@ -52,11 +52,13 @@ class StaffMeal extends Model
         'misc_percent' => 'decimal:2',
     ];
 
+    /** @return HasMany<StaffMealLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(StaffMealLine::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

@@ -1,39 +1,41 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SupplierBillController;
-use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\InventoryItemController;
-use App\Http\Controllers\InvoiceScanController;
-use App\Http\Controllers\PurchaseController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WastageEntryController;
-use App\Http\Controllers\RecipeController;
-use App\Http\Controllers\SaleController;
-use App\Http\Controllers\FloatIssuanceController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\AuditController;
-use App\Http\Controllers\PrepChecklistController;
-use App\Http\Controllers\SpecialEventController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\LoginHistoryController;
-use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\SearchController;
-use App\Http\Controllers\MaintenanceModeController;
-use App\Http\Controllers\SectionController;
-use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\SupportController;
-use App\Http\Controllers\SupportTicketController;
-use App\Http\Controllers\MarketPurchaseController;
-use App\Http\Controllers\ProductionController;
-use App\Http\Controllers\LeaveApplicationController;
-use App\Http\Controllers\DailyReportController;
 use App\Http\Controllers\AboutController;
-use App\Http\Controllers\RndEntryController;
-use App\Http\Controllers\StaffMealController;
+use App\Http\Controllers\AuditController;
+use App\Http\Controllers\DailyReportController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\FloatIssuanceController;
+use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\InventoryTallyController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\InvoiceScanController;
+use App\Http\Controllers\LeaveApplicationController;
+use App\Http\Controllers\LoginHistoryController;
+use App\Http\Controllers\MaintenanceModeController;
+use App\Http\Controllers\MarketPurchaseController;
+use App\Http\Controllers\PrepChecklistController;
+use App\Http\Controllers\ProductionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\RndEntryController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SectionController;
+use App\Http\Controllers\SpecialEventController;
+use App\Http\Controllers\StaffMealController;
 use App\Http\Controllers\StockTakeController;
 use App\Http\Controllers\StockTakeItemController;
+use App\Http\Controllers\SupplierBillController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupportController;
+use App\Http\Controllers\SupportTicketController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WastageEntryController;
+use App\Notifications\LowStockAlert;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return auth()->check()
@@ -159,10 +161,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/sections/{section}/tasks/{task}', [SectionController::class, 'destroyTask'])->name('sections.tasks.destroy');
 
     Route::post('/notifications/dismiss-low-stock', function () {
-        \Illuminate\Support\Facades\Gate::authorize('dismiss-low-stock');
+        Gate::authorize('dismiss-low-stock');
         auth()->user()->unreadNotifications
-            ->where('type', \App\Notifications\LowStockAlert::class)
+            ->where('type', LowStockAlert::class)
             ->each->markAsRead();
+
         return back();
     })->name('notifications.dismiss-low-stock');
 
@@ -237,6 +240,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/tally/create', [InventoryTallyController::class, 'create'])->name('tally.create');
     Route::post('/tally', [InventoryTallyController::class, 'store'])->middleware('throttle:20,1')->name('tally.store');
     Route::get('/tally/{inventoryTally}', [InventoryTallyController::class, 'show'])->name('tally.show');
-    });
+});
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

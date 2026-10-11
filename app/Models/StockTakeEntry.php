@@ -61,6 +61,7 @@ class StockTakeEntry extends Model
         return $net;
     }
 
+    /** @return BelongsTo<StockTake, $this> */
     public function stockTake(): BelongsTo
     {
         return $this->belongsTo(StockTake::class);

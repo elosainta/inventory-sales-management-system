@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFloatIssuanceRequest;
 use App\Models\FloatIssuance;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 
 class FloatIssuanceController extends Controller
 {
@@ -31,6 +30,7 @@ class FloatIssuanceController extends Controller
         Gate::authorize('manage-float');
 
         FloatIssuance::create($request->validated());
+
         return redirect()->route('float.index')->with('success', 'Float issued.');
     }
 
@@ -39,6 +39,7 @@ class FloatIssuanceController extends Controller
         Gate::authorize('manage-float');
 
         $floatIssuance->delete();
+
         return redirect()->route('float.index')->with('success', 'Entry removed.');
     }
 }

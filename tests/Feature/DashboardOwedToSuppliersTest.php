@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -30,7 +31,7 @@ class DashboardOwedToSuppliersTest extends TestCase
 
     public function test_the_owner_sees_what_is_owed_and_where_to_find_the_bills(): void
     {
-        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-09-19'));
+        $this->travelTo(Carbon::parse('2026-09-19'));
 
         Http::fake(['*/purchases/bills*' => Http::response(['transactions' => [
             ['id' => 1, 'number' => 'BL-1', 'contact_id' => 9, 'date' => '2026-08-01', 'amount' => 100, 'balance' => 100, 'status' => 'ready'],

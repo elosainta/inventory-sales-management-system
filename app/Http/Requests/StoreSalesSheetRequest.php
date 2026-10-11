@@ -61,7 +61,7 @@ class StoreSalesSheetRequest extends FormRequest
         return [
             'qty.required' => 'Type how many were sold for at least one dish.',
             'qty.min'      => 'Type how many were sold for at least one dish.',
-            'qty.*.integer'=> 'Quantities are whole dishes.',
+            'qty.*.integer' => 'Quantities are whole dishes.',
             'price.*.required' => 'Every dish sold needs a price.',
         ];
     }

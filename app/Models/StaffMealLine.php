@@ -13,6 +13,7 @@ class StaffMealLine extends Model
 
     protected $fillable = ['staff_meal_id'];
 
+    /** @return BelongsTo<StaffMeal, $this> */
     public function staffMeal(): BelongsTo
     {
         return $this->belongsTo(StaffMeal::class);

@@ -34,7 +34,7 @@ class DraftTranslationsTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach ([".json", ".draft.json"] as $suffix) {
+        foreach (['.json', '.draft.json'] as $suffix) {
             $path = base_path("lang/{$this->locale}{$suffix}");
             if (is_file($path)) {
                 unlink($path);

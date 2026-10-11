@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Purchasing\Actions\RecordPurchaseFromScan;
 use App\Models\InventoryItem;
 use App\Models\InvoiceItemAlias;
 use App\Models\InvoiceScan;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -82,7 +84,7 @@ class ScannedInvoiceBecomesPurchaseTest extends TestCase
         return Supplier::firstOrCreate(['name' => $name], ['contact' => '', 'email' => '', 'address' => '']);
     }
 
-    private function push(InvoiceScan $scan, array $lines, ?Supplier $supplier = null): \Illuminate\Testing\TestResponse
+    private function push(InvoiceScan $scan, array $lines, ?Supplier $supplier = null): TestResponse
     {
         return $this->actingAs($this->manager())->post(route('invoice-scan.push', $scan), [
             'supplier_id'    => ($supplier ?? $this->kitchenSupplier())->id,
@@ -320,7 +322,7 @@ class ScannedInvoiceBecomesPurchaseTest extends TestCase
         $this->fakeBukku();
         $scan = $this->scan();
 
-        $this->mock(\App\Domain\Purchasing\Actions\RecordPurchaseFromScan::class)
+        $this->mock(RecordPurchaseFromScan::class)
             ->shouldReceive('execute')->andThrow(new \RuntimeException('shelf exploded'));
 
         $this->push($scan, [[
@@ -343,7 +345,7 @@ class ScannedInvoiceBecomesPurchaseTest extends TestCase
             'total_amount' => 1, 'status' => 'completed', 'purchase_date' => now(),
         ])->id]);
 
-        $made = app(\App\Domain\Purchasing\Actions\RecordPurchaseFromScan::class)->execute($scan, [
+        $made = app(RecordPurchaseFromScan::class)->execute($scan, [
             'invoice_date' => '2026-09-03',
             'lines'        => [['quantity' => 5, 'unit_price' => 1, 'inventory_item_id' => $chicken->id]],
         ], 'X');

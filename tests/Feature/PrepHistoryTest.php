@@ -7,6 +7,7 @@ use App\Models\SectionCheck;
 use App\Models\SectionTask;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 /**
@@ -68,7 +69,7 @@ class PrepHistoryTest extends TestCase
      */
     public function test_a_rubbish_or_future_date_falls_back_to_today(): void
     {
-        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-10-01 18:49:00', 'UTC'));
+        $this->travelTo(Carbon::parse('2026-10-01 18:49:00', 'UTC'));
 
         foreach (['not-a-date', '9999-99-99', now()->addYear()->toDateString()] as $bad) {
             $this->actingAs($this->owner())

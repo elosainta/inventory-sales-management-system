@@ -6,6 +6,7 @@ use App\Http\Requests\StoreTaskCheckRequest;
 use App\Models\Section;
 use App\Models\SectionCheck;
 use App\Models\SectionTask;
+use App\Notifications\ChecklistReminder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -61,7 +62,7 @@ class PrepChecklistController extends Controller
 
         // Mark unread database notifications as read
         auth()->user()->unreadNotifications
-            ->where('type', \App\Notifications\ChecklistReminder::class)
+            ->where('type', ChecklistReminder::class)
             ->each->markAsRead();
 
         return view('prep.overview', compact('sections'));

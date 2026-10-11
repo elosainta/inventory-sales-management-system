@@ -5,11 +5,12 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Recipe extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = ['name', 'output_inventory_item_id', 'serving_size', 'plate_cost', 'selling_price', 'misc_percent'];
 
@@ -18,7 +19,8 @@ class Recipe extends Model
         return round($this->selling_price - $this->plate_cost, 2);
     }
 
-    public function ingredients()
+    /** @return HasMany<RecipeIngredient, $this> */
+    public function ingredients(): HasMany
     {
         return $this->hasMany(RecipeIngredient::class);
     }
@@ -33,6 +35,7 @@ class Recipe extends Model
      * production step and a sale deducts its raw ingredients directly, exactly
      * as it always did. See [[Path — Logging production]].
      */
+    /** @return BelongsTo<InventoryItem, $this> */
     public function outputInventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class, 'output_inventory_item_id');
@@ -72,7 +75,7 @@ class Recipe extends Model
         return (float) $this->ingredients()
             ->with('inventoryItem')
             ->get()
-            ->sum(fn($ing) => $ing->quantity * ($ing->inventoryItem?->unit_cost ?? 0));
+            ->sum(fn ($ing) => $ing->quantity * ($ing->inventoryItem?->unit_cost ?? 0));
     }
 
     /**

@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use App\Models\InventoryItem;
-use App\Models\Supplier;
-use App\Models\Recipe;
 use App\Models\Purchase;
-use App\Models\Sale;
+use App\Models\Recipe;
 use App\Models\RndEntry;
-use App\Models\WastageEntry;
+use App\Models\Sale;
 use App\Models\SpecialEvent;
+use App\Models\Supplier;
 use App\Models\SupportTicket;
 use App\Models\User;
+use App\Models\WastageEntry;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class SearchController extends Controller
 {
